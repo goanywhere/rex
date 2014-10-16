@@ -32,15 +32,14 @@ import (
 )
 
 var (
-	cwd      string
-	here     string
-	logger   = GetLogger("webapp")
+	cwd    string
+	here   string
+	logger = GetLogger("webapp")
+
 	Settings *Config
 )
 
 type (
-	Handler func(http.ResponseWriter, *http.Request)
-
 	Application struct {
 		*mux.Router
 	}
@@ -65,59 +64,53 @@ func init() {
 
 // New creates a new webapp instance.
 func New() *Application {
-	app := &Application{mux.NewRouter()}
-	return app
+	return &Application{mux.NewRouter()}
 }
 
 // ---------------------------------------------------------------------------
 //  HTTP Requests Handlers
 // ---------------------------------------------------------------------------
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET")
-func (app *Application) GET(pattern string, handler Handler) {
+func (app *Application) GET(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("GET")
 }
 
 // POST is a shortcut for app.HandleFunc(pattern, handler).Methods("POST")
-func (app *Application) POST(pattern string, handler Handler) {
+func (app *Application) POST(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("POST")
 }
 
 // PUT is a shortcut for app.HandleFunc(pattern, handler).Methods("PUT")
-func (app *Application) PUT(pattern string, handler Handler) {
+func (app *Application) PUT(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("PUT")
 }
 
 // DELETE is a shortcut for app.HandleFunc(pattern, handler).Methods("DELETE")
-func (app *Application) DELETE(pattern string, handler Handler) {
+func (app *Application) DELETE(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("DELETE")
 }
 
 // PATCH is a shortcut for app.HandleFunc(pattern, handler).Methods("PATCH")
-func (app *Application) PATCH(pattern string, handler Handler) {
+func (app *Application) PATCH(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("PATCH")
 }
 
 // HEAD is a shortcut for app.HandleFunc(pattern, handler).Methods("HEAD")
-func (app *Application) HEAD(pattern string, handler Handler) {
+func (app *Application) HEAD(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("HEAD")
 }
 
 // OPTIONS is a shortcut for app.HandleFunc(pattern, handler).Methods("OPTIONS")
-func (app *Application) OPTIONS(pattern string, handler Handler) {
+func (app *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
 	app.HandleFunc(pattern, handler).Methods("OPTIONS")
 }
 
 // Group creates a new application group under the given prefix.
 func (app *Application) Group(prefix string) *Application {
-	var group *mux.Route
-
 	if !strings.HasPrefix(prefix, "/") {
-		group = app.PathPrefix("/" + prefix)
-	} else {
-		group = app.PathPrefix(prefix)
+		prefix = "/" + prefix
 	}
-
-	return &Application{group.Subrouter()}
+	return &Application{app.PathPrefix(prefix).Subrouter()}
 }
 
 // ---------------------------------------------------------------------------
