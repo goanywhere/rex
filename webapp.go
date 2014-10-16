@@ -25,6 +25,7 @@ package webapp
 import (
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"strings"
 
@@ -40,18 +41,18 @@ var (
 )
 
 type (
-	Application struct {
-		*mux.Router
+	AbstractRequest interface {
+		GET(string, http.HandlerFunc)
+		POST(string, http.HandlerFunc)
+		PUT(string, http.HandlerFunc)
+		DELETE(string, http.HandlerFunc)
+		PATCH(string, http.HandlerFunc)
+		HEAD(string, http.HandlerFunc)
+		OPTIONS(string, http.HandlerFunc)
 	}
 
-	HTTPRequest interface {
-		GET(string, Handler)
-		POST(string, Handler)
-		PUT(string, Handler)
-		DELETE(string, Handler)
-		PATCH(string, Handler)
-		HEAD(string, Handler)
-		OPTIONS(string, Handler)
+	Application struct {
+		*mux.Router
 	}
 )
 
@@ -67,42 +68,54 @@ func New() *Application {
 	return &Application{mux.NewRouter()}
 }
 
+// getFuncName finds the full function name (with package).
+func getFuncName(function interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
+}
+
 // ---------------------------------------------------------------------------
 //  HTTP Requests Handlers
 // ---------------------------------------------------------------------------
-// GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET")
+// GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) GET(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("GET")
+	app.HandleFunc(pattern, handler).Methods("GET").Name(getFuncName(handler))
 }
 
 // POST is a shortcut for app.HandleFunc(pattern, handler).Methods("POST")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) POST(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("POST")
+	app.HandleFunc(pattern, handler).Methods("POST").Name(getFuncName(handler))
 }
 
 // PUT is a shortcut for app.HandleFunc(pattern, handler).Methods("PUT")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) PUT(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("PUT")
+	app.HandleFunc(pattern, handler).Methods("PUT").Name(getFuncName(handler))
 }
 
 // DELETE is a shortcut for app.HandleFunc(pattern, handler).Methods("DELETE")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) DELETE(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("DELETE")
+	app.HandleFunc(pattern, handler).Methods("DELETE").Name(getFuncName(handler))
 }
 
 // PATCH is a shortcut for app.HandleFunc(pattern, handler).Methods("PATCH")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) PATCH(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("PATCH")
+	app.HandleFunc(pattern, handler).Methods("PATCH").Name(getFuncName(handler))
 }
 
 // HEAD is a shortcut for app.HandleFunc(pattern, handler).Methods("HEAD")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) HEAD(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("HEAD")
+	app.HandleFunc(pattern, handler).Methods("HEAD").Name(getFuncName(handler))
 }
 
 // OPTIONS is a shortcut for app.HandleFunc(pattern, handler).Methods("OPTIONS")
+// it also fetch the full function name of the handler (with package) to name the route.
 func (app *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("OPTIONS")
+	app.HandleFunc(pattern, handler).Methods("OPTIONS").Name(getFuncName(handler))
 }
 
 // Group creates a new application group under the given prefix.
@@ -120,8 +133,7 @@ func (app *Application) Group(prefix string) *Application {
 func (app *Application) Serve() {
 	address := Settings.GetString("address")
 	logger.Info("Server started [" + address + "]")
-	err := http.ListenAndServe(address, app)
-	if nil != err {
+	if err := http.ListenAndServe(address, app); err != nil {
 		panic(err)
 	}
 }
