@@ -28,7 +28,7 @@ import (
 	"github.com/op/go-logging"
 )
 
-var template = "▶ %(level)"
+//var template = "▶ %(level)"
 
 func GetLogger(pkg string) *logging.Logger {
 	var logger = logging.MustGetLogger(pkg)

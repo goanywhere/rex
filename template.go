@@ -21,7 +21,3 @@
  *  ------------------------------------------------------------
  */
 package webapp
-
-type Loader struct{}
-
-type Template struct{}
