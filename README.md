@@ -11,7 +11,7 @@ Webapp is a powerful starter kit for modular web applications/services in Golang
 * Awesome routing system provided by [Gorilla](http://www.gorillatoolkit.org/pkg/mux).
 * Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
-* **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc)/[] interface.**
+* **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
 ## Getting Started
