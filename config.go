@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
- *  @project
- *  @file       viper.go
+ *  @project	webapp
+ *  @file       config.go
  *  @date       2014-10-16
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -29,7 +29,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config struct {
+type config struct {
 	SupportedFormats []string
 }
 
@@ -37,12 +37,12 @@ func init() {
 	// --------------------
 	// Application Defaults
 	// --------------------
-	viper.SetDefault("address", ":9394")
+	viper.SetDefault("address", ":3000")
 	viper.SetDefault("application", "webapp")
 	viper.SetDefault("version", "0.0.1")
 }
 
-func Configure(filename string) *Config {
+func configure(filename string) *config {
 	cwd, _ := os.Getwd()
 	// --------------------
 	// User Settings
@@ -50,77 +50,77 @@ func Configure(filename string) *Config {
 	viper.AddConfigPath(cwd)      // User settings file path.
 	viper.SetConfigName(filename) // Application settings file name.
 	viper.ReadInConfig()
-	return &Config{SupportedFormats: viper.SupportedExts}
+	return &config{SupportedFormats: viper.SupportedExts}
 }
 
-func (config *Config) Get(key string) interface{} {
+func (config *config) Get(key string) interface{} {
 	return viper.Get(key)
 }
 
-func (config *Config) Set(key string, value interface{}) {
+func (config *config) Set(key string, value interface{}) {
 	viper.Set(key, value)
 }
 
-func (config *Config) SetDefault(key string, value interface{}) {
+func (config *config) SetDefault(key string, value interface{}) {
 	viper.SetDefault(key, value)
 }
 
-func (config *Config) AllKeys() []string {
+func (config *config) AllKeys() []string {
 	return viper.AllKeys()
 }
 
-func (config *Config) AllSettings() map[string]interface{} {
+func (config *config) AllSettings() map[string]interface{} {
 	return viper.AllSettings()
 }
 
-func (config *Config) AutomaticEnv() {
+func (config *config) AutomaticEnv() {
 	viper.AutomaticEnv()
 }
 
-func (config *Config) BindEnv(input ...string) (err error) {
+func (config *config) BindEnv(input ...string) (err error) {
 	return viper.BindEnv(input...)
 }
 
-func (config *Config) ConfigFileUsed() string {
+func (config *config) ConfigFileUsed() string {
 	return viper.ConfigFileUsed()
 }
 
-func (config *Config) GetBool(key string) bool {
+func (config *config) GetBool(key string) bool {
 	return viper.GetBool(key)
 }
 
-func (config *Config) GetFloat64(key string) float64 {
+func (config *config) GetFloat64(key string) float64 {
 	return viper.GetFloat64(key)
 }
 
-func (config *Config) GetInt(key string) int {
+func (config *config) GetInt(key string) int {
 	return viper.GetInt(key)
 }
 
-func (config *Config) GetString(key string) string {
+func (config *config) GetString(key string) string {
 	return viper.GetString(key)
 }
 
-func (config *Config) GetStringMap(key string) map[string]interface{} {
+func (config *config) GetStringMap(key string) map[string]interface{} {
 	return viper.GetStringMap(key)
 }
 
-func (config *Config) GetStringMapString(key string) map[string]string {
+func (config *config) GetStringMapString(key string) map[string]string {
 	return viper.GetStringMapString(key)
 }
 
-func (config *Config) GetStringSlice(key string) []string {
+func (config *config) GetStringSlice(key string) []string {
 	return viper.GetStringSlice(key)
 }
 
-func (config *Config) GetTime(key string) time.Time {
+func (config *config) GetTime(key string) time.Time {
 	return viper.GetTime(key)
 }
 
-func (config *Config) InConfig(key string) bool {
+func (config *config) InConfig(key string) bool {
 	return viper.InConfig(key)
 }
 
-func (config *Config) IsSet(key string) bool {
+func (config *config) IsSet(key string) bool {
 	return viper.IsSet(key)
 }

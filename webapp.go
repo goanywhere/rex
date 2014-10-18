@@ -25,9 +25,6 @@ package webapp
 import (
 	"net/http"
 	"path"
-	"reflect"
-	"runtime"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -37,45 +34,28 @@ var (
 	here   string
 	logger = GetLogger("webapp")
 
-	Settings *Config
+	Settings *config
 )
 
 type (
-	AbstractRequest interface {
-		GET(string, http.HandlerFunc)
-		POST(string, http.HandlerFunc)
-		PUT(string, http.HandlerFunc)
-		DELETE(string, http.HandlerFunc)
-		PATCH(string, http.HandlerFunc)
-		HEAD(string, http.HandlerFunc)
-		OPTIONS(string, http.HandlerFunc)
+	Application struct {
+		router      *mux.Router
+		middlewares []Middleware
 	}
 
-	Application struct {
-		*mux.Router
-	}
+	// Conventional method to implement custom middlewares.
+	Middleware func(http.Handler) http.Handler
 )
 
 // Initialize application settings & basic environmetal variables.
 func init() {
 	here = path.Dir(getCurrentFile())
-	Settings = Configure("app")
+	Settings = configure("app")
 }
 
 // New creates a new webapp instance.
 func New() *Application {
-	return &Application{mux.NewRouter()}
-}
-
-// getCurrentFile finds current working file with full path.
-func getCurrentFile() string {
-	_, filename, _, _ := runtime.Caller(1)
-	return filename
-}
-
-// getFuncName finds the full function name (with package).
-func getFuncName(function interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
+	return &Application{mux.NewRouter(), nil}
 }
 
 // ---------------------------------------------------------------------------
@@ -83,62 +63,81 @@ func getFuncName(function interface{}) string {
 // ---------------------------------------------------------------------------
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) GET(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("GET").Name(getFuncName(handler))
+func (self *Application) GET(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("GET").Name(getFuncName(handler))
 }
 
 // POST is a shortcut for app.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) POST(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("POST").Name(getFuncName(handler))
+func (self *Application) POST(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("POST").Name(getFuncName(handler))
 }
 
 // PUT is a shortcut for app.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) PUT(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("PUT").Name(getFuncName(handler))
+func (self *Application) PUT(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("PUT").Name(getFuncName(handler))
 }
 
 // DELETE is a shortcut for app.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) DELETE(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("DELETE").Name(getFuncName(handler))
+func (self *Application) DELETE(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("DELETE").Name(getFuncName(handler))
 }
 
 // PATCH is a shortcut for app.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) PATCH(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("PATCH").Name(getFuncName(handler))
+func (self *Application) PATCH(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("PATCH").Name(getFuncName(handler))
 }
 
 // HEAD is a shortcut for app.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) HEAD(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("HEAD").Name(getFuncName(handler))
+func (self *Application) HEAD(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("HEAD").Name(getFuncName(handler))
 }
 
 // OPTIONS is a shortcut for app.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (app *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
-	app.HandleFunc(pattern, handler).Methods("OPTIONS").Name(getFuncName(handler))
+func (self *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
+	self.router.HandleFunc(pattern, handler).Methods("OPTIONS").Name(getFuncName(handler))
 }
 
-// Group creates a new application group under the given prefix.
-func (app *Application) Group(prefix string) *Application {
-	if !strings.HasPrefix(prefix, "/") {
-		prefix = "/" + prefix
+// Group creates a new application group under the given path.
+func (self *Application) Group(path string) *Application {
+	return &Application{self.router.PathPrefix(path).Subrouter(), nil}
+}
+
+// ---------------------------------------------------------------------------
+//  HTTP Server with Middleware Supports
+// ---------------------------------------------------------------------------
+func (self *Application) Use(middlewares ...Middleware) {
+	self.middlewares = append(self.middlewares, middlewares...)
+}
+
+// ServeHTTP turn Application into http.Handler by implementing the http.Handler interface.
+func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	var app http.Handler = self.router
+
+	// Activate middlewares in FIFO order.
+	if len(self.middlewares) > 0 {
+		if len(self.middlewares) > 0 {
+			for index := len(self.middlewares) - 1; index >= 0; index-- {
+				app = self.middlewares[index](app)
+			}
+		}
 	}
-	return &Application{app.PathPrefix(prefix).Subrouter()}
+
+	app.ServeHTTP(writer, request)
 }
 
-// ---------------------------------------------------------------------------
-//  HTTP Server
-// ---------------------------------------------------------------------------
 // Serve starts serving the requests at the pre-defined address from application settings file.
-func (app *Application) Serve() {
+// TODO command line arguments.
+func (self *Application) Serve() {
 	address := Settings.GetString("address")
 	logger.Info("Server started [" + address + "]")
-	if err := http.ListenAndServe(address, app); err != nil {
+
+	if err := http.ListenAndServe(address, self); err != nil {
 		panic(err)
 	}
 }

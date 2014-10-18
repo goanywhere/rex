@@ -6,6 +6,7 @@ Webapp is a powerful starter kit for modular web applications/services in Golang
 
 ## Features
 * Modular design, extremely easy to use.
+* File-based configurations with YAML, TOML or JSON supports.
 * Non-intrusive design, yet a mature scaffold is still optional.
 * Awesome routing system provided by [Gorilla](http://www.gorillatoolkit.org/pkg/mux).
 * Works nicely with other Golang packages.
