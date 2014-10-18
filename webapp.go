@@ -121,10 +121,8 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {
-		if len(self.middlewares) > 0 {
-			for index := len(self.middlewares) - 1; index >= 0; index-- {
-				app = self.middlewares[index](app)
-			}
+		for index := len(self.middlewares) - 1; index >= 0; index-- {
+			app = self.middlewares[index](app)
 		}
 	}
 
