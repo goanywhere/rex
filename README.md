@@ -9,8 +9,9 @@ Webapp is a powerful starter kit for modular web applications/services in Golang
 * File-based configurations with YAML, TOML or JSON supports.
 * Non-intrusive design, yet a mature scaffold is still optional.
 * Awesome routing system provided by [Gorilla](http://www.gorillatoolkit.org/pkg/mux).
+* Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
-* **Fully compatible with the [http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
+* **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc)/[] interface.**
 
 
 ## Getting Started
@@ -49,3 +50,25 @@ go run server.go
 ```
 
 You will now have a HTTP server running on `localhost:9394`.
+
+
+## Middleware
+
+Middleware works between http request and the router. They are no different than the standard http.Handler, existing middlewares from other frameworks like logging, authorization, session, gzipping are extremely easy to use in webapp You can add one into webapp like this:
+
+``` go
+app.Use(SampleMiddleware())
+```
+
+
+Since the middleware is just the standard http.Handler, writing a custom middleware is also pretty straightforward:
+
+``` go
+app.Use(func(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+        fmt.Fprint(writer, "Custom Middleware Started")
+        next.ServeHTTP(writer, request)
+        fmt.Fprint(writer, "Custom Middleware Ended")
+    })
+})
+```
