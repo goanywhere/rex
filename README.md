@@ -54,7 +54,7 @@ You will now have a HTTP server running on `localhost:9394`.
 
 ## Middleware
 
-Middleware works between http request and the router. They are no different than the standard http.Handler, existing middlewares from other frameworks like logging, authorization, session, gzipping are extremely easy to use in webapp You can add one into webapp like this:
+Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into webapp. As long as the middleware comply the `webapp.Middleware` interface (which is pretty standard), you can simply add one like this:
 
 ``` go
 app.Use(SampleMiddleware())
