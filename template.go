@@ -21,3 +21,9 @@
  *  ------------------------------------------------------------
  */
 package webapp
+
+import (
+	"net/http"
+)
+
+func Render(writer http.ResponseWriter, templates string, context map[string]interface{}) {}

@@ -72,3 +72,17 @@ app.Use(func(next http.Handler) http.Handler {
     })
 })
 ```
+
+``` go
+func CustomMiddleware() webapp.Middleware {
+    return func (next http.Handler) http.Handler {
+        return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+            fmt.Fprint(writer, "Custom Middleware Started")
+            next.ServeHTTP(writer, request)
+            fmt.Fprint(writer, "Custom Middleware Ended")
+        }
+    }
+}
+
+app.Use(CustomMiddleware())
+```
