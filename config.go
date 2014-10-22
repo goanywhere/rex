@@ -33,23 +33,24 @@ type config struct {
 	SupportedFormats []string
 }
 
-func init() {
+func configure(filename string) *config {
+	cwd, _ := os.Getwd()
 	// --------------------
 	// Application Defaults
 	// --------------------
 	viper.SetDefault("address", ":3000")
 	viper.SetDefault("application", "webapp")
 	viper.SetDefault("version", "0.0.1")
-}
-
-func configure(filename string) *config {
-	cwd, _ := os.Getwd()
+	viper.SetDefault("folder", map[string]string{
+		"templates": "templates",
+	})
 	// --------------------
 	// User Settings
 	// --------------------
 	viper.AddConfigPath(cwd)      // User settings file path.
 	viper.SetConfigName(filename) // Application settings file name.
 	viper.ReadInConfig()
+
 	return &config{SupportedFormats: viper.SupportedExts}
 }
 

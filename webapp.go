@@ -24,16 +24,21 @@ package webapp
 
 import (
 	"net/http"
-	"path"
 
 	"github.com/gorilla/mux"
 )
 
-var (
-	cwd    string
-	here   string
-	logger = GetLogger("webapp")
+const (
+	ContentType = "Content-Type"
+	JSON        = "application/json; charset=utf-8"
+	XML         = "application/xml; charset=utf-8"
+	HTML        = "text/html; charset=utf-8"
+)
 
+var (
+	cwd string
+
+	Logger   = GetLogger("webapp")
 	Settings *config
 )
 
@@ -49,7 +54,6 @@ type (
 
 // Initialize application settings & basic environmetal variables.
 func init() {
-	here = path.Dir(getCurrentFile())
 	Settings = configure("app")
 }
 
@@ -117,6 +121,7 @@ func (self *Application) Use(middlewares ...Middleware) {
 
 // ServeHTTP turn Application into http.Handler by implementing the http.Handler interface.
 func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+
 	var app http.Handler = self.router
 
 	// Activate middlewares in FIFO order.
@@ -132,10 +137,9 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 // Serve starts serving the requests at the pre-defined address from application settings file.
 // TODO command line arguments.
 func (self *Application) Serve() {
-	address := Settings.GetString("address")
-	logger.Info("Server started [" + address + "]")
+	Logger.Info("Server started [" + Settings.GetString("address") + "]")
 
-	if err := http.ListenAndServe(address, self); err != nil {
+	if err := http.ListenAndServe(Settings.GetString("address"), self); err != nil {
 		panic(err)
 	}
 }
