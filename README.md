@@ -52,6 +52,45 @@ go run server.go
 You will now have a HTTP server running on `localhost:9394`.
 
 
+## Context
+
+Context is a very useful helper shipped with Webapp. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
+
+
+``` go
+package main
+
+import (
+    "net/http"
+
+    "github.com/goanywhere/webapp"
+)
+
+func init() {
+    ctx := webapp.Context(writer, request)
+    ctx.Options.Layout = "layout.html"
+}
+
+func index (writer http.ResponseWriter, request *http.Request) {
+    context := webapp.Context(writer, request)
+    context.HTML(http.StatusOK, "index.html", "header.html")
+}
+
+func json (writer http.ResponseWriter, request *http.Request) {
+    context := webapp.Context(writer, request)
+    context.JSON(http.StatusOK, webapp.H{"data": "Hello Webapp", "success": true})
+}
+
+func main() {
+    app := webapp.New()
+    app.GET("/", index)
+    app.GET("/api", json)
+    app.Serve()
+}
+```
+
+
+
 ## Middleware
 
 Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into webapp. As long as the middleware comply the `webapp.Middleware` interface (which is pretty standard), you can simply add one like this:

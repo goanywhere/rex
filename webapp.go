@@ -45,6 +45,9 @@ type (
 
 	// Conventional method to implement custom middlewares.
 	Middleware func(http.Handler) http.Handler
+
+	// Shortcut to create map.
+	H map[string]interface{}
 )
 
 // Initialize application settings & basic environmetal variables.
