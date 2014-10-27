@@ -24,20 +24,15 @@ package webapp
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
 
-const (
-	ContentType = "Content-Type"
-	JSON        = "application/json; charset=utf-8"
-	XML         = "application/xml; charset=utf-8"
-	HTML        = "text/html; charset=utf-8"
-)
+const ContentType = "Content-Type"
 
 var (
-	cwd string
-
+	root     string
 	Logger   = GetLogger("webapp")
 	Settings *config
 )
@@ -54,6 +49,7 @@ type (
 
 // Initialize application settings & basic environmetal variables.
 func init() {
+	root, _ = os.Getwd()
 	Settings = configure("app")
 }
 
@@ -107,6 +103,12 @@ func (self *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
 	self.router.HandleFunc(pattern, handler).Methods("OPTIONS").Name(getFuncName(handler))
 }
 
+// HandleFunc is a shourtcut to router's HandleFunc with multiple methods supports,
+// it also fetch the full function name of the handler (with package) to name the route.
+func (self *Application) HandleFunc(pattern string, handler http.HandlerFunc, methods ...string) {
+	self.router.HandleFunc(pattern, handler).Methods(methods...).Name(getFuncName(handler))
+}
+
 // Group creates a new application group under the given path.
 func (self *Application) Group(path string) *Application {
 	return &Application{self.router.PathPrefix(path).Subrouter(), nil}
@@ -121,24 +123,20 @@ func (self *Application) Use(middlewares ...Middleware) {
 
 // ServeHTTP turn Application into http.Handler by implementing the http.Handler interface.
 func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-
 	var app http.Handler = self.router
-
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {
 		for index := len(self.middlewares) - 1; index >= 0; index-- {
 			app = self.middlewares[index](app)
 		}
 	}
-
 	app.ServeHTTP(writer, request)
 }
 
 // Serve starts serving the requests at the pre-defined address from application settings file.
 // TODO command line arguments.
 func (self *Application) Serve() {
-	Logger.Info("Server started [" + Settings.GetString("address") + "]")
-
+	Logger.Info("Application server started [" + Settings.GetString("address") + "]")
 	if err := http.ListenAndServe(Settings.GetString("address"), self); err != nil {
 		panic(err)
 	}

@@ -23,6 +23,9 @@
 package webapp
 
 import (
+	"bytes"
+	"encoding/json"
+	"encoding/xml"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -30,78 +33,151 @@ import (
 )
 
 var (
+	mutex     sync.RWMutex
+	options   *opt
+	contexts  map[*http.Request](map[string]interface{})
 	templates map[string]*template.Template
 )
 
-type context struct {
-	Layout   string
-	Response http.ResponseWriter
-	Request  *http.Request
-	data     map[string]interface{}
-	mutex    sync.RWMutex
-}
+type (
+	opt struct {
+		Indent bool
+		Layout string
+	}
+	context struct {
+		http.ResponseWriter
+		request *http.Request
 
-func getTemplatePath(filename string) string {
-	folder := Settings.GetStringMapString("folder")["templates"]
-	return filepath.Join(folder, filename)
+		Options *opt
+	}
+)
+
+func init() {
+	options = &opt{Indent: true, Layout: "layout.html"}
+	contexts = make(map[*http.Request]map[string]interface{})
+	templates = make(map[string]*template.Template)
 }
 
 func Context(writer http.ResponseWriter, request *http.Request) *context {
-	c := &context{
-		Layout:   "layout.html",
-		Response: writer,
-		Request:  request,
-		data:     make(map[string]interface{}),
+	if ctx := contexts[request]; ctx == nil {
+		contexts[request] = make(map[string]interface{})
 	}
-	return c
+	return &context{writer, request, options}
 }
 
-func (c *context) Get(key string) interface{} {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	return c.data[key]
+func (ctx *context) Get(key string) interface{} {
+	mutex.RLock()
+	defer mutex.RUnlock()
+
+	return contexts[ctx.request][key]
 }
 
-func (c *context) Set(key string, value interface{}) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	c.data[key] = value
+func (ctx *context) Set(key string, value interface{}) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	contexts[ctx.request][key] = value
 }
 
-func (c *context) Delete(key string) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if c.data[key] != nil {
-		delete(c.data, key)
+func (ctx *context) Delete(key string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	delete(contexts[ctx.request], key)
+}
+
+// ---------------------------------------------------------------------------
+//  HTTP Request Helpers
+// ---------------------------------------------------------------------------
+func (ctx *context) ClientIP() string {
+	clientIP := ctx.request.Header.Get("X-Real-IP")
+	if clientIP == "" {
+		clientIP = ctx.request.Header.Get("X-Forwarded-For")
 	}
+	if clientIP == "" {
+		clientIP = ctx.request.RemoteAddr
+	}
+	return clientIP
+}
+
+// ---------------------------------------------------------------------------
+//  HTTP Response Rendering
+// ---------------------------------------------------------------------------
+
+// Forcely parse the passed in template files under the pre-defined template folder,
+// & panics if the error is non-nil. It also try finding the default layout page (defined
+// in ctx.Options.Layout) as the render base first, the parsed template page will be
+// cached in global singleton holder.
+func (ctx *context) parseFiles(filename string, others ...string) *template.Template {
+	page, exists := templates[filename]
+	if !exists {
+		folder := Settings.GetStringMapString("folder")["templates"]
+		var files []string
+		if ctx.Options.Layout != "" {
+			files = append(files, filepath.Join(folder, ctx.Options.Layout))
+			Debug("Using default layout: " + filepath.Join(folder, ctx.Options.Layout))
+		}
+		files = append(files, filepath.Join(folder, filename))
+		for _, item := range others {
+			files = append(files, filepath.Join(folder, item))
+		}
+
+		page = template.Must(template.ParseFiles(files...))
+		templates[filename] = page
+	}
+	return page
+}
+
+// Shortcut to render HTML templates, with basic layout supports.
+func (ctx *context) HTML(status int, filename string, others ...string) {
+	buffer := new(bytes.Buffer)
+	ctx.Header().Set(ContentType, "text/html; charset=utf-8")
+	ctx.WriteHeader(status)
+	err := ctx.parseFiles(filename, others...).Execute(buffer, contexts[ctx.request])
+	if err != nil {
+		panic(err)
+	}
+	buffer.WriteTo(ctx)
+}
+
+func (ctx *context) JSON(status int, values map[string]interface{}) {
+
+	var (
+		data []byte
+		err  error
+	)
+	if ctx.Options.Indent {
+		data, err = json.MarshalIndent(values, "", "\t")
+	} else {
+		data, err = json.Marshal(values)
+	}
+	if err != nil {
+		http.Error(ctx, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	ctx.Header().Set(ContentType, "application/json; charset=utf-8")
+	ctx.WriteHeader(status)
+	ctx.Write(data)
+}
+
+func (ctx *context) XML(status int, values interface{}) {
+	ctx.Header().Set(ContentType, "application/xml; charset=utf-8")
+	ctx.WriteHeader(status)
+	encoder := xml.NewEncoder(ctx)
+	encoder.Encode(values)
 }
 
 // String writes plain text back to the HTTP response.
 // TODO response in buffer.
-func (c *context) String(status uint8, content string) {
-	c.Response.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	c.Response.Write([]byte(content))
+func (ctx *context) String(status int, content string) {
+	ctx.Header().Set(ContentType, "text/plain; charset=utf-8")
+	ctx.WriteHeader(status)
+	ctx.Write([]byte(content))
 }
 
-// Render creates combined file templates using html/template package,
-// Content-Type will be determined by context.Layout's extension.
-// NOTE Pre-defined base template name *MUST* be the same as the file name itself.
-// TODO buffer based caching.
-func (c *context) Render(status uint8, file string, others ...string) {
-	// self-determined for Content-Type
-	switch filepath.Ext(c.Layout) {
-	case ".json":
-		c.Response.Header().Set(ContentType, JSON)
-	case ".xml":
-		c.Response.Header().Set(ContentType, XML)
-	default:
-		c.Response.Header().Set(ContentType, HTML)
-	}
-	// Multiple file templates parsing.
-	files := []string{getTemplatePath(c.Layout), getTemplatePath(file)}
-	for _, item := range others {
-		files = append(files, getTemplatePath(item))
-	}
-	layout := template.Must(template.ParseFiles(files...))
-	layout.ExecuteTemplate(c.Response, c.Layout, c.data)
+func (ctx *context) Data(status int, data []byte) {
+	ctx.Header().Set(ContentType, "application/octet-stream")
+	ctx.WriteHeader(status)
+	ctx.Write(data)
 }
