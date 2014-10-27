@@ -25,6 +25,8 @@ package webapp
 import (
 	"net/http"
 	"os"
+	"reflect"
+	"runtime"
 
 	"github.com/gorilla/mux"
 )
@@ -59,6 +61,20 @@ func init() {
 // New creates a new webapp instance.
 func New() *Application {
 	return &Application{mux.NewRouter(), nil}
+}
+
+// ---------------------------------------------------------------------------
+//  Internal Helpers
+// ---------------------------------------------------------------------------
+// getCurrentFile finds current working file with full path.
+func getCurrentFile() string {
+	_, filename, _, _ := runtime.Caller(1)
+	return filename
+}
+
+// getFuncName finds the full function name (with package).
+func getFuncName(function interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
 }
 
 // ---------------------------------------------------------------------------

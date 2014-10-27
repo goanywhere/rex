@@ -100,6 +100,10 @@ func (ctx *context) ClientIP() string {
 	return clientIP
 }
 
+func (ctx *context) IsAjax() bool {
+	return ctx.request.Header.Get("X-Requested-With") == "XMLHttpRequest"
+}
+
 // ---------------------------------------------------------------------------
 //  HTTP Response Rendering
 // ---------------------------------------------------------------------------
@@ -115,7 +119,7 @@ func (ctx *context) parseFiles(filename string, others ...string) *template.Temp
 		var files []string
 		if ctx.Options.Layout != "" {
 			files = append(files, filepath.Join(folder, ctx.Options.Layout))
-			Debug("Using default layout: " + filepath.Join(folder, ctx.Options.Layout))
+			Logger.Debug("Using default layout: " + filepath.Join(folder, ctx.Options.Layout))
 		}
 		files = append(files, filepath.Join(folder, filename))
 		for _, item := range others {
@@ -141,7 +145,6 @@ func (ctx *context) HTML(status int, filename string, others ...string) {
 }
 
 func (ctx *context) JSON(status int, values map[string]interface{}) {
-
 	var (
 		data []byte
 		err  error
@@ -169,13 +172,13 @@ func (ctx *context) XML(status int, values interface{}) {
 }
 
 // String writes plain text back to the HTTP response.
-// TODO response in buffer.
 func (ctx *context) String(status int, content string) {
 	ctx.Header().Set(ContentType, "text/plain; charset=utf-8")
 	ctx.WriteHeader(status)
 	ctx.Write([]byte(content))
 }
 
+// Data writes binary data back into the HTTP response.
 func (ctx *context) Data(status int, data []byte) {
 	ctx.Header().Set(ContentType, "application/octet-stream")
 	ctx.WriteHeader(status)
