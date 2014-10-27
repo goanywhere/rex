@@ -66,13 +66,9 @@ import (
     "github.com/goanywhere/webapp"
 )
 
-func init() {
-    ctx := webapp.Context(writer, request)
-    ctx.Options.Layout = "layout.html"
-}
-
 func index (writer http.ResponseWriter, request *http.Request) {
     context := webapp.Context(writer, request)
+    context.Options.Layout = "layout.html"
     context.HTML(http.StatusOK, "index.html", "header.html")
 }
 
