@@ -72,14 +72,15 @@ import (
 )
 
 func index (writer http.ResponseWriter, request *http.Request) {
-    context := webapp.Context(writer, request)
+    context := webapp.NewContext(writer, request)
+    // This is Global.
     context.Options.Layout = "layout.html"
-    context.HTML(http.StatusOK, "index.html", "header.html")
+    context.HTML("index.html", "header.html")
 }
 
 func json (writer http.ResponseWriter, request *http.Request) {
-    context := webapp.Context(writer, request)
-    context.JSON(http.StatusOK, webapp.H{"data": "Hello Webapp", "success": true})
+    context := webapp.NewContext(writer, request)
+    context.JSON(webapp.H{"data": "Hello Webapp", "success": true})
 }
 
 func main() {
@@ -97,7 +98,7 @@ func main() {
 Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into webapp. As long as the middleware comply the `webapp.Middleware` interface (which is pretty standard), you can simply add one like this:
 
 ``` go
-app.Use(SampleMiddleware)
+app.Use(middleware.XSRF)
 ```
 
 
