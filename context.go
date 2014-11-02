@@ -27,10 +27,14 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"html/template"
+	"net"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"sync"
 )
+
+const ContentType string = "Content-Type"
 
 var (
 	mutex     sync.RWMutex
@@ -44,11 +48,14 @@ type (
 		Indent bool
 		Layout string
 	}
-	context struct {
+
+	Context struct {
+		// I/O access
 		http.ResponseWriter
-		request *http.Request
+		Request *http.Request
 
 		Options *opt
+		Status  int
 	}
 )
 
@@ -58,50 +65,87 @@ func init() {
 	templates = make(map[string]*template.Template)
 }
 
-func Context(writer http.ResponseWriter, request *http.Request) *context {
+func NewContext(writer http.ResponseWriter, request *http.Request) *Context {
 	if ctx := contexts[request]; ctx == nil {
 		contexts[request] = make(map[string]interface{})
 	}
-	return &context{writer, request, options}
+	return &Context{writer, request, options, http.StatusOK}
 }
 
-func (ctx *context) Get(key string) interface{} {
+// ---------------------------------------------------------------------------
+//  HTTP Request Context Data
+// ---------------------------------------------------------------------------
+func (ctx *Context) Get(key string) interface{} {
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	return contexts[ctx.request][key]
+	return contexts[ctx.Request][key]
 }
 
-func (ctx *context) Set(key string, value interface{}) {
+func (ctx *Context) Set(key string, value interface{}) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	contexts[ctx.request][key] = value
+	contexts[ctx.Request][key] = value
 }
 
-func (ctx *context) Delete(key string) {
+func (ctx *Context) Clear() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	// TODO incorperate with map initialization
+	delete(contexts, ctx.Request)
+}
+
+func (ctx *Context) Delete(key string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	delete(contexts[ctx.request], key)
+	delete(contexts[ctx.Request], key)
+}
+
+// ---------------------------------------------------------------------------
+//  HTTP Cookies
+// ---------------------------------------------------------------------------
+func (ctx *Context) Cookie(name string) string {
+	cookie, err := ctx.Request.Cookie(name)
+	if err == nil {
+		return cookie.Value
+	}
+	return ""
+}
+
+func (ctx *Context) SetCookie(cookie *http.Cookie) {
+	http.SetCookie(ctx, cookie)
+}
+
+func (ctx *Context) SecureCookie(name string) string {
+	return ""
+}
+
+func (ctx *Context) SetSecureCookie(cookie *http.Cookie) {
+	panic("Not Implemented Yet")
 }
 
 // ---------------------------------------------------------------------------
 //  HTTP Request Helpers
 // ---------------------------------------------------------------------------
-func (ctx *context) ClientIP() string {
-	clientIP := ctx.request.Header.Get("X-Real-IP")
+func (ctx *Context) ClientIP() string {
+	clientIP := ctx.Request.Header.Get("X-Real-IP")
 	if clientIP == "" {
-		clientIP = ctx.request.Header.Get("X-Forwarded-For")
+		clientIP = ctx.Request.Header.Get("X-Forwarded-For")
 	}
 	if clientIP == "" {
-		clientIP = ctx.request.RemoteAddr
+		clientIP, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
 	}
 	return clientIP
 }
 
-func (ctx *context) IsAjax() bool {
-	return ctx.request.Header.Get("X-Requested-With") == "XMLHttpRequest"
+func (ctx *Context) IsAjax() bool {
+	return ctx.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
+}
+
+func (ctx *Context) Query() url.Values {
+	return ctx.Request.URL.Query()
 }
 
 // ---------------------------------------------------------------------------
@@ -112,7 +156,7 @@ func (ctx *context) IsAjax() bool {
 // & panics if the error is non-nil. It also try finding the default layout page (defined
 // in ctx.Options.Layout) as the render base first, the parsed template page will be
 // cached in global singleton holder.
-func (ctx *context) parseFiles(filename string, others ...string) *template.Template {
+func (ctx *Context) parseFiles(filename string, others ...string) *template.Template {
 	page, exists := templates[filename]
 	if !exists {
 		folder := Settings.GetStringMapString("folder")["templates"]
@@ -133,54 +177,73 @@ func (ctx *context) parseFiles(filename string, others ...string) *template.Temp
 }
 
 // Shortcut to render HTML templates, with basic layout supports.
-func (ctx *context) HTML(status int, filename string, others ...string) {
+func (ctx *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
 	ctx.Header().Set(ContentType, "text/html; charset=utf-8")
-	ctx.WriteHeader(status)
-	err := ctx.parseFiles(filename, others...).Execute(buffer, contexts[ctx.request])
+	ctx.WriteHeader(ctx.Status)
+	err := ctx.parseFiles(filename, others...).Execute(buffer, contexts[ctx.Request])
 	if err != nil {
 		panic(err)
 	}
 	buffer.WriteTo(ctx)
 }
 
-func (ctx *context) JSON(status int, values map[string]interface{}) {
+func (ctx *Context) JSON(values map[string]interface{}) {
 	var (
 		data []byte
 		err  error
 	)
+
 	if ctx.Options.Indent {
 		data, err = json.MarshalIndent(values, "", "\t")
 	} else {
 		data, err = json.Marshal(values)
 	}
+
 	if err != nil {
 		http.Error(ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ctx.Header().Set(ContentType, "application/json; charset=utf-8")
-	ctx.WriteHeader(status)
+	ctx.WriteHeader(ctx.Status)
 	ctx.Write(data)
 }
 
-func (ctx *context) XML(status int, values interface{}) {
+func (ctx *Context) XML(values interface{}) {
 	ctx.Header().Set(ContentType, "application/xml; charset=utf-8")
-	ctx.WriteHeader(status)
+	ctx.WriteHeader(ctx.Status)
 	encoder := xml.NewEncoder(ctx)
 	encoder.Encode(values)
 }
 
 // String writes plain text back to the HTTP response.
-func (ctx *context) String(status int, content string) {
+func (ctx *Context) String(content string) {
 	ctx.Header().Set(ContentType, "text/plain; charset=utf-8")
-	ctx.WriteHeader(status)
+	ctx.WriteHeader(ctx.Status)
 	ctx.Write([]byte(content))
 }
 
 // Data writes binary data back into the HTTP response.
-func (ctx *context) Data(status int, data []byte) {
+func (ctx *Context) Data(data []byte) {
 	ctx.Header().Set(ContentType, "application/octet-stream")
-	ctx.WriteHeader(status)
+	ctx.WriteHeader(ctx.Status)
 	ctx.Write(data)
 }
+
+// ---------------------------------------------------------------------------
+//  HTTP Status Shortcuts
+// ---------------------------------------------------------------------------
+// 4XX Client errors
+// ---------------------------------------------------------------------------
+func (ctx *Context) Forbidden(message string) {
+	http.Error(ctx, message, http.StatusForbidden)
+}
+
+func (ctx *Context) NotFound(message string) {
+	http.Error(ctx, message, http.StatusNotFound)
+}
+
+// ---------------------------------------------------------------------------
+// 5XX Server errors
+// ---------------------------------------------------------------------------

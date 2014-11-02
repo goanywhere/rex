@@ -4,6 +4,11 @@ Webapp
 Webapp is a powerful starter kit for modular web applications/services in Golang.
 
 
+## NOTE
+
+This is a ongoing project at experiemental stage, consider it's verion *ZERO* and *NOT* suitable for production usage yet.
+
+
 ## Features
 * Modular design, extremely easy to use.
 * File-based configurations with YAML, TOML or JSON supports.
@@ -92,7 +97,7 @@ func main() {
 Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into webapp. As long as the middleware comply the `webapp.Middleware` interface (which is pretty standard), you can simply add one like this:
 
 ``` go
-app.Use(SampleMiddleware())
+app.Use(SampleMiddleware)
 ```
 
 
@@ -106,18 +111,4 @@ app.Use(func(next http.Handler) http.Handler {
         fmt.Fprint(writer, "Custom Middleware Ended")
     })
 })
-```
-
-``` go
-func CustomMiddleware() webapp.Middleware {
-    return func (next http.Handler) http.Handler {
-        return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-            fmt.Fprint(writer, "Custom Middleware Started")
-            next.ServeHTTP(writer, request)
-            fmt.Fprint(writer, "Custom Middleware Ended")
-        }
-    }
-}
-
-app.Use(CustomMiddleware())
 ```

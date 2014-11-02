@@ -31,8 +31,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const ContentType = "Content-Type"
-
 var (
 	root     string
 	Logger   = GetLogger("webapp")

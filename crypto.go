@@ -21,3 +21,29 @@
  *  ------------------------------------------------------------
  */
 package webapp
+
+import (
+	"math/rand"
+	"time"
+)
+
+var (
+	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	random   *rand.Rand
+)
+
+func init() {
+	random = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
+// RandomString creates a securely generated random string.
+//
+//	Args:
+//		length: length of the generated random string.
+func RandomString(length int) string {
+	bytes := make([]rune, length)
+	for index := range bytes {
+		bytes[index] = alphanum[random.Intn(len(alphanum))]
+	}
+	return string(bytes)
+}

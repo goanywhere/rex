@@ -44,6 +44,10 @@ func configure(filename string) *config {
 	viper.SetDefault("folder", map[string]string{
 		"templates": "templates",
 	})
+	viper.SetDefault("XSRF", map[string]interface{}{
+		"enabled": true,
+	})
+	viper.SetDefault("secret", "/******* FILL ME WITH YOUR OWN SECRET *******/")
 	// --------------------
 	// User Settings
 	// --------------------
