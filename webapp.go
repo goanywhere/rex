@@ -34,7 +34,7 @@ import (
 var (
 	root     string
 	Logger   = GetLogger("webapp")
-	Settings *config
+	Settings *settings
 )
 
 type (
@@ -54,6 +54,12 @@ type (
 func init() {
 	root, _ = os.Getwd()
 	Settings = configure("app")
+
+	// Secret is a MUST.
+	secret := Settings.GetString("secret")
+	if secret == "" {
+		panic("Application secret is missing from settings file.")
+	}
 }
 
 // New creates a new webapp instance.

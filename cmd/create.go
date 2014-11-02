@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project
- *  @file       webapp.go
- *  @date       2014-10-10
+ *  @file       create.go
+ *  @date       2014-11-02
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,40 +20,16 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package cmd
 
 import (
-	"os"
+	"github.com/goanywhere/webapp"
 )
-import "github.com/codegangsta/cli"
 
-func create(context *cli.Context) {
-	args := context.Args()
-	if len(args) != 1 {
-		Error("Valid Project Name Missing")
-	} else {
-		// create skeleton here
-	}
-}
+var (
+	chars = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
+)
 
-func Execute() {
-	app := cli.NewApp()
-	app.Name = "webapp"
-	app.Usage = "manage web application project"
-	app.Version = "0.0.1"
-	app.Commands = []cli.Command{
-		{
-			Name:   "create",
-			Usage:  "create a skeleton web application project",
-			Action: create,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "lang, l",
-					Value: "english",
-					Usage: "language for the greeting",
-				},
-			},
-		},
-	}
-	app.Run(os.Args)
+func GenerateSecret() string {
+	return webapp.RandomString(64, chars)
 }

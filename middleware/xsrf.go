@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
  *  @project
- *  @file       csrf.go
+ *  @file       xsrf.go
  *  @date       2014-10-21
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -41,9 +41,11 @@ import (
 
 const (
 	xsrfCookieName = "xsrf"
-	xsrfFieldName  = "X-XSRF-Token"
-	xsrfMaxAge     = 3600 * 24 * 365
-	xsrfTimeout    = time.Hour * 24 * 365
+	xsrfHeaderName = "X-XSRF-Token"
+	xsrfFieldName  = "xsrftoken"
+
+	xsrfMaxAge  = 3600 * 24 * 365
+	xsrfTimeout = time.Hour * 24 * 365
 )
 
 var (
@@ -86,6 +88,8 @@ func (x *xsrf) checkToken(token string) bool {
 	if query == "" || len(query) != len(token) {
 		return false
 	}
+	// *sanitize* incoming masked token.
+	query = xsrfPattern.ReplaceAllString(query, "")
 
 	// 2) byte-based comparison.
 	a, _ := base64.URLEncoding.DecodeString(token)
@@ -121,15 +125,18 @@ func (x *xsrf) checkToken(token string) bool {
 
 func (x *xsrf) generate() string {
 	nano := time.Now().UnixNano()
-	hash := hmac.New(sha1.New, []byte(webapp.RandomString(32)))
-	fmt.Fprintf(hash, "%s|%d", webapp.RandomString(12), nano)
+	hash := hmac.New(sha1.New, []byte(webapp.RandomString(32, nil)))
+	fmt.Fprintf(hash, "%s|%d", webapp.RandomString(12, nil), nano)
 	token := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
 	return base64.URLEncoding.EncodeToString([]byte(token))
 }
 
 func (x *xsrf) token() string {
 	// TODO automatically fetch current domain => *.example.com?
-
+	var secure bool = false
+	if x.context.Request.URL.Scheme == "https" {
+		secure = true
+	}
 	// Ensure we have XSRF token in the cookie first.
 	token := x.context.Cookie(xsrfCookieName)
 	if token == "" {
@@ -142,8 +149,10 @@ func (x *xsrf) token() string {
 			MaxAge:   xsrfMaxAge,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   secure,
 		})
 	}
+	x.context.Set("xsrftoken", token)
 	return token
 }
 
@@ -162,7 +171,7 @@ func XSRF(next http.Handler) http.Handler {
 				ctx.Forbidden(errInvalidReferer)
 			}
 
-			// length => bytes => issue time
+			// length => bytes => issue time checkpoints.
 			if !x.checkToken(token) {
 				ctx.Forbidden(errInvalidToken)
 			}

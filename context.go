@@ -32,6 +32,8 @@ import (
 	"net/url"
 	"path/filepath"
 	"sync"
+
+	"github.com/gorilla/securecookie"
 )
 
 const ContentType string = "Content-Type"
@@ -41,6 +43,8 @@ var (
 	options   *opt
 	contexts  map[*http.Request](map[string]interface{})
 	templates map[string]*template.Template
+
+	secure *securecookie.SecureCookie
 )
 
 type (
@@ -75,77 +79,94 @@ func NewContext(writer http.ResponseWriter, request *http.Request) *Context {
 // ---------------------------------------------------------------------------
 //  HTTP Request Context Data
 // ---------------------------------------------------------------------------
-func (ctx *Context) Get(key string) interface{} {
+func (self *Context) Get(key string) interface{} {
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	return contexts[ctx.Request][key]
+	return contexts[self.Request][key]
 }
 
-func (ctx *Context) Set(key string, value interface{}) {
+func (self *Context) Set(key string, value interface{}) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	contexts[ctx.Request][key] = value
+	contexts[self.Request][key] = value
 }
 
-func (ctx *Context) Clear() {
+func (self *Context) Clear() {
 	mutex.Lock()
 	defer mutex.Unlock()
 	// TODO incorperate with map initialization
-	delete(contexts, ctx.Request)
+	delete(contexts, self.Request)
 }
 
-func (ctx *Context) Delete(key string) {
+func (self *Context) Delete(key string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	delete(contexts[ctx.Request], key)
+	delete(contexts[self.Request], key)
 }
 
 // ---------------------------------------------------------------------------
 //  HTTP Cookies
 // ---------------------------------------------------------------------------
-func (ctx *Context) Cookie(name string) string {
-	cookie, err := ctx.Request.Cookie(name)
-	if err == nil {
-		return cookie.Value
+func (self *Context) Cookie(name string) string {
+	var value string
+	if cookie, err := self.Request.Cookie(name); err == nil {
+		value = cookie.Value
 	}
-	return ""
+	return value
 }
 
-func (ctx *Context) SetCookie(cookie *http.Cookie) {
-	http.SetCookie(ctx, cookie)
+func (self *Context) SetCookie(cookie *http.Cookie) {
+	http.SetCookie(self, cookie)
 }
 
-func (ctx *Context) SecureCookie(name string) string {
-	return ""
+func (self *Context) SecureCookie(name string) string {
+	var value string
+	if cookie, err := self.Request.Cookie(name); err == nil {
+		if err = secure.Decode(name, cookie.Value, &value); err == nil {
+			return value
+		}
+	}
+	return value
 }
 
-func (ctx *Context) SetSecureCookie(cookie *http.Cookie) {
-	panic("Not Implemented Yet")
+// SetSecureCookie signs a cookie so it cannot be forged.
+func (self *Context) SetSecureCookie(cookie *http.Cookie) {
+	// initialize SecureCookie when first set.
+	if secure == nil {
+		secret := []byte(Settings.GetString("secret"))
+		mixing := []byte(RandomString(32, nil))
+		secure = securecookie.New(secret, mixing)
+	}
+
+	if value, err := secure.Encode(cookie.Name, cookie.Value); err == nil {
+		cookie.Value = value
+	}
+	self.SetCookie(cookie)
 }
 
 // ---------------------------------------------------------------------------
 //  HTTP Request Helpers
 // ---------------------------------------------------------------------------
-func (ctx *Context) ClientIP() string {
-	clientIP := ctx.Request.Header.Get("X-Real-IP")
+func (self *Context) ClientIP() string {
+	clientIP := self.Request.Header.Get("X-Real-IP")
 	if clientIP == "" {
-		clientIP = ctx.Request.Header.Get("X-Forwarded-For")
+		clientIP = self.Request.Header.Get("X-Forwarded-For")
 	}
 	if clientIP == "" {
-		clientIP, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
+		clientIP, _, _ = net.SplitHostPort(self.Request.RemoteAddr)
 	}
 	return clientIP
 }
 
-func (ctx *Context) IsAjax() bool {
-	return ctx.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
+func (self *Context) IsAjax() bool {
+	return self.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
 }
 
-func (ctx *Context) Query() url.Values {
-	return ctx.Request.URL.Query()
+func (self *Context) Query() url.Values {
+	return self.Request.URL.Query()
 }
 
 // ---------------------------------------------------------------------------
@@ -156,14 +177,13 @@ func (ctx *Context) Query() url.Values {
 // & panics if the error is non-nil. It also try finding the default layout page (defined
 // in ctx.Options.Layout) as the render base first, the parsed template page will be
 // cached in global singleton holder.
-func (ctx *Context) parseFiles(filename string, others ...string) *template.Template {
+func (self *Context) parseFiles(filename string, others ...string) *template.Template {
 	page, exists := templates[filename]
 	if !exists {
 		folder := Settings.GetStringMapString("folder")["templates"]
 		var files []string
-		if ctx.Options.Layout != "" {
-			files = append(files, filepath.Join(folder, ctx.Options.Layout))
-			Logger.Debug("Using default layout: " + filepath.Join(folder, ctx.Options.Layout))
+		if self.Options.Layout != "" {
+			files = append(files, filepath.Join(folder, self.Options.Layout))
 		}
 		files = append(files, filepath.Join(folder, filename))
 		for _, item := range others {
@@ -177,58 +197,58 @@ func (ctx *Context) parseFiles(filename string, others ...string) *template.Temp
 }
 
 // Shortcut to render HTML templates, with basic layout supports.
-func (ctx *Context) HTML(filename string, others ...string) {
+func (self *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
-	ctx.Header().Set(ContentType, "text/html; charset=utf-8")
-	ctx.WriteHeader(ctx.Status)
-	err := ctx.parseFiles(filename, others...).Execute(buffer, contexts[ctx.Request])
+	self.Header().Set(ContentType, "text/html; charset=utf-8")
+	self.WriteHeader(self.Status)
+	err := self.parseFiles(filename, others...).Execute(buffer, contexts[self.Request])
 	if err != nil {
 		panic(err)
 	}
-	buffer.WriteTo(ctx)
+	buffer.WriteTo(self)
 }
 
-func (ctx *Context) JSON(values map[string]interface{}) {
+func (self *Context) JSON(values map[string]interface{}) {
 	var (
 		data []byte
 		err  error
 	)
 
-	if ctx.Options.Indent {
+	if self.Options.Indent {
 		data, err = json.MarshalIndent(values, "", "\t")
 	} else {
 		data, err = json.Marshal(values)
 	}
 
 	if err != nil {
-		http.Error(ctx, err.Error(), http.StatusInternalServerError)
+		http.Error(self, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ctx.Header().Set(ContentType, "application/json; charset=utf-8")
-	ctx.WriteHeader(ctx.Status)
-	ctx.Write(data)
+	self.Header().Set(ContentType, "application/json; charset=utf-8")
+	self.WriteHeader(self.Status)
+	self.Write(data)
 }
 
-func (ctx *Context) XML(values interface{}) {
-	ctx.Header().Set(ContentType, "application/xml; charset=utf-8")
-	ctx.WriteHeader(ctx.Status)
-	encoder := xml.NewEncoder(ctx)
+func (self *Context) XML(values interface{}) {
+	self.Header().Set(ContentType, "application/xml; charset=utf-8")
+	self.WriteHeader(self.Status)
+	encoder := xml.NewEncoder(self)
 	encoder.Encode(values)
 }
 
 // String writes plain text back to the HTTP response.
-func (ctx *Context) String(content string) {
-	ctx.Header().Set(ContentType, "text/plain; charset=utf-8")
-	ctx.WriteHeader(ctx.Status)
-	ctx.Write([]byte(content))
+func (self *Context) String(content string) {
+	self.Header().Set(ContentType, "text/plain; charset=utf-8")
+	self.WriteHeader(self.Status)
+	self.Write([]byte(content))
 }
 
 // Data writes binary data back into the HTTP response.
-func (ctx *Context) Data(data []byte) {
-	ctx.Header().Set(ContentType, "application/octet-stream")
-	ctx.WriteHeader(ctx.Status)
-	ctx.Write(data)
+func (self *Context) Data(data []byte) {
+	self.Header().Set(ContentType, "application/octet-stream")
+	self.WriteHeader(self.Status)
+	self.Write(data)
 }
 
 // ---------------------------------------------------------------------------
@@ -236,12 +256,12 @@ func (ctx *Context) Data(data []byte) {
 // ---------------------------------------------------------------------------
 // 4XX Client errors
 // ---------------------------------------------------------------------------
-func (ctx *Context) Forbidden(message string) {
-	http.Error(ctx, message, http.StatusForbidden)
+func (self *Context) Forbidden(message string) {
+	http.Error(self, message, http.StatusForbidden)
 }
 
-func (ctx *Context) NotFound(message string) {
-	http.Error(ctx, message, http.StatusNotFound)
+func (self *Context) NotFound(message string) {
+	http.Error(self, message, http.StatusNotFound)
 }
 
 // ---------------------------------------------------------------------------

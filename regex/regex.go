@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project
- *  @file       crypto.go
- *  @date       2014-10-17
+ *  @file       regex.go
+ *  @date       2014-11-01
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,38 +20,13 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package regex
 
 import (
-	"math/rand"
-	"time"
+	"regexp"
 )
 
 var (
-	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	random   *rand.Rand
+	Domain = regexp.MustCompile(`/^\.?[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d]))(?:\.[a-z\d]+(?:(?:[a-z\d]*)|(?:[a-z\d\-]*[a-z\d])))*$/`)
+	Email  = regexp.MustCompile(`(\w[-._\w]*\w@\w[-._\w]*\w\.\w{2,3})`)
 )
-
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
-
-// RandomString creates a securely generated random string.
-//
-//	Args:
-//		length: length of the generated random string.
-func RandomString(length int, chars []rune) string {
-	bytes := make([]rune, length)
-
-	var pool []rune
-	if chars == nil {
-		pool = alphanum
-	} else {
-		pool = chars
-	}
-
-	for index := range bytes {
-		bytes[index] = pool[random.Intn(len(pool))]
-	}
-	return string(bytes)
-}

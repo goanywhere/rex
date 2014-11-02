@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project
- *  @file       crypto.go
- *  @date       2014-10-17
+ *  @file       webapp.go
+ *  @date       2014-10-10
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,38 +20,42 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package cmd
 
 import (
-	"math/rand"
-	"time"
+	"os"
+
+	"github.com/codegangsta/cli"
+	"github.com/goanywhere/webapp"
 )
 
-var (
-	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	random   *rand.Rand
-)
-
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
+func create(context *cli.Context) {
+	args := context.Args()
+	if len(args) != 1 {
+		webapp.Error("Valid Project Name Missing")
+	} else {
+		// create skeleton here
+	}
 }
 
-// RandomString creates a securely generated random string.
-//
-//	Args:
-//		length: length of the generated random string.
-func RandomString(length int, chars []rune) string {
-	bytes := make([]rune, length)
-
-	var pool []rune
-	if chars == nil {
-		pool = alphanum
-	} else {
-		pool = chars
+func Execute() {
+	app := cli.NewApp()
+	app.Name = "webapp"
+	app.Usage = "manage web application project"
+	app.Version = "0.0.1"
+	app.Commands = []cli.Command{
+		{
+			Name:   "create",
+			Usage:  "create a skeleton web application project",
+			Action: create,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "lang, l",
+					Value: "english",
+					Usage: "language for the greeting",
+				},
+			},
+		},
 	}
-
-	for index := range bytes {
-		bytes[index] = pool[random.Intn(len(pool))]
-	}
-	return string(bytes)
+	app.Run(os.Args)
 }
