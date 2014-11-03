@@ -43,7 +43,8 @@ import (
 func main() {
     app := web.New()
     app.GET("/", func(writer http.ResponseWriter, request *http.Request) {
-        fmt.Fprint(writer, "Hello World! ")
+        ctx := web.NewContext(writer, request)
+        ctx.String("Hello World")
     })
     app.Serve()
 }
