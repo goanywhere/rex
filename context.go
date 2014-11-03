@@ -44,6 +44,7 @@ var (
 	contexts  map[*http.Request](map[string]interface{})
 	templates map[string]*template.Template
 
+	secret string
 	secure *securecookie.SecureCookie
 )
 
@@ -136,9 +137,7 @@ func (self *Context) SecureCookie(name string) string {
 func (self *Context) SetSecureCookie(cookie *http.Cookie) {
 	// initialize SecureCookie when first set.
 	if secure == nil {
-		secret := []byte(Settings.GetString("secret"))
-		mixing := []byte(RandomString(32, nil))
-		secure = securecookie.New(secret, mixing)
+		secure = securecookie.New([]byte(secret), nil)
 	}
 
 	if value, err := secure.Encode(cookie.Name, cookie.Value); err == nil {

@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project
+ *  @project	webapp
  *  @file       xsrf.go
  *  @date       2014-10-21
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -61,14 +61,14 @@ type xsrf struct {
 }
 
 // See http://en.wikipedia.org/wiki/Same-origin_policy
-func (x *xsrf) checkOrigin() bool {
-	if x.context.Request.URL.Scheme == "https" {
+func (self *xsrf) checkOrigin() bool {
+	if self.context.Request.URL.Scheme == "https" {
 		// See [OWASP]; Checking the Referer Header.
-		referer, err := url.Parse(x.context.Request.Header.Get("Referer"))
+		referer, err := url.Parse(self.context.Request.Header.Get("Referer"))
 
 		if err != nil || referer.String() == "" ||
-			referer.Scheme != x.context.Request.URL.Scheme ||
-			referer.Host != x.context.Request.URL.Host {
+			referer.Scheme != self.context.Request.URL.Scheme ||
+			referer.Host != self.context.Request.URL.Host {
 
 			return false
 		}
@@ -76,12 +76,12 @@ func (x *xsrf) checkOrigin() bool {
 	return true
 }
 
-func (x *xsrf) checkToken(token string) bool {
+func (self *xsrf) checkToken(token string) bool {
 	// Header always takes precedance of form field since some popular
 	// JavaScript frameworks allow global custom headers for all AJAX requests.
-	query := x.context.Request.Header.Get(xsrfFieldName)
+	query := self.context.Request.Header.Get(xsrfFieldName)
 	if query == "" {
-		query = x.context.Request.FormValue(xsrfFieldName)
+		query = self.context.Request.FormValue(xsrfFieldName)
 	}
 
 	// 1) basic length comparison.
@@ -123,7 +123,7 @@ func (x *xsrf) checkToken(token string) bool {
 	return true
 }
 
-func (x *xsrf) generate() string {
+func (self *xsrf) generate() string {
 	nano := time.Now().UnixNano()
 	hash := hmac.New(sha1.New, []byte(webapp.RandomString(32, nil)))
 	fmt.Fprintf(hash, "%s|%d", webapp.RandomString(12, nil), nano)
@@ -131,19 +131,18 @@ func (x *xsrf) generate() string {
 	return base64.URLEncoding.EncodeToString([]byte(token))
 }
 
-func (x *xsrf) token() string {
-	// TODO automatically fetch current domain => *.example.com?
+func (self *xsrf) token() string {
 	var secure bool = false
-	if x.context.Request.URL.Scheme == "https" {
+	if self.context.Request.URL.Scheme == "https" {
 		secure = true
 	}
 	// Ensure we have XSRF token in the cookie first.
-	token := x.context.Cookie(xsrfCookieName)
+	token := self.context.Cookie(xsrfCookieName)
 	if token == "" {
-		token = x.generate()
+		token = self.generate()
 		// The max-age directive takes priority over Expires.
 		//	http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-		x.context.SetCookie(&http.Cookie{
+		self.context.SetCookie(&http.Cookie{
 			Name:     xsrfCookieName,
 			Value:    token,
 			MaxAge:   xsrfMaxAge,
@@ -152,7 +151,7 @@ func (x *xsrf) token() string {
 			Secure:   secure,
 		})
 	}
-	x.context.Set("xsrftoken", token)
+	self.context.Set("xsrftoken", token)
 	return token
 }
 
@@ -160,7 +159,7 @@ func (x *xsrf) token() string {
 //  XSRF Middleware Supports
 // ---------------------------------------------------------------------------
 func XSRF(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := webapp.NewContext(w, r)
 		x := &xsrf{ctx}
 		token := x.token()
@@ -181,5 +180,6 @@ func XSRF(next http.Handler) http.Handler {
 		w.Header().Add("Vary", "Cookie")
 
 		next.ServeHTTP(w, r)
-	})
+	}
+	return http.HandlerFunc(fn)
 }
