@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	webapp
+ *  @project	web
  *  @file       context.go
  *  @date       2014-10-21
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package web
 
 import (
 	"bytes"

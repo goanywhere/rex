@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
- *  @project
- *  @file       webapp.go
+ *  @project	web
+ *  @file       web.go
  *  @date       2014-10-10
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -26,13 +26,13 @@ import (
 	"os"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/webapp"
+	"github.com/goanywhere/web"
 )
 
 func create(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 {
-		webapp.Error("Valid Project Name Missing")
+		web.Error("Valid Project Name Missing")
 	} else {
 		// create skeleton here
 	}

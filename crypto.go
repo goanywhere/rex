@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project
+ *  @project	web
  *  @file       crypto.go
  *  @date       2014-10-17
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package web
 
 import (
 	"math/rand"

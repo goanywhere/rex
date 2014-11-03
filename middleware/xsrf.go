@@ -36,7 +36,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goanywhere/webapp"
+	"github.com/goanywhere/web"
 )
 
 const (
@@ -57,7 +57,7 @@ var (
 )
 
 type xsrf struct {
-	context *webapp.Context
+	context *web.Context
 }
 
 // See http://en.wikipedia.org/wiki/Same-origin_policy
@@ -125,8 +125,8 @@ func (self *xsrf) checkToken(token string) bool {
 
 func (self *xsrf) generate() string {
 	nano := time.Now().UnixNano()
-	hash := hmac.New(sha1.New, []byte(webapp.RandomString(32, nil)))
-	fmt.Fprintf(hash, "%s|%d", webapp.RandomString(12, nil), nano)
+	hash := hmac.New(sha1.New, []byte(web.RandomString(32, nil)))
+	fmt.Fprintf(hash, "%s|%d", web.RandomString(12, nil), nano)
 	token := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
 	return base64.URLEncoding.EncodeToString([]byte(token))
 }
@@ -161,7 +161,7 @@ func (self *xsrf) token() string {
 // ---------------------------------------------------------------------------
 func XSRF(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx := webapp.NewContext(w, r)
+		ctx := web.NewContext(w, r)
 		x := &xsrf{ctx}
 		token := x.token()
 

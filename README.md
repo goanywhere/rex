@@ -1,7 +1,7 @@
-Webapp
+Web
 ======
 
-Webapp is a powerful starter kit for modular web applications/services in Golang.
+*Web* is a powerful starter kit for modular web applications/services in Golang.
 
 
 ## NOTE
@@ -37,11 +37,11 @@ import (
     "fmt"
     "net/http"
 
-    "github.com/goanywhere/webapp"
+    "github.com/goanywhere/web"
 )
 
 func main() {
-    app := webapp.New()
+    app := web.New()
     app.GET("/", func(writer http.ResponseWriter, request *http.Request) {
         fmt.Fprint(writer, "Hello World! ")
     })
@@ -68,23 +68,23 @@ package main
 import (
     "net/http"
 
-    "github.com/goanywhere/webapp"
+    "github.com/goanywhere/web"
 )
 
 func index (writer http.ResponseWriter, request *http.Request) {
-    context := webapp.NewContext(writer, request)
+    context := web.NewContext(writer, request)
     // This is Global.
     context.Options.Layout = "layout.html"
     context.HTML("index.html", "header.html")
 }
 
 func json (writer http.ResponseWriter, request *http.Request) {
-    context := webapp.NewContext(writer, request)
-    context.JSON(webapp.H{"data": "Hello Webapp", "success": true})
+    context := web.NewContext(writer, request)
+    context.JSON(web.H{"data": "Hello Webapp", "success": true})
 }
 
 func main() {
-    app := webapp.New()
+    app := web.New()
     app.GET("/", index)
     app.GET("/api", json)
     app.Serve()
@@ -107,9 +107,9 @@ Since the middleware is just the standard http.Handler, writing a custom middlew
 ``` go
 app.Use(func(next http.Handler) http.Handler {
     return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-        fmt.Fprint(writer, "Custom Middleware Started")
+        web.Debug("Custom Middleware Started")
         next.ServeHTTP(writer, request)
-        fmt.Fprint(writer, "Custom Middleware Ended")
+        web.Debug("Custom Middleware Ended")
     })
 })
 ```

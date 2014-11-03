@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
- *  @project	webapp
- *  @file       webapp.go
+ *  @project	web
+ *  @file       web.go
  *  @date       2014-10-16
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package webapp
+package web
 
 import (
 	"net/http"

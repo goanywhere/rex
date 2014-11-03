@@ -23,7 +23,7 @@
 package cmd
 
 import (
-	"github.com/goanywhere/webapp"
+	"github.com/goanywhere/web"
 )
 
 var (
@@ -31,5 +31,5 @@ var (
 )
 
 func GenerateSecret() string {
-	return webapp.RandomString(64, chars)
+	return web.RandomString(64, chars)
 }
