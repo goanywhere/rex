@@ -24,7 +24,7 @@ This is a ongoing project at experiemental stage, consider it's version *ZERO* a
 Install the webapp package (**go 1.3** and greater is required):
 
 ~~~
-go get github.com/goanywhere/webapp
+go get github.com/goanywhere/web
 ~~~
 
 
@@ -59,7 +59,7 @@ You will now have a HTTP server running on `localhost:9394`.
 
 ## Context
 
-Context is a very useful helper shipped with Webapp. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
+Context is a very useful helper shipped with *Web*. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
 
 
 ``` go
@@ -80,7 +80,7 @@ func index (writer http.ResponseWriter, request *http.Request) {
 
 func json (writer http.ResponseWriter, request *http.Request) {
     context := web.NewContext(writer, request)
-    context.JSON(web.H{"data": "Hello Webapp", "success": true})
+    context.JSON(web.H{"data": "Hello Web", "success": true})
 }
 
 func main() {
