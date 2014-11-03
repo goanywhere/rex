@@ -6,7 +6,7 @@ Webapp is a powerful starter kit for modular web applications/services in Golang
 
 ## NOTE
 
-This is a ongoing project at experiemental stage, consider it's verion *ZERO* and *NOT* suitable for production usage yet.
+This is a ongoing project at experiemental stage, consider it's version *ZERO* and *NOT* suitable for production usage yet.
 
 
 ## Features
