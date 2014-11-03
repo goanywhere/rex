@@ -21,7 +21,7 @@ This is a ongoing project at experiemental stage, consider it's version *ZERO* a
 
 ## Getting Started
 
-Install the webapp package (**go 1.3** and greater is required):
+Install the package (**go 1.3** and greater is required):
 
 ~~~
 go get github.com/goanywhere/web
@@ -95,7 +95,7 @@ func main() {
 
 ## Middleware
 
-Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into webapp. As long as the middleware comply the `webapp.Middleware` interface (which is pretty standard), you can simply add one like this:
+Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into *web*. As long as the middleware comply the `web.Middleware` interface (which is pretty standard), you can simply add one like this:
 
 ``` go
 app.Use(middleware.XSRF)
