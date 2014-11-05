@@ -10,9 +10,8 @@ This is a ongoing project at experiemental stage, consider it's version *ZERO* a
 
 
 ## Features
-* Modular design, extremely easy to use.
+* Non-intrusive/Modular design, extremely easy to use.
 * File-based configurations with YAML, TOML or JSON supports.
-* Non-intrusive design, yet a mature scaffold is still optional.
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
 * Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
