@@ -1,7 +1,7 @@
 Web.*go*
 ======
 
-*Web* is a powerful starter kit for modular web applications/services in Golang.
+Web.*go* is a powerful starter kit for modular web applications/services in Golang.
 
 
 ## NOTE
@@ -58,7 +58,7 @@ You will now have a HTTP server running on `localhost:9394`.
 
 ## Context
 
-Context is a very useful helper shipped with *Web*. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
+Context is a very useful helper shipped with Web.*go*. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
 
 
 ``` go
@@ -70,15 +70,15 @@ import (
     "github.com/goanywhere/web"
 )
 
-func index (writer http.ResponseWriter, request *http.Request) {
-    context := web.NewContext(writer, request)
+func index (w http.ResponseWriter, r *http.Request) {
+    context := web.NewContext(w, r)
     // This is Global.
     context.Options.Layout = "layout.html"
     context.HTML("index.html", "header.html")
 }
 
-func json (writer http.ResponseWriter, request *http.Request) {
-    context := web.NewContext(writer, request)
+func json (w http.ResponseWriter, r *http.Request) {
+    context := web.NewContext(w, r)
     context.JSON(web.H{"data": "Hello Web", "success": true})
 }
 
@@ -94,7 +94,7 @@ func main() {
 
 ## Middleware
 
-Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into *web*. As long as the middleware comply the `web.Middleware` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
+Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into Web.*go*. As long as the middleware comply the `web.Middleware` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
 
 ``` go
 app.Use(middleware.XSRF)
