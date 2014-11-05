@@ -33,7 +33,6 @@ After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html
 package main
 
 import (
-    "fmt"
     "net/http"
 
     "github.com/goanywhere/web"
@@ -41,8 +40,8 @@ import (
 
 func main() {
     app := web.New()
-    app.GET("/", func(writer http.ResponseWriter, request *http.Request) {
-        ctx := web.NewContext(writer, request)
+    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+        ctx := web.NewContext(w, r)
         ctx.String("Hello World")
     })
     app.Serve()
