@@ -1,4 +1,4 @@
-Web
+Web.*go*
 ======
 
 *Web* is a powerful starter kit for modular web applications/services in Golang.
@@ -95,7 +95,7 @@ func main() {
 
 ## Middleware
 
-Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into *web*. As long as the middleware comply the `web.Middleware` interface (which is pretty standard), you can simply add one like this:
+Middleware works between http request and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into *web*. As long as the middleware comply the `web.Middleware` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
 
 ``` go
 app.Use(middleware.XSRF)
