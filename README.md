@@ -112,3 +112,22 @@ app.Use(func(next http.Handler) http.Handler {
     })
 })
 ```
+
+
+
+## Tons of frameworks comes & dies, will this be supported?
+
+Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We developed it and we are going to continue using/improving it.
+
+
+##Roadmap for v1.0
+
+- [ ] Test suite
+- [ ] Performance improvements
+- [ ] Stable API
+- [ ] Home page
+- [ ] Logging system improvements
+- [ ] Validations
+- [ ] Documentation
+- [ ] More cool middlewares
+- [ ] Continuous integration
