@@ -17,4 +17,3 @@
 $(document).ready ->
   $("pre").each (index, block) ->
     hljs.highlightBlock block
-  fundation()
