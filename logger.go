@@ -28,11 +28,12 @@ import (
 	"github.com/op/go-logging"
 )
 
-//var template = "▶ %(level)"
+const formatter = "%{color} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
 
-func GetLogger(pkg string) *logging.Logger {
-	var logger = logging.MustGetLogger(pkg)
-	return logger
+func Logger() *logging.Logger {
+	l := logging.MustGetLogger("web.go")
+	logging.SetFormatter(logging.MustStringFormatter(formatter))
+	return l
 }
 
 func Debug(message string) {
@@ -58,15 +59,4 @@ func Info(message string) {
 func Warn(message string) {
 	colorize := gocolorize.NewColor("yellow").Paint
 	fmt.Println(colorize("[WARN] " + message))
-}
-
-func init() {
-	//var format = "%{color}%{time:15:04:05.000000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
-	//logBackend := logging.NewLogBackend(os.Stderr, "", 0)
-	//syslogBackend, _ := logging.NewSyslogBackend("")
-	//logging.SetBackend(logBackend, syslogBackend)
-	//logging.SetFormatter(logging.MustStringFormatter(format))
-	//logging.SetLevel(logging.DEBUG, "webapp")
-	//red := gocolorize.Colorize{Fg: gocolorize.Red}
-
 }
