@@ -19,7 +19,7 @@
   <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
   <meta name="msapplication-TileColor" content="#3372DF">
   <!-- Foundation Base + Application Styling -->
-  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto|Rock+Salt">
   <link rel="stylesheet" href="//simonwhitaker.github.io/github-fork-ribbon-css/gh-fork-ribbon.css">
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.4.7/css/normalize.min.css">
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.4.7/css/foundation.min.css">
@@ -75,8 +75,12 @@
 
   <section id="demo" class="even">
     <div class="row">
+      <h1 class="large-4 columns left">Hello</h1>
+      <div id="gopher" class="large-4 columns"></div>
+      <h1 class="large-4 columns right">World!</h1>
+    </div>
+    <div class="row">
       <div class="large-12 columns">
-        <div id="gopher"></div>
         <article class="terminal">
         <header>Vim/app.go</header>
         <pre class="go">package main
@@ -90,7 +94,7 @@ func main() {
     app := web.New()
     app.GET("/", func(w http.ResponseWriter, r *http.Request) {
         ctx := web.NewContext(w, r)
-        ctx.String("Hello World")
+        ctx.String("Hello World!")
     })
     app.Serve()
 }</pre>

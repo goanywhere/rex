@@ -95,7 +95,7 @@ footer {
 }
 
 #gopher {
-  background: url(//golang.org/doc/gopher/frontpage.png) no-repeat;
+  background: url(../images/gopher.png) no-repeat;
   background-position: center top;
   height: 155px;
   margin: 0;
@@ -104,6 +104,22 @@ footer {
 #demo {
    padding-top: 30px;
    padding-bottom: 30px;
+
+   h1 {
+     font-size: 60px;
+     font-weight: 400;
+     font-family: 'Rock Salt', cursive;
+     text-align: center;
+   }
+   .left, .right {
+     padding-top: 40px;
+   }
+   .left {
+      text-align: right;
+   }
+   .right {
+      text-align: left;
+   }
 }
 
 .icon {
