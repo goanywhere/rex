@@ -45,12 +45,21 @@ type (
 		middlewares []Middleware
 	}
 
+	HandlerFunc func(*Context)
+
 	// Conventional method to implement custom middlewares.
 	Middleware func(http.Handler) http.Handler
 
 	// Shortcut to create map.
 	H map[string]interface{}
 )
+
+// ---------------------------------------------------------------------------
+//  Custom handler func with Context Supports
+// ---------------------------------------------------------------------------
+func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	self(NewContext(w, r))
+}
 
 // Initialize application settings & basic environmetal variables.
 func init() {
