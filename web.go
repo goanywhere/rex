@@ -23,6 +23,7 @@
 package web
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -69,68 +70,71 @@ func New() *Application {
 }
 
 // ---------------------------------------------------------------------------
-//  Internal Helpers
-// ---------------------------------------------------------------------------
-// getCurrentFile finds current working file with full path.
-func getCurrentFile() string {
-	_, filename, _, _ := runtime.Caller(1)
-	return filename
-}
-
-// getFuncName finds the full function name (with package).
-func getFuncName(function interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
-}
-
-// ---------------------------------------------------------------------------
 //  HTTP Requests Handlers
 // ---------------------------------------------------------------------------
+// Supported Handler Types
+//	* http.Handler
+//	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
+//	* web.HandlerFunc	=> func(ctx *Context)
+func (self *Application) handle(method, pattern string, h interface{}) {
+	var handler http.Handler
+
+	switch h.(type) {
+	// Standard net/http.Handler/HandlerFunc
+	case http.Handler:
+		handler = h.(http.Handler)
+	case func(w http.ResponseWriter, r *http.Request):
+		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
+	case func(ctx *Context):
+		handler = HandlerFunc(h.(func(ctx *Context)))
+	default:
+		panic(fmt.Sprintf("Unknown handler type (%v) passed in.", handler))
+	}
+	// finds the full function name (with package)
+	name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+	self.router.Handle(pattern, handler).Methods(method).Name(name)
+}
+
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) GET(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("GET").Name(getFuncName(handler))
+func (self *Application) GET(pattern string, handler interface{}) {
+	self.handle("GET", pattern, handler)
 }
 
 // POST is a shortcut for app.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) POST(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("POST").Name(getFuncName(handler))
+func (self *Application) POST(pattern string, handler interface{}) {
+	self.handle("POST", pattern, handler)
 }
 
 // PUT is a shortcut for app.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) PUT(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("PUT").Name(getFuncName(handler))
+func (self *Application) PUT(pattern string, handler interface{}) {
+	self.handle("PUT", pattern, handler)
 }
 
 // DELETE is a shortcut for app.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) DELETE(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("DELETE").Name(getFuncName(handler))
+func (self *Application) DELETE(pattern string, handler interface{}) {
+	self.handle("DELETE", pattern, handler)
 }
 
 // PATCH is a shortcut for app.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Application) PATCH(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("PATCH").Name(getFuncName(handler))
+	self.handle("PATCH", pattern, handler)
 }
 
 // HEAD is a shortcut for app.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Application) HEAD(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("HEAD").Name(getFuncName(handler))
+	self.handle("HEAD", pattern, handler)
 }
 
 // OPTIONS is a shortcut for app.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
-	self.router.HandleFunc(pattern, handler).Methods("OPTIONS").Name(getFuncName(handler))
-}
-
-// HandleFunc is a shourtcut to router's HandleFunc with multiple methods supports,
-// it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) HandleFunc(pattern string, handler http.HandlerFunc, methods ...string) {
-	self.router.HandleFunc(pattern, handler).Methods(methods...).Name(getFuncName(handler))
+	self.handle("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
