@@ -151,8 +151,8 @@ func (self *xsrf) token() string {
 			Secure:   secure,
 		})
 	}
-	self.context.Header().Set("X-XSRF-Token", token)
-	self.context.Set("xsrftoken", token)
+	self.context.Header().Set(xsrfHeaderName, token)
+	self.context.Set(xsrfFieldName, token)
 	return token
 }
 

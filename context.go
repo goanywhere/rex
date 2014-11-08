@@ -31,7 +31,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"sync"
 
 	"github.com/gorilla/securecookie"
 )
@@ -39,9 +38,6 @@ import (
 const ContentType string = "Content-Type"
 
 var (
-	mutex     sync.RWMutex
-	options   *opt
-	contexts  map[*http.Request](map[string]interface{})
 	templates map[string]*template.Template
 
 	secret string
@@ -49,63 +45,50 @@ var (
 )
 
 type (
-	opt struct {
-		Indent bool
-		Layout string
-	}
-
 	Context struct {
 		// I/O access
 		http.ResponseWriter
 		Request *http.Request
 
-		Options *opt
-		Status  int
+		Status int
+		data   map[string]interface{}
 	}
 )
 
 func init() {
-	options = &opt{Indent: true, Layout: "layout.html"}
-	contexts = make(map[*http.Request]map[string]interface{})
 	templates = make(map[string]*template.Template)
 }
 
 func NewContext(writer http.ResponseWriter, request *http.Request) *Context {
-	if ctx := contexts[request]; ctx == nil {
-		contexts[request] = make(map[string]interface{})
-	}
-	return &Context{writer, request, options, http.StatusOK}
+	return &Context{writer, request, http.StatusOK, nil}
 }
 
 // ---------------------------------------------------------------------------
 //  HTTP Request Context Data
 // ---------------------------------------------------------------------------
 func (self *Context) Get(key string) interface{} {
-	mutex.RLock()
-	defer mutex.RUnlock()
-
-	return contexts[self.Request][key]
+	value, exists := self.data[key]
+	if !exists {
+		return nil
+	}
+	return value
 }
 
 func (self *Context) Set(key string, value interface{}) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	contexts[self.Request][key] = value
+	if self.data == nil {
+		self.data = make(map[string]interface{})
+	}
+	self.data[key] = value
 }
 
 func (self *Context) Clear() {
-	mutex.Lock()
-	defer mutex.Unlock()
-	// TODO incorperate with map initialization
-	delete(contexts, self.Request)
+	for key := range self.data {
+		delete(self.data, key)
+	}
 }
 
 func (self *Context) Delete(key string) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	delete(contexts[self.Request], key)
+	delete(self.data, key)
 }
 
 // ---------------------------------------------------------------------------
@@ -179,11 +162,9 @@ func (self *Context) Query() url.Values {
 func (self *Context) parseFiles(filename string, others ...string) *template.Template {
 	page, exists := templates[filename]
 	if !exists {
-		folder := Settings.GetStringMapString("folder")["templates"]
 		var files []string
-		if self.Options.Layout != "" {
-			files = append(files, filepath.Join(folder, self.Options.Layout))
-		}
+		folder := Settings.GetStringMapString("folder")["templates"]
+
 		files = append(files, filepath.Join(folder, filename))
 		for _, item := range others {
 			files = append(files, filepath.Join(folder, item))
@@ -200,7 +181,7 @@ func (self *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
 	self.WriteHeader(self.Status)
-	err := self.parseFiles(filename, others...).Execute(buffer, contexts[self.Request])
+	err := self.parseFiles(filename, others...).Execute(buffer, self.data)
 	if err != nil {
 		panic(err)
 	}
@@ -213,11 +194,7 @@ func (self *Context) JSON(values map[string]interface{}) {
 		err  error
 	)
 
-	if self.Options.Indent {
-		data, err = json.MarshalIndent(values, "", "\t")
-	} else {
-		data, err = json.Marshal(values)
-	}
+	data, err = json.Marshal(values)
 
 	if err != nil {
 		http.Error(self, err.Error(), http.StatusInternalServerError)

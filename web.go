@@ -54,13 +54,6 @@ type (
 	H map[string]interface{}
 )
 
-// ---------------------------------------------------------------------------
-//  Custom handler func with Context Supports
-// ---------------------------------------------------------------------------
-func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(NewContext(w, r))
-}
-
 // Initialize application settings & basic environmetal variables.
 func init() {
 	root, _ = os.Getwd()
@@ -76,6 +69,13 @@ func init() {
 // New creates a new webapp instance.
 func New() *Application {
 	return &Application{mux.NewRouter(), nil}
+}
+
+// ---------------------------------------------------------------------------
+//  Custom handler func with Context Supports
+// ---------------------------------------------------------------------------
+func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	self(NewContext(w, r))
 }
 
 // ---------------------------------------------------------------------------
@@ -106,43 +106,43 @@ func (self *Application) handle(method, pattern string, h interface{}) {
 
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) GET(pattern string, handler interface{}) {
+func (self *Application) Get(pattern string, handler interface{}) {
 	self.handle("GET", pattern, handler)
 }
 
 // POST is a shortcut for app.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) POST(pattern string, handler interface{}) {
+func (self *Application) Post(pattern string, handler interface{}) {
 	self.handle("POST", pattern, handler)
 }
 
 // PUT is a shortcut for app.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) PUT(pattern string, handler interface{}) {
+func (self *Application) Put(pattern string, handler interface{}) {
 	self.handle("PUT", pattern, handler)
 }
 
 // DELETE is a shortcut for app.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) DELETE(pattern string, handler interface{}) {
+func (self *Application) Delete(pattern string, handler interface{}) {
 	self.handle("DELETE", pattern, handler)
 }
 
 // PATCH is a shortcut for app.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) PATCH(pattern string, handler http.HandlerFunc) {
+func (self *Application) Patch(pattern string, handler http.HandlerFunc) {
 	self.handle("PATCH", pattern, handler)
 }
 
 // HEAD is a shortcut for app.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) HEAD(pattern string, handler http.HandlerFunc) {
+func (self *Application) Head(pattern string, handler http.HandlerFunc) {
 	self.handle("HEAD", pattern, handler)
 }
 
 // OPTIONS is a shortcut for app.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Application) OPTIONS(pattern string, handler http.HandlerFunc) {
+func (self *Application) Options(pattern string, handler http.HandlerFunc) {
 	self.handle("OPTIONS", pattern, handler)
 }
 
