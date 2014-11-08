@@ -92,7 +92,7 @@ import (
 
 func main() {
     app := web.New()
-    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+    app.Get("/", func(w http.ResponseWriter, r *http.Request) {
         ctx := web.NewContext(w, r)
         ctx.String("Hello World!")
     })

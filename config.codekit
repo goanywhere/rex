@@ -15,6 +15,17 @@
 		"outputStyle": 0,
 		"syntaxCheckerStyle": 1
 		},
+	"\/images\/gopher.png": {
+		"fileType": 32768,
+		"ignore": 0,
+		"ignoreWasSetByUser": 0,
+		"initialSize": 17668,
+		"inputAbbreviatedPath": "\/images\/gopher.png",
+		"outputAbbreviatedPath": "\/images\/gopher.png",
+		"outputPathIsOutsideProject": 0,
+		"outputPathIsSetByUser": 0,
+		"processed": 0
+		},
 	"\/images\/touch\/apple-touch-icon.png": {
 		"fileType": 32768,
 		"ignore": 0,
