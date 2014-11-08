@@ -24,13 +24,18 @@ package web
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
+	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/securecookie"
 )
@@ -42,6 +47,9 @@ var (
 
 	secret string
 	secure *securecookie.SecureCookie
+
+	prefix   string
+	identity uint64
 )
 
 type (
@@ -57,6 +65,15 @@ type (
 
 func init() {
 	templates = make(map[string]*template.Template)
+
+	hostname, err := os.Hostname()
+	if hostname == "" || err != nil {
+		hostname = "localhost"
+	}
+
+	// system pid combined with timestamp to identity current go process.
+	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
+	prefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
 }
 
 func NewContext(writer http.ResponseWriter, request *http.Request) *Context {
@@ -66,6 +83,11 @@ func NewContext(writer http.ResponseWriter, request *http.Request) *Context {
 // ---------------------------------------------------------------------------
 //  HTTP Request Context Data
 // ---------------------------------------------------------------------------
+func (self *Context) Id() string {
+	requestId := atomic.AddUint64(&identity, 1)
+	return fmt.Sprintf("%s-%06d", prefix, requestId)
+}
+
 func (self *Context) Get(key string) interface{} {
 	value, exists := self.data[key]
 	if !exists {

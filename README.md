@@ -40,9 +40,12 @@ import (
 
 func main() {
     app := web.New()
-    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+    app.Get("/", func(w http.ResponseWriter, r *http.Request) {
         ctx := web.NewContext(w, r)
         ctx.String("Hello World")
+    })
+    app.Get("/hello", func(ctx *web.Context) {
+        ctx.String("Hello Again")
     })
     app.Serve()
 }
@@ -70,16 +73,12 @@ import (
     "github.com/goanywhere/web"
 )
 
-func index (w http.ResponseWriter, r *http.Request) {
-    context := web.NewContext(w, r)
-    // This is Global.
-    context.Options.Layout = "layout.html"
-    context.HTML("index.html", "header.html")
+func index (ctx *web.Context) {
+    ctx.HTML("layout.html", "index.html", "header.html")
 }
 
-func json (w http.ResponseWriter, r *http.Request) {
-    context := web.NewContext(w, r)
-    context.JSON(web.H{"data": "Hello Web", "success": true})
+func json (ctx *web.Context) {
+    ctx.JSON(web.H{"data": "Hello Web", "success": true})
 }
 
 func main() {
@@ -115,19 +114,19 @@ app.Use(func(next http.Handler) http.Handler {
 
 
 
-## Tons of frameworks comes & dies, will this be supported?
+## Frameworks comes & dies, will this be supported?
 
 Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We developed it and we are going to continue using/improving it.
 
 
 ##Roadmap for v1.0
 
-- [ ] Test suite
-- [ ] Performance improvements
 - [ ] Stable API
-- [ ] Home page
 - [ ] Logging system improvements
 - [ ] Validations
+- [ ] Test suite
 - [ ] Documentation
 - [ ] More cool middlewares
+- [ ] Home page
 - [ ] Continuous integration
+- [ ] Performance improvements
