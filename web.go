@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	root     string
-	logger   = log.New(os.Stdout, "[web.go] ", 0)
+	logger = log.New(os.Stdout, "[web.go] ", 0)
+
 	Settings *settings
 )
 
@@ -56,14 +56,7 @@ type (
 
 // Initialize application settings & basic environmetal variables.
 func init() {
-	root, _ = os.Getwd()
 	Settings = configure("app")
-
-	secret := Settings.GetString("secret")
-	// Secret is a MUST.
-	if secret == "" {
-		panic("Application secret is missing from settings file.")
-	}
 }
 
 // New creates a new webapp instance.
