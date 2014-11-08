@@ -109,14 +109,14 @@ func (self *Context) Size() int {
 }
 
 func (self *Context) Written() bool {
-	return self.size != -1
+	return self.status != 0
 }
 
 // ---------------------------------------------------------------------------
 //  Implementation of http.ResponseWriter#WriteHeader
 // ---------------------------------------------------------------------------
 func (self *Context) WriteHeader(status int) {
-	if status > 0 && !self.Written() {
+	if status >= 100 && status < 512 {
 		self.status = status
 		self.ResponseWriter.WriteHeader(status)
 	}
@@ -309,13 +309,11 @@ func (self *Context) JSON(values map[string]interface{}) {
 	}
 
 	self.Header().Set(ContentType, "application/json; charset=utf-8")
-	self.WriteHeader(self.status)
 	self.Write(data)
 }
 
 func (self *Context) XML(values interface{}) {
 	self.Header().Set(ContentType, "application/xml; charset=utf-8")
-	self.WriteHeader(self.status)
 	encoder := xml.NewEncoder(self)
 	encoder.Encode(values)
 }
@@ -323,14 +321,12 @@ func (self *Context) XML(values interface{}) {
 // String writes plain text back to the HTTP response.
 func (self *Context) String(content string) {
 	self.Header().Set(ContentType, "text/plain; charset=utf-8")
-	self.WriteHeader(self.status)
 	self.Write([]byte(content))
 }
 
 // Data writes binary data back into the HTTP response.
 func (self *Context) Data(data []byte) {
 	self.Header().Set(ContentType, "application/octet-stream")
-	self.WriteHeader(self.status)
 	self.Write(data)
 }
 
