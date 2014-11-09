@@ -54,26 +54,14 @@ var (
 	templates map[string]*template.Template
 )
 
-type (
-	ResponseWriter interface {
-		http.ResponseWriter
-		http.Hijacker
-		http.Flusher
-		http.CloseNotifier
+type Context struct {
+	http.ResponseWriter
+	Request *http.Request
 
-		Status() int
-		Size() int
-		Written() bool
-	}
-
-	Context struct {
-		http.ResponseWriter
-		status  int
-		size    int
-		Request *http.Request
-		data    map[string]interface{}
-	}
-)
+	status int
+	size   int
+	data   map[string]interface{}
+}
 
 func init() {
 	templates = make(map[string]*template.Template)
