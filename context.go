@@ -77,7 +77,7 @@ func init() {
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	var ctx *Context = new(Context)
+	ctx := new(Context)
 	ctx.ResponseWriter = w
 	ctx.Request = r
 	ctx.status = http.StatusOK
@@ -275,7 +275,6 @@ func (self *Context) parseFiles(filename string, others ...string) *template.Tem
 func (self *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	self.WriteHeader(self.status)
 	err := self.parseFiles(filename, others...).Execute(buffer, self.data)
 	if err != nil {
 		panic(err)
