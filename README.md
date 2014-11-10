@@ -121,12 +121,14 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 ##Roadmap for v1.0
 
-- [ ] Stable API
-- [ ] Logging system improvements
+- [ ] Improved Logging System
+- [ ] i18n Supports
+- [ ] Template Functions
+- [ ] More Middlewares
 - [ ] Validations
-- [ ] Test suite
+- [ ] Test Suite
 - [ ] Documentation
-- [ ] More cool middlewares
 - [ ] Home page
-- [ ] Continuous integration
-- [ ] Performance improvements
+- [ ] Continuous Integration
+- [ ] Performance Boost
+- [ ] Stable API
