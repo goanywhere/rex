@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	web
+ *  @project	web.go
  *  @file       crypto.go
  *  @date       2014-10-17
  *  @author     Jim Zhan <jim.zhan@me.com>

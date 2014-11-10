@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	web
+ *  @project	web.go
  *  @file       logger.go
  *  @date       2014-10-11
  *  @author     Jim Zhan <jim.zhan@me.com>

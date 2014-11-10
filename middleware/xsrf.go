@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	webapp
+ *  @project	web.go
  *  @file       xsrf.go
  *  @date       2014-10-21
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -123,14 +123,6 @@ func (self *xsrf) checkToken(token string) bool {
 	return true
 }
 
-func (self *xsrf) generate() string {
-	nano := time.Now().UnixNano()
-	hash := hmac.New(sha1.New, []byte(web.RandomString(32, nil)))
-	fmt.Fprintf(hash, "%s|%d", web.RandomString(12, nil), nano)
-	token := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
-	return base64.URLEncoding.EncodeToString([]byte(token))
-}
-
 func (self *xsrf) token() string {
 	var secure bool = false
 	if self.ctx.Request.URL.Scheme == "https" {
@@ -139,7 +131,13 @@ func (self *xsrf) token() string {
 	// Ensure we have XSRF token in the cookie first.
 	token := self.ctx.Cookie(xsrfCookieName)
 	if token == "" {
-		token = self.generate()
+		// Generate a base64-encoded token.
+		nano := time.Now().UnixNano()
+		hash := hmac.New(sha1.New, []byte(web.RandomString(32, nil)))
+		fmt.Fprintf(hash, "%s|%d", web.RandomString(12, nil), nano)
+		raw := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
+		token = base64.URLEncoding.EncodeToString([]byte(raw))
+
 		// The max-age directive takes priority over Expires.
 		//	http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
 		self.ctx.SetCookie(&http.Cookie{

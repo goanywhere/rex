@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project
+ *  @project	web.go
  *  @file       create.go
  *  @date       2014-11-02
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -26,10 +26,7 @@ import (
 	"github.com/goanywhere/web"
 )
 
-var (
-	chars = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
-)
-
 func GenerateSecret() string {
+	chars := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
 	return web.RandomString(64, chars)
 }

@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project
+ *  @project	web.go
  *  @file       middleware.go
  *  @date       2014-11-02
  *  @author     Jim Zhan <jim.zhan@me.com>

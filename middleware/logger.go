@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	webapp
+ *  @project	web.go
  *  @file       xsrf.go
  *  @date       2014-10-21
  *  @author     Jim Zhan <jim.zhan@me.com>
