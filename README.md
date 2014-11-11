@@ -122,7 +122,7 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 ##Roadmap for v1.0
 
 
-- [X] Auto-Sharding System
+- [X] Sharding Supports
 - [ ] Improved Logging System
 - [ ] i18n Supports
 - [ ] Template Functions
