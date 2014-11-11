@@ -22,12 +22,6 @@
  */
 package sharding
 
-import (
-	"crypto/hmac"
-	"crypto/md5"
-	"encoding/binary"
-)
-
 // A space efficient permutation-based consistent hashing function.  This
 // implementation supports up to a maximum of (1 << 16 - 1), 65535, number
 // of shards.
@@ -61,6 +55,13 @@ import (
 //  2. Now suppose K = 31415 and perm(S, K) = (3, 1, 9, 4, 7, 5, 8, 2, 0, 6).
 //  3. After ignoring S - A, the remaining ids are (3, 1, 4, 2, 0)
 //  4. Therefore, the key belongs to shard 3.
+
+import (
+	"crypto/hmac"
+	"crypto/md5"
+	"encoding/binary"
+	"strings"
+)
 
 const (
 	maxShards = 65535
@@ -98,16 +99,16 @@ func (self *Sharding) hash(value uint32) uint32 {
 }
 
 func (self *Sharding) Shard(key string) uint16 {
-	// Converts any string Key into binary unsigned 64-bits integer.
-	// In order to control the stablity of the flow (as the binary encoder will
-	// throw an error if the given byte is too small), it encode the string via
-	// md5 algorithm to fix the length of the source at the very beginning.
-	value := binary.LittleEndian.Uint64(hmac.New(md5.New, []byte(key)).Sum(nil))
-
 	if self.shards < 2 {
 		return 0
 	}
 
+	// Converts any string Key into binary unsigned 64-bits integer.
+	// In order to control the stablity of the flow (as the binary encoder will
+	// throw an error if the given byte is too small), it encode the string via
+	// md5 algorithm to fix the length of the source at the very beginning.
+	bytes := hmac.New(md5.New, []byte(strings.ToLower(key))).Sum(nil)
+	value := binary.LittleEndian.Uint64(bytes)
 	hash := uint32(value) ^ uint32(value>>32)
 
 	var closestShard uint16 = 0
