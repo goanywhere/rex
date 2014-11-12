@@ -31,15 +31,21 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 var (
-	logger   = log.New(os.Stdout, "[web.go] ", 0)
+	logger = log.New(os.Stdout, "[web.go] ", 0)
+
 	Root     string
 	Settings *settings
 )
 
 type (
+	settings struct {
+		SupportedFormats []string
+	}
+
 	Application struct {
 		router      *mux.Router
 		middlewares []Middleware
@@ -174,6 +180,24 @@ func init() {
 	} else {
 		panic(err)
 	}
+	// --------------------
+	// Application Defaults
+	// --------------------
+	viper.SetDefault("address", ":3000")
+	viper.SetDefault("application", "webapp")
+	viper.SetDefault("version", "0.0.1")
+	viper.SetDefault("folder", map[string]string{
+		"templates": "templates",
+	})
+	viper.SetDefault("XSRF", map[string]interface{}{
+		"enabled": true,
+	})
+	// --------------------
+	// User Settings
+	// --------------------
+	viper.AddConfigPath(Root)  // User settings file path.
+	viper.SetConfigName("app") // Application settings file name.
+	viper.ReadInConfig()
 
-	Settings = configure("app")
+	Settings = &settings{SupportedFormats: viper.SupportedExts}
 }

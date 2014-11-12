@@ -23,39 +23,10 @@
 package web
 
 import (
-	"os"
 	"time"
 
 	"github.com/spf13/viper"
 )
-
-type settings struct {
-	SupportedFormats []string
-}
-
-func configure(filename string) *settings {
-	cwd, _ := os.Getwd()
-	// --------------------
-	// Application Defaults
-	// --------------------
-	viper.SetDefault("address", ":3000")
-	viper.SetDefault("application", "webapp")
-	viper.SetDefault("version", "0.0.1")
-	viper.SetDefault("folder", map[string]string{
-		"templates": "templates",
-	})
-	viper.SetDefault("XSRF", map[string]interface{}{
-		"enabled": true,
-	})
-	// --------------------
-	// User Settings
-	// --------------------
-	viper.AddConfigPath(cwd)      // User settings file path.
-	viper.SetConfigName(filename) // Application settings file name.
-	viper.ReadInConfig()
-
-	return &settings{SupportedFormats: viper.SupportedExts}
-}
 
 func (self *settings) Get(key string) interface{} {
 	return viper.Get(key)
