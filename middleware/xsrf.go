@@ -37,6 +37,7 @@ import (
 	"time"
 
 	"github.com/goanywhere/web"
+	"github.com/goanywhere/web/crypto"
 )
 
 const (
@@ -133,8 +134,8 @@ func (self *xsrf) token() string {
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
-		hash := hmac.New(sha1.New, []byte(web.RandomString(32, nil)))
-		fmt.Fprintf(hash, "%s|%d", web.RandomString(12, nil), nano)
+		hash := hmac.New(sha1.New, []byte(crypto.RandomString(32, nil)))
+		fmt.Fprintf(hash, "%s|%d", crypto.RandomString(12, nil), nano)
 		raw := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
 		token = base64.URLEncoding.EncodeToString([]byte(raw))
 

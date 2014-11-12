@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package crypto
 
 import (
 	"math/rand"
@@ -31,10 +31,6 @@ var (
 	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	random   *rand.Rand
 )
-
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
 
 // RandomString creates a securely generated random string.
 //
@@ -54,4 +50,8 @@ func RandomString(length int, chars []rune) string {
 		bytes[index] = pool[random.Intn(len(pool))]
 	}
 	return string(bytes)
+}
+
+func init() {
+	random = rand.New(rand.NewSource(time.Now().UnixNano()))
 }

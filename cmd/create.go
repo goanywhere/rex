@@ -23,10 +23,10 @@
 package cmd
 
 import (
-	"github.com/goanywhere/web"
+	"github.com/goanywhere/web/crypto"
 )
 
 func GenerateSecret() string {
 	chars := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
-	return web.RandomString(64, chars)
+	return crypto.RandomString(64, chars)
 }

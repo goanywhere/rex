@@ -104,11 +104,12 @@ func (self *Sharding) Shard(key string) uint16 {
 	}
 
 	// Converts any string Key into binary unsigned 64-bits integer.
-	// In order to control the stablity of the flow (as the binary encoder will
-	// throw an error if the given byte is too small), it encode the string via
-	// md5 algorithm to fix the length of the source at the very beginning.
+	// *NOTE* In order to control the stablity of the flow (as the binary
+	// encoder will throw an error if the given byte is too small), it encode
+	// the string via md5 algorithm to fix the length of the source at the
+	// very beginning.
 	bytes := hmac.New(md5.New, []byte(strings.ToLower(key))).Sum(nil)
-	value := binary.LittleEndian.Uint64(bytes)
+	value := binary.BigEndian.Uint64(bytes)
 	hash := uint32(value) ^ uint32(value>>32)
 
 	var closestShard uint16 = 0
