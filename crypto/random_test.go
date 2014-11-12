@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       system.go
- *  @date       2014-10-23
+ *  @file       uuid_test.go
+ *  @date       2014-11-12
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,25 +20,12 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package system
+package crypto
 
-import (
-	"os"
-)
+import "testing"
 
-func Exists(path string) bool {
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
+func BenchmarkRandomString(b *testing.B) {
+	for index := 0; index < b.N; index++ {
+		RandomString(32, nil)
 	}
-	return true
-}
-
-func IsFile(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsExist(err) {
-		return false
-	}
-	return !info.IsDir()
 }

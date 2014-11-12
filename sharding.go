@@ -20,7 +20,6 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package sharding
 
 // A space efficient permutation-based consistent hashing function.  This
 // implementation supports up to a maximum of (1 << 16 - 1), 65535, number
@@ -55,6 +54,8 @@ package sharding
 //  2. Now suppose K = 31415 and perm(S, K) = (3, 1, 9, 4, 7, 5, 8, 2, 0, 6).
 //  3. After ignoring S - A, the remaining ids are (3, 1, 4, 2, 0)
 //  4. Therefore, the key belongs to shard 3.
+
+package web
 
 import (
 	"crypto/hmac"
