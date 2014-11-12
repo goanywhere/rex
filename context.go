@@ -63,19 +63,6 @@ type Context struct {
 	data   map[string]interface{}
 }
 
-func init() {
-	templates = make(map[string]*template.Template)
-
-	hostname, err := os.Hostname()
-	if hostname == "" || err != nil {
-		hostname = "localhost"
-	}
-
-	// system pid combined with timestamp to identity current go process.
-	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
-	prefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
-}
-
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.ResponseWriter = w
@@ -318,18 +305,17 @@ func (self *Context) Data(data []byte) {
 }
 
 // ---------------------------------------------------------------------------
-//  HTTP Status Shortcuts
+//  Context Prerequisites
 // ---------------------------------------------------------------------------
-// 4XX Client errors
-// ---------------------------------------------------------------------------
-func (self *Context) Forbidden(message string) {
-	http.Error(self, message, http.StatusForbidden)
-}
+func init() {
+	templates = make(map[string]*template.Template)
 
-func (self *Context) NotFound(message string) {
-	http.Error(self, message, http.StatusNotFound)
-}
+	hostname, err := os.Hostname()
+	if hostname == "" || err != nil {
+		hostname = "localhost"
+	}
 
-// ---------------------------------------------------------------------------
-// 5XX Server errors
-// ---------------------------------------------------------------------------
+	// system pid combined with timestamp to identity current go process.
+	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
+	prefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
+}

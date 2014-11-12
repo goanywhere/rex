@@ -166,12 +166,12 @@ func XSRF(next http.Handler) http.Handler {
 		if unsafeMethods.MatchString(r.Method) {
 			// Ensure the URL came for "Referer" under HTTPS.
 			if !x.checkOrigin() {
-				x.ctx.Forbidden(errInvalidReferer)
+				http.Error(w, errInvalidReferer, http.StatusForbidden)
 			}
 
 			// length => bytes => issue time checkpoints.
 			if !x.checkToken(token) {
-				x.ctx.Forbidden(errInvalidToken)
+				http.Error(w, errInvalidToken, http.StatusForbidden)
 			}
 		}
 
