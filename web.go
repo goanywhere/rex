@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	logger = log.New(os.Stdout, "[web.go] ", 0)
-
+	logger   = log.New(os.Stdout, "[web.go] ", 0)
+	Root     string
 	Settings *settings
 )
 
@@ -53,11 +53,6 @@ type (
 	// Shortcut to create map.
 	H map[string]interface{}
 )
-
-// Initialize application settings & basic environmetal variables.
-func init() {
-	Settings = configure("app")
-}
 
 // New creates a new webapp instance.
 func New() *Application {
@@ -170,4 +165,15 @@ func (self *Application) Serve() {
 	if err := http.ListenAndServe(Settings.GetString("address"), self); err != nil {
 		panic(err)
 	}
+}
+
+// Initialize application settings & basic environmetal variables.
+func init() {
+	if Root, err := os.Getwd(); err == nil {
+		os.Setenv("web.go", Root)
+	} else {
+		panic(err)
+	}
+
+	Settings = configure("app")
 }
