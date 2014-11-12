@@ -102,7 +102,6 @@ func (self *Sharding) Shard(key string) uint16 {
 	if self.shards < 2 {
 		return 0
 	}
-
 	// Converts any string Key into binary unsigned 64-bits integer.
 	// *NOTE* In order to control the stablity of the flow (as the binary
 	// encoder will throw an error if the given byte is too small), it encode

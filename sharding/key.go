@@ -20,9 +20,10 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package main
+package sharding
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
@@ -32,18 +33,19 @@ import (
 	"time"
 )
 
-// http://www.mongodb.org/display/DOCS/Object+IDs
-type ObjectId []byte
+// Ref: http://www.mongodb.org/display/DOCS/Object+IDs
+type Key []byte
 
-// objectIdCounter is atomically incremented when generating a new ObjectId
-// using NewObjectId() function. It's used as a counter part of an id.
-var objectIdCounter uint32 = 0
+// counter is atomically incremented when generating a new Key
+// using NewKey() function. It's used as a counter part of a key.
+var counter uint32 = 0
 
+// FIXME use more stable & fixed identity to replace this hostname based mid.
 // machineId stores machine id generated once and used in subsequent calls
-// to NewObjectId function.
+// to NewKey function.
 var machineId []byte
 
-func NewObjectId() ObjectId {
+func NewKey() Key {
 	var bytes [12]byte
 	// Timestamp, 4 bytes, big endian
 	binary.BigEndian.PutUint32(bytes[:], uint32(time.Now().Unix()))
@@ -56,39 +58,35 @@ func NewObjectId() ObjectId {
 	bytes[7] = byte(pid >> 8)
 	bytes[8] = byte(pid)
 	// Increment, 3 bytes, big endian
-	index := atomic.AddUint32(&objectIdCounter, 1)
+	index := atomic.AddUint32(&counter, 1)
 	bytes[9] = byte(index >> 16)
 	bytes[10] = byte(index >> 8)
 	bytes[11] = byte(index)
-	return ObjectId(bytes[:])
+	return Key(bytes[:])
 }
 
-func (self ObjectId) Hex() string {
+func (self Key) Hex() string {
 	return hex.EncodeToString(self)
 }
 
-func (self ObjectId) String() string {
-	return fmt.Sprintf(`ObjectId("%x")`, string(self))
-}
-
-func (self ObjectId) Time() time.Time {
-	// bytes[0:4] of ObjectId is 32-bit big-endian seconds from epoch.
+func (self Key) Time() time.Time {
+	// bytes[0:4] of Key is 32-bit big-endian seconds from epoch.
 	secs := int64(binary.BigEndian.Uint32(self[0:4]))
 	return time.Unix(secs, 0)
 }
 
-// Machine returns the 3-byte machine id part of the object id.
-func (self ObjectId) Machine() string {
+// Machine returns the 3-byte machine id part of the key.
+func (self Key) Machine() string {
 	return hex.EncodeToString(self[4:7])
 }
 
-// ProcessId returns the process id part of the object id.
-func (self ObjectId) ProcessId() uint16 {
+// ProcessId returns the process id part of the key.
+func (self Key) ProcessId() uint16 {
 	return binary.BigEndian.Uint16(self[7:9])
 }
 
-// Counter returns the incrementing value part of the object id.
-func (self ObjectId) Counter() int32 {
+// Counter returns the incrementing value part of the key.
+func (self Key) Counter() int32 {
 	bytes := self[9:]
 	return int32(uint32(bytes[0])<<16 | uint32(bytes[1])<<8 | uint32(bytes[2]))
 }
@@ -97,9 +95,7 @@ func init() {
 	var sum [3]byte
 	id := sum[:]
 	if hostname, err := os.Hostname(); err == nil {
-		hash := md5.New()
-		hash.Write([]byte(hostname))
-		copy(id, hash.Sum(nil))
+		copy(id, hmac.New(md5.New, []byte(hostname)).Sum(nil))
 		machineId = id
 	} else {
 		panic(fmt.Errorf("Can not fetch hostname: %v", err))
