@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       object.go
+ *  @file       key.go
  *  @date       2014-11-11
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package sharding
+package db
 
 import (
 	"crypto/hmac"
@@ -89,6 +89,10 @@ func (self Key) ProcessId() uint16 {
 func (self Key) Counter() int32 {
 	bytes := self[9:]
 	return int32(uint32(bytes[0])<<16 | uint32(bytes[1])<<8 | uint32(bytes[2]))
+}
+
+func (self Key) String() string {
+	return fmt.Sprintf(`Key("%x")`, string(self))
 }
 
 func init() {
