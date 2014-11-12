@@ -123,6 +123,7 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 
 - [X] Sharding Supports
+- [ ] Live Reload
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] i18n Supports
