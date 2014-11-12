@@ -24,7 +24,6 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -35,8 +34,6 @@ import (
 )
 
 var (
-	logger = log.New(os.Stdout, "[web.go] ", 0)
-
 	Root     string
 	Settings *settings
 )
@@ -167,7 +164,7 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 // Serve starts serving the requests at the pre-defined address from application settings file.
 // TODO command line arguments.
 func (self *Application) Serve() {
-	logger.Printf("Application server started [%s]", Settings.GetString("address"))
+	Info("Application server started [%s]", Settings.GetString("address"))
 	if err := http.ListenAndServe(Settings.GetString("address"), self); err != nil {
 		panic(err)
 	}

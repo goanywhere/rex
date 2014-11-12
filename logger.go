@@ -23,40 +23,28 @@
 package web
 
 import (
-	"fmt"
-	"github.com/agtorre/gocolorize"
-	"github.com/op/go-logging"
+	"log"
+	"os"
 )
 
-const formatter = "%{color} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}"
+var logger = log.New(os.Stdout, "[web.go]", 0)
 
-func Logger() *logging.Logger {
-	l := logging.MustGetLogger("web.go")
-	logging.SetFormatter(logging.MustStringFormatter(formatter))
-	return l
+func Debug(format string, values ...interface{}) {
+	logger.Printf("[DEBUG] "+format, values...)
 }
 
-func Debug(message string) {
-	colorize := gocolorize.NewColor("blue").Paint
-	fmt.Println(colorize("[DEBUG] " + message))
+func Error(format string, values ...interface{}) {
+	logger.Printf("[ERROR] "+format, values...)
 }
 
-func Error(message string) {
-	colorize := gocolorize.NewColor("red").Paint
-	fmt.Println(colorize("[ERROR] " + message))
+func Fatal(format string, values ...interface{}) {
+	logger.Fatalf("[FATAL] "+format, values...)
 }
 
-func Fatal(message string) {
-	colorize := gocolorize.NewColor("white:red").Paint
-	fmt.Println(colorize("[FATAL] " + message))
+func Info(format string, values ...interface{}) {
+	logger.Printf("[INFO] "+format, values...)
 }
 
-func Info(message string) {
-	colorize := gocolorize.NewColor("green").Paint
-	fmt.Println("▶ " + colorize("[INFO] "+message))
-}
-
-func Warn(message string) {
-	colorize := gocolorize.NewColor("yellow").Paint
-	fmt.Println(colorize("[WARN] " + message))
+func Warn(format string, values ...interface{}) {
+	logger.Printf("[WARN] "+format, values...)
 }
