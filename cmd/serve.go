@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
- *  @project	web.go
- *  @file       web.go
- *  @date       2014-10-10
+ *  @project
+ *  @file       serve.go
+ *  @date       2014-11-13
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,42 +20,29 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package main
+package cmd
 
 import (
+	"flag"
+	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/web/cmd"
+	"github.com/pilu/fresh/runner"
 )
 
-var commands = []cli.Command{
-	{
-		Name:   "new",
-		Usage:  "create a skeleton web application project",
-		Action: cmd.Create,
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "lang, l",
-				Value: "english",
-				Usage: "language for the greeting",
-			},
-		},
-	},
-	{
-		Name:   "serve",
-		Usage:  "start serving HTTP request with live reload supports",
-		Action: cmd.Serve,
-	},
-}
+func Serve(context *cli.Context) {
+	config := flag.String("c", "", "config file path")
+	flag.Parse()
 
-func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	app := cli.NewApp()
-	app.Name = "webapp"
-	app.Usage = "manage web application project"
-	app.Version = "0.1.1"
-	app.Commands = commands
-	app.Run(os.Args)
+	if *config != "" {
+		if _, err := os.Stat(*config); err != nil {
+			fmt.Printf("Can't find config file `%s`\n", *config)
+			os.Exit(1)
+		} else {
+			os.Setenv("RUNNER_CONFIG_PATH", *config)
+		}
+	}
+
+	runner.Start()
 }
