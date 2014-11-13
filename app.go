@@ -197,4 +197,6 @@ func init() {
 	viper.ReadInConfig()
 
 	Settings = &settings{SupportedFormats: viper.SupportedExts}
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }

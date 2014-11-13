@@ -30,12 +30,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"html/template"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"sync/atomic"
 	"time"
 
@@ -50,8 +48,6 @@ var (
 
 	secret string
 	secure *securecookie.SecureCookie
-
-	templates map[string]*template.Template
 )
 
 type Context struct {
@@ -237,33 +233,11 @@ func (self *Context) Query() url.Values {
 // ---------------------------------------------------------------------------
 //  HTTP Response Rendering
 // ---------------------------------------------------------------------------
-// Forcely parse the passed in template files under the pre-defined template folder,
-// & panics if the error is non-nil. It also try finding the default layout page (defined
-// in ctx.Options.Layout) as the render base first, the parsed template page will be
-// cached in global singleton holder.
-func (self *Context) parseFiles(filename string, others ...string) *template.Template {
-	page, exists := templates[filename]
-	if !exists {
-		var files []string
-		folder := Settings.GetStringMapString("folder")["templates"]
-
-		files = append(files, filepath.Join(folder, filename))
-		for _, item := range others {
-			files = append(files, filepath.Join(folder, item))
-		}
-
-		page = template.Must(template.ParseFiles(files...))
-		templates[filename] = page
-	}
-	return page
-}
-
 // Shortcut to render HTML templates, with basic layout supports.
 func (self *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	err := self.parseFiles(filename, others...).Execute(buffer, self.data)
-	if err != nil {
+	if err := loadTemplates(filename, others...).Execute(buffer, self.data); err != nil {
 		panic(err)
 	}
 	buffer.WriteTo(self)
@@ -308,13 +282,10 @@ func (self *Context) Data(data []byte) {
 //  Context Prerequisites
 // ---------------------------------------------------------------------------
 func init() {
-	templates = make(map[string]*template.Template)
-
 	hostname, err := os.Hostname()
 	if hostname == "" || err != nil {
 		hostname = "localhost"
 	}
-
 	// system pid combined with timestamp to identity current go process.
 	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
 	prefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
