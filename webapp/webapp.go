@@ -20,42 +20,37 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package cmd
+package main
 
 import (
 	"os"
+	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/web"
+	"github.com/goanywhere/web/cmd"
 )
 
-func create(context *cli.Context) {
-	args := context.Args()
-	if len(args) != 1 {
-		web.Error("Valid Project Name Missing")
-	} else {
-		// create skeleton here
-	}
+var commands = []cli.Command{
+	{
+		Name:   "new",
+		Usage:  "create a skeleton web application project",
+		Action: cmd.Create,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "lang, l",
+				Value: "english",
+				Usage: "language for the greeting",
+			},
+		},
+	},
 }
 
-func Execute() {
+func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	app := cli.NewApp()
 	app.Name = "webapp"
 	app.Usage = "manage web application project"
 	app.Version = "0.0.1"
-	app.Commands = []cli.Command{
-		{
-			Name:   "create",
-			Usage:  "create a skeleton web application project",
-			Action: create,
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "lang, l",
-					Value: "english",
-					Usage: "language for the greeting",
-				},
-			},
-		},
-	}
+	app.Commands = commands
 	app.Run(os.Args)
 }

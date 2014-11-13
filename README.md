@@ -127,6 +127,7 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 
 - [X] Sharding Supports
+- [ ] Live Reload Integration
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] i18n Supports
@@ -139,5 +140,4 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 - [ ] Home page
 - [ ] Continuous Integration
 - [ ] Performance Boost
-- [ ] Live Reload Integration (via [Fresh](https://github.com/pilu/fresh))
 - [ ] Stable API

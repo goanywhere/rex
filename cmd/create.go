@@ -23,10 +23,22 @@
 package cmd
 
 import (
+	"log"
+
+	"github.com/codegangsta/cli"
 	"github.com/goanywhere/web/crypto"
 )
 
-func GenerateSecret() string {
+func generateSecret() string {
 	chars := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
 	return crypto.RandomString(64, chars)
+}
+
+func Create(context *cli.Context) {
+	args := context.Args()
+	if len(args) != 1 {
+		log.Print("Valid Project Name Missing")
+	} else {
+		// create skeleton here
+	}
 }
