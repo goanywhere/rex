@@ -112,6 +112,10 @@ app.Use(func(next http.Handler) http.Handler {
 })
 ```
 
+## Live Reload
+
+[Fresh](https://github.com/pilu/fresh) backs your Web.*go* application right out of the box.
+
 
 
 ## Frameworks comes & dies, will this be supported?
@@ -123,7 +127,6 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 
 - [X] Sharding Supports
-- [ ] Live Reload
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] i18n Supports
@@ -136,4 +139,5 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 - [ ] Home page
 - [ ] Continuous Integration
 - [ ] Performance Boost
+- [ ] Live Reload Integration (via [Fresh](https://github.com/pilu/fresh))
 - [ ] Stable API
