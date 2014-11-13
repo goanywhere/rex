@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
- *  @project	web.go
- *  @file       web.go
- *  @date       2014-10-10
+ *  @project
+ *  @file       cmd.go
+ *  @date       2014-11-13
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,21 +20,20 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package main
+package cmd
 
 import (
 	"os"
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/web/cmd"
 )
 
 var commands = []cli.Command{
 	{
 		Name:   "new",
 		Usage:  "create a skeleton web application project",
-		Action: cmd.Create,
+		Action: Create,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "lang, l",
@@ -46,11 +45,11 @@ var commands = []cli.Command{
 	{
 		Name:   "serve",
 		Usage:  "start serving HTTP request with live reload supports",
-		Action: cmd.Serve,
+		Action: Serve,
 	},
 }
 
-func main() {
+func Execute() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	app := cli.NewApp()
 	app.Name = "webapp"
