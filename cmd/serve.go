@@ -23,26 +23,21 @@
 package cmd
 
 import (
-	"flag"
-	"fmt"
 	"os"
+	"path"
+	"runtime"
 
 	"github.com/codegangsta/cli"
 	"github.com/pilu/fresh/runner"
 )
 
+func here(config string) string {
+	_, filename, _, _ := runtime.Caller(1)
+	return path.Join(path.Dir(filename), config)
+}
+
 func Serve(context *cli.Context) {
-	config := flag.String("c", "", "config file path")
-	flag.Parse()
-
-	if *config != "" {
-		if _, err := os.Stat(*config); err != nil {
-			fmt.Printf("Can't find config file `%s`\n", *config)
-			os.Exit(1)
-		} else {
-			os.Setenv("RUNNER_CONFIG_PATH", *config)
-		}
-	}
-
+	config := here("webapp.conf")
+	os.Setenv("RUNNER_CONFIG_PATH", config)
 	runner.Start()
 }
