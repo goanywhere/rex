@@ -10,8 +10,8 @@ This is a ongoing project at experiemental stage, consider it's version *ZERO* a
 
 
 ## Features
+* Flexible Env-based configurations.
 * Non-intrusive/Modular design, extremely easy to use.
-* File-based configurations with YAML, TOML or JSON supports.
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
 * Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
@@ -128,6 +128,7 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 - [X] Sharding Supports
 - [X] Live Reload Integration
+- [ ] Env-Based Configurations
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] i18n Supports
