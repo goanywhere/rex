@@ -37,11 +37,11 @@ type Spec struct {
 
 func setup() {
 	os.Clearenv()
-	os.Setenv("WEB_APP", "example")
-	os.Setenv("WEB_DEBUG", "true")
-	os.Setenv("WEB_TOTAL", "100")
-	os.Setenv("WEB_VERSION", "32.1")
-	os.Setenv("WEB_MULTIPLE_WORDS_TAG", "ALT")
+	Env.Set("app", "example")
+	Env.Set("debug", "true")
+	Env.Set("total", "100")
+	Env.Set("version", "32.1")
+	Env.Set("multiple_words_tag", "ALT")
 }
 
 func TestLoad(t *testing.T) {
@@ -110,5 +110,12 @@ func TestTag(t *testing.T) {
 
 	if spec.Tag != "ALT" {
 		t.Errorf("Expect: 'MULTIPLE_WORDS_TAG', Got: %s", spec.Tag)
+	}
+}
+
+func TestAccess(t *testing.T) {
+	Env.Set("shell", "/bin/zsh")
+	if Env.Get("shell") != "/bin/zsh" {
+		t.Errorf("Expect: /bin/zsh, Got: %s", Env.Get("shell"))
 	}
 }

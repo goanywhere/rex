@@ -44,9 +44,9 @@ var (
 type (
 	env struct {
 		Key   string
+		Value string
 		Field string
 		Type  string
-		Value string
 	}
 )
 
@@ -118,6 +118,32 @@ func (self *env) Load(spec interface{}) error {
 		}
 	}
 	return nil
+}
+
+// Get returns the value for the name under env. namespace.
+func (self *env) Get(name string) string {
+	key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, name))
+	return os.Getenv(key)
+}
+
+// Set sets the value for the name under env. namespace.
+func (self *env) Set(name, value string) error {
+	key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, name))
+	fmt.Printf("<Set> %s: %s\n", key, value)
+	return os.Setenv(key, value)
+}
+
+// Values constructs [string]string map for key/value under env. namespace.
+func (self *env) Values() map[string]string {
+	values := make(map[string]string)
+	for _, pair := range os.Environ() {
+		kv := strings.Split(pair, "=")
+		if kv != nil && len(kv) >= 2 {
+			key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, kv[0]))
+			values[key] = kv[1]
+		}
+	}
+	return values
 }
 
 func init() {
