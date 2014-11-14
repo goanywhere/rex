@@ -32,7 +32,7 @@ type Spec struct {
 	Debug   bool
 	Total   int
 	Version float32
-	Tag     string `webapp:"multiple_words_tag"`
+	Tag     string `web:"multiple_words_tag"`
 }
 
 func setup() {
@@ -117,5 +117,26 @@ func TestAccess(t *testing.T) {
 	Env.Set("shell", "/bin/zsh")
 	if Env.Get("shell") != "/bin/zsh" {
 		t.Errorf("Expect: /bin/zsh, Got: %s", Env.Get("shell"))
+	}
+
+	Env.Set("Anything", "content")
+	if Env.Get("anything") != "content" {
+		t.Errorf("Expect: 'content', Got: %s", Env.Get("anything"))
+	}
+}
+
+func TestValues(t *testing.T) {
+	os.Clearenv()
+	values := Env.Values()
+	if len(values) != 0 {
+		t.Errorf("Expect: 0, Got: %d", len(values))
+	}
+	Env.Set("app", "me")
+	values = Env.Values()
+	if len(values) != 1 {
+		t.Errorf("Expect: 1, Got: %d", len(values))
+	}
+	if values["Web_APP"] != "me" {
+		t.Errorf("Expect: 'me', Got: '%s'", values["Web_APP"])
 	}
 }

@@ -37,8 +37,8 @@ import (
 // env processes all key/value under the namespace, it uses current working directory
 // name as its namespace by default, "webapp" as fallback in case any error occured.
 var (
-	namespace string
-	Env       *env = new(env)
+	namespace string = "Web"
+	Env       *env   = new(env)
 )
 
 type (
@@ -56,6 +56,7 @@ func (self *env) Error() string {
 		self.Key, self.Field, self.Value, self.Type)
 }
 
+// Load fetches the key/value pairs under the namespace into the given spec. struct.
 func (self *env) Load(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
@@ -73,7 +74,7 @@ func (self *env) Load(spec interface{}) error {
 				name = stype.Field(index).Name
 			}
 
-			key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, name))
+			key := self.key(name)
 			value := os.Getenv(key)
 			if value == "" {
 				continue
@@ -120,27 +121,30 @@ func (self *env) Load(spec interface{}) error {
 	return nil
 }
 
+// key constructs the real key for storing the name/value pair under namespace.
+func (self *env) key(name string) string {
+	return fmt.Sprintf("%s_%s", namespace, strings.ToUpper(name))
+}
+
 // Get returns the value for the name under env. namespace.
 func (self *env) Get(name string) string {
-	key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, name))
-	return os.Getenv(key)
+	return os.Getenv(self.key(name))
 }
 
 // Set sets the value for the name under env. namespace.
 func (self *env) Set(name, value string) error {
-	key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, name))
-	fmt.Printf("<Set> %s: %s\n", key, value)
-	return os.Setenv(key, value)
+	return os.Setenv(self.key(name), value)
 }
 
 // Values constructs [string]string map for key/value under env. namespace.
 func (self *env) Values() map[string]string {
 	values := make(map[string]string)
 	for _, pair := range os.Environ() {
-		kv := strings.Split(pair, "=")
-		if kv != nil && len(kv) >= 2 {
-			key := strings.ToUpper(fmt.Sprintf("%s_%s", namespace, kv[0]))
-			values[key] = kv[1]
+		if strings.HasPrefix(pair, namespace) {
+			kv := strings.Split(pair, "=")
+			if kv != nil && len(kv) >= 2 {
+				values[kv[0]] = kv[1]
+			}
 		}
 	}
 	return values
@@ -148,8 +152,6 @@ func (self *env) Values() map[string]string {
 
 func init() {
 	if cwd, err := os.Getwd(); err == nil {
-		namespace = strings.ToUpper(filepath.Base(cwd))
-	} else {
-		namespace = "Webapp"
+		namespace = strings.Title(filepath.Base(cwd))
 	}
 }
