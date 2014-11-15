@@ -178,6 +178,7 @@ func init() {
 		panic(err)
 	}
 	Env.Set("root", root)
+	Env.Set("deubg", "true")
 	Env.Set("host", "0.0.0.0")
 	Env.Set("port", "5000")
 	Env.Set("templates", "templates")

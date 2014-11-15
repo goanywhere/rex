@@ -61,6 +61,11 @@ func TestToBool(t *testing.T) {
 	if !val || err != nil {
 		t.Errorf("Expect: true, Got: %v Err: %v", val, err)
 	}
+
+	val, err = ToBool("")
+	if val || err != nil {
+		t.Errorf("Expect: false, Got: %v Err: %v", val, err)
+	}
 }
 
 func TestToFloat(t *testing.T) {

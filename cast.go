@@ -28,13 +28,11 @@ import (
 	"strings"
 )
 
-// ToBool converts the given value to bool.
-// Supported Types:
-//	bool, int, float32, float64, string
+// ToBool converts int/float/string/nil into bool value.
 func ToBool(raw interface{}) (bool, error) {
-	switch t := raw.(type) {
+	switch val := raw.(type) {
 	case bool:
-		return t, nil
+		return val, nil
 	case nil:
 		return false, nil
 	case int:
@@ -48,7 +46,10 @@ func ToBool(raw interface{}) (bool, error) {
 		}
 		return true, nil
 	case string:
-		return strconv.ParseBool(strings.ToLower(raw.(string)))
+		if val == "" {
+			return false, nil
+		}
+		return strconv.ParseBool(strings.ToLower(val))
 	}
 	return false, fmt.Errorf("Unable to convert %v to bool", raw)
 }

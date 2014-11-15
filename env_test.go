@@ -122,6 +122,10 @@ func TestAccess(t *testing.T) {
 	if Env.Get("anything") != "content" {
 		t.Errorf("Expect: 'content', Got: %s", Env.Get("anything"))
 	}
+
+	if Env.Get("NotFound") != "" {
+		t.Errorf("Expect empty string, Got: %s", Env.Get("NotFound"))
+	}
 }
 
 func TestValues(t *testing.T) {
