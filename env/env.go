@@ -194,9 +194,11 @@ func init() {
 	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*([[:graph:]]+)`)
 	space = regexp.MustCompile(`\s`)
 
-	// Use CWD as fallback.
-	if Get("root") == "" {
-		cwd, _ := os.Getwd()
-		Set("root", cwd)
+	var root string
+	if cwd, err := os.Getwd(); err == nil {
+		root, _ = filepath.Abs(cwd)
+	} else {
+		panic(err)
 	}
+	Set("root", root)
 }

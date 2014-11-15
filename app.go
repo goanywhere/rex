@@ -25,8 +25,6 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"reflect"
 	"runtime"
 
@@ -172,14 +170,7 @@ func (self *Application) Serve() {
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Application Defaults
-	var root string
-	if cwd, err := os.Getwd(); err == nil {
-		root, _ = filepath.Abs(cwd)
-	} else {
-		panic(err)
-	}
-	env.Set("root", root)
-	env.Set("deubg", "true")
+	env.Set("debug", "true")
 	env.Set("host", "0.0.0.0")
 	env.Set("port", "5000")
 	env.Set("templates", "templates")
