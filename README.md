@@ -129,10 +129,11 @@ type Spec struct {
 }
 
 func main() {
-    web.Env.Set("app", "myapplication")
-
     var spec Spec
+
+    web.Env.Set("app", "myapplication")
     web.Env.Load(&spec)
+
     fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
 }
 ```
@@ -162,6 +163,20 @@ app.Use(func(next http.Handler) http.Handler {
 ## Live Reload
 
 [Fresh](https://github.com/pilu/fresh) backs your Web.*go* application right out of the box.
+
+To get started with Live Reload, you need to install the command line application first.
+*NOTE* Please make sure you have $GOPATH & $GOBIN correctly set.
+
+``` sh
+$ cd $GOPATH/src/pkg/github.com/goanywhere/web
+$ go install ./webapp
+```
+
+Okay, you are good to Go now, simple as that:
+
+``` sh
+$ webapp serve
+```
 
 
 
