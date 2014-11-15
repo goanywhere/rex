@@ -43,8 +43,8 @@ import (
 const ContentType = "Content-Type"
 
 var (
-	prefix   string
-	identity uint64
+	cid       uint64
+	cidPrefix string
 
 	secret string
 	secure *securecookie.SecureCookie
@@ -137,8 +137,8 @@ func (self *Context) Flush() {
 //  HTTP Request Context Data
 // ---------------------------------------------------------------------------
 func (self *Context) Id() string {
-	requestId := atomic.AddUint64(&identity, 1)
-	return fmt.Sprintf("%s-%06d", prefix, requestId)
+	requestId := atomic.AddUint64(&cid, 1)
+	return fmt.Sprintf("%s-%06d", cidPrefix, requestId)
 }
 
 func (self *Context) Get(key string) interface{} {
@@ -288,5 +288,5 @@ func init() {
 	}
 	// system pid combined with timestamp to identity current go process.
 	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
-	prefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
+	cidPrefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
 }

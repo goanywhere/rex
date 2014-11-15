@@ -27,10 +27,7 @@ import (
 	"path/filepath"
 )
 
-var (
-	root      string
-	templates map[string]*template.Template
-)
+var templates map[string]*template.Template
 
 // ---------------------------------------------------------------------------
 //  HTTP Response Rendering
@@ -43,8 +40,7 @@ func loadTemplates(filename string, others ...string) *template.Template {
 	page, exists := templates[filename]
 	if !exists {
 		var files []string
-		folder := Settings.GetStringMapString("folder")["templates"]
-
+		folder := Env.Get("templates")
 		files = append(files, filepath.Join(folder, filename))
 		for _, item := range others {
 			files = append(files, filepath.Join(folder, item))
@@ -57,13 +53,5 @@ func loadTemplates(filename string, others ...string) *template.Template {
 }
 
 func init() {
-	folder, exists := Settings.GetStringMapString("folder")["templates"]
-
-	if exists {
-		root = filepath.Join(Root, folder)
-	} else {
-		root = filepath.Join(Root, "templates")
-	}
-
 	templates = make(map[string]*template.Template)
 }

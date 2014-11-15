@@ -28,35 +28,31 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-// env processes all key/value under the namespace, it uses current working directory
-// name as its namespace by default, "webapp" as fallback in case any error occured.
-var (
-	namespace string = "Web"
-	Env       *env   = new(env)
-)
+// env processes all key/value under the prefix.
+const Prefix = "GoAnywhere"
+
+var Env *env = new(env)
 
 type (
 	env struct {
 		Key   string
 		Value string
-		Field string
+		Name  string
 		Type  string
 	}
 )
 
 // Implements the Error interface.
 func (self *env) Error() string {
-	return fmt.Sprintf("Env.Load: <%[1]s: %[2]s> '%[3]s' => %[4]s",
-		self.Key, self.Field, self.Value, self.Type)
+	return fmt.Sprintf("Env.Load: <%s/%s> <%s => %s>", self.Key, self.Name, self.Value, self.Type)
 }
 
-// Load fetches the key/value pairs under the namespace into the given spec. struct.
+// Load fetches the key/value pairs under the prefix into the given spec. struct.
 func (self *env) Load(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
@@ -69,7 +65,7 @@ func (self *env) Load(spec interface{}) error {
 	for index := 0; index < s.NumField(); index++ {
 		field = s.Field(index)
 		if field.CanSet() {
-			name := stype.Field(index).Tag.Get("webapp")
+			name := stype.Field(index).Tag.Get("web")
 			if name == "" {
 				name = stype.Field(index).Name
 			}
@@ -90,9 +86,9 @@ func (self *env) Load(spec interface{}) error {
 					field.SetBool(val)
 				} else {
 					self.Key = key
-					self.Field = name
-					self.Type = field.Type().String()
 					self.Value = value
+					self.Name = name
+					self.Type = field.Type().String()
 					return self
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -100,9 +96,9 @@ func (self *env) Load(spec interface{}) error {
 					field.SetInt(val)
 				} else {
 					self.Key = key
-					self.Field = name
-					self.Type = field.Type().String()
 					self.Value = value
+					self.Name = name
+					self.Type = field.Type().String()
 					return self
 				}
 			case reflect.Float32, reflect.Float64:
@@ -110,9 +106,9 @@ func (self *env) Load(spec interface{}) error {
 					field.SetFloat(val)
 				} else {
 					self.Key = key
-					self.Field = name
-					self.Type = field.Type().String()
 					self.Value = value
+					self.Name = name
+					self.Type = field.Type().String()
 					return self
 				}
 			}
@@ -121,26 +117,27 @@ func (self *env) Load(spec interface{}) error {
 	return nil
 }
 
-// key constructs the real key for storing the name/value pair under namespace.
+// key constructs the real key for storing the name/value pair under prefix.
 func (self *env) key(name string) string {
-	return fmt.Sprintf("%s_%s", namespace, strings.ToUpper(name))
+	return fmt.Sprintf("%s_%s", Prefix, strings.ToUpper(name))
 }
 
-// Get returns the value for the name under env. namespace.
+// Get returns the value for the name under env. prefix.
 func (self *env) Get(name string) string {
 	return os.Getenv(self.key(name))
 }
 
-// Set sets the value for the name under env. namespace.
+// Set sets the value for the name under env. prefix.
 func (self *env) Set(name, value string) error {
 	return os.Setenv(self.key(name), value)
 }
 
-// Values constructs [string]string map for key/value under env. namespace.
+// Values constructs [string]string map for key/value under env. prefix.
 func (self *env) Values() map[string]string {
+	environ := os.Environ()
 	values := make(map[string]string)
-	for _, pair := range os.Environ() {
-		if strings.HasPrefix(pair, namespace) {
+	for _, pair := range environ {
+		if strings.HasPrefix(pair, Prefix) {
 			kv := strings.Split(pair, "=")
 			if kv != nil && len(kv) >= 2 {
 				values[kv[0]] = kv[1]
@@ -148,10 +145,4 @@ func (self *env) Values() map[string]string {
 		}
 	}
 	return values
-}
-
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		namespace = strings.Title(filepath.Base(cwd))
-	}
 }

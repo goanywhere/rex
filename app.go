@@ -26,23 +26,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
-)
-
-var (
-	Root     string
-	Settings *settings
 )
 
 type (
-	settings struct {
-		SupportedFormats []string
-	}
-
 	Application struct {
 		router      *mux.Router
 		middlewares []Middleware
@@ -57,9 +48,21 @@ type (
 	H map[string]interface{}
 )
 
-// New creates a new webapp instance.
+// New creates an application instance & setup its default settings..
 func New() *Application {
-	return &Application{mux.NewRouter(), nil}
+	app := &Application{mux.NewRouter(), nil}
+	// Application Defaults
+	var root string
+	if cwd, err := os.Getwd(); err == nil {
+		root, _ = filepath.Abs(cwd)
+	} else {
+		panic(err)
+	}
+	Env.Set("root", root)
+	Env.Set("host", "0.0.0.0")
+	Env.Set("port", "3000")
+	Env.Set("templates", "templates")
+	return app
 }
 
 // ---------------------------------------------------------------------------
@@ -159,44 +162,15 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 		}
 	}
 	app.ServeHTTP(writer, request)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-// Serve starts serving the requests at the pre-defined address from application settings file.
+// Serve starts serving the requests at the pre-defined address from settings.
 // TODO command line arguments.
 func (self *Application) Serve() {
-	Info("Application server started [%s]", Settings.GetString("address"))
-	if err := http.ListenAndServe(Settings.GetString("address"), self); err != nil {
+	address := fmt.Sprintf("%s:%s", Env.Get("host"), Env.Get("port"))
+	Info("Application server started [%s]", address)
+	if err := http.ListenAndServe(address, self); err != nil {
 		panic(err)
 	}
-}
-
-// Initialize application settings & basic environmetal variables.
-func init() {
-	if Root, err := os.Getwd(); err == nil {
-		os.Setenv("web.go", Root)
-	} else {
-		panic(err)
-	}
-	// --------------------
-	// Application Defaults
-	// --------------------
-	viper.SetDefault("address", ":3000")
-	viper.SetDefault("application", "webapp")
-	viper.SetDefault("version", "0.0.1")
-	viper.SetDefault("folder", map[string]string{
-		"templates": "templates",
-	})
-	viper.SetDefault("XSRF", map[string]interface{}{
-		"enabled": true,
-	})
-	// --------------------
-	// User Settings
-	// --------------------
-	viper.AddConfigPath(Root)  // User settings file path.
-	viper.SetConfigName("app") // Application settings file name.
-	viper.ReadInConfig()
-
-	Settings = &settings{SupportedFormats: viper.SupportedExts}
-
-	runtime.GOMAXPROCS(runtime.NumCPU())
 }

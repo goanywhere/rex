@@ -107,7 +107,6 @@ func TestTag(t *testing.T) {
 	if err := Env.Load(&spec); err != nil {
 		t.Error(err.Error())
 	}
-
 	if spec.Tag != "ALT" {
 		t.Errorf("Expect: 'MULTIPLE_WORDS_TAG', Got: %s", spec.Tag)
 	}
@@ -132,11 +131,12 @@ func TestValues(t *testing.T) {
 		t.Errorf("Expect: 0, Got: %d", len(values))
 	}
 	Env.Set("app", "me")
+
 	values = Env.Values()
 	if len(values) != 1 {
 		t.Errorf("Expect: 1, Got: %d", len(values))
 	}
-	if values["Web_APP"] != "me" {
-		t.Errorf("Expect: 'me', Got: '%s'", values["Web_APP"])
+	if values[Prefix+"_APP"] != "me" {
+		t.Errorf("Expect: 'me', Got: '%s'", values[Prefix+"_APP"])
 	}
 }
