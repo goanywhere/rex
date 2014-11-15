@@ -149,7 +149,6 @@ func (self *Application) Use(middlewares ...Middleware) {
 
 // ServeHTTP turn Application into http.Handler by implementing the http.Handler interface.
 func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	Info("Application server started [%s]", self.Address())
 	var app http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {
@@ -163,6 +162,7 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 // Serve starts serving the requests at the pre-defined address from settings.
 // TODO command line arguments.
 func (self *Application) Serve() {
+	Info("Application server started [%s]", self.Address())
 	if err := http.ListenAndServe(self.Address(), self); err != nil {
 		panic(err)
 	}

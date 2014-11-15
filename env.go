@@ -36,14 +36,14 @@ import (
 // env processes all key/value under the prefix.
 const Prefix = "GoAnywhere"
 
-var Env *env = new(env)
+var Env *env
 
 type (
 	env struct {
-		Key   string
-		Value string
-		Name  string
-		Type  string
+		Key   string // The actual key to store in os.Environ.
+		Value string // String value of the storage.
+		Name  string // User's specified field name.
+		Type  string // The actual type of the value.
 	}
 )
 
@@ -145,4 +145,8 @@ func (self *env) Values() map[string]string {
 		}
 	}
 	return values
+}
+
+func init() {
+	Env = new(env)
 }
