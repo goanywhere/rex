@@ -73,7 +73,10 @@ func findKeyValue(str string) (key, value string) {
 // Load fetches the values from '.env' from project's CWD.
 // *NOTE* value *MUST* not include ":" or "=".
 func Load() error {
-	if file, err := os.Open(filepath.Join(Get("root"), ".env")); err == nil {
+	dotenv := filepath.Join(Get("root"), ".env")
+	fmt.Printf("dotenv: %s\n", dotenv)
+
+	if file, err := os.Open(dotenv); err == nil {
 		defer file.Close()
 		reader := bufio.NewReader(file)
 		for {
@@ -187,7 +190,13 @@ func Values() map[string]string {
 }
 
 func init() {
-	// this wildcard almost any printable characters expect "=" & ":".
+	// catch almost any printable characters expect "=" & ":".
 	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*([[:graph:]]+)`)
 	space = regexp.MustCompile(`\s`)
+
+	// Use CWD as fallback.
+	if Get("root") == "" {
+		cwd, _ := os.Getwd()
+		Set("root", cwd)
+	}
 }

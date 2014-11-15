@@ -25,22 +25,22 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/codegangsta/cli"
+	"github.com/goanywhere/web"
 	"github.com/goanywhere/web/crypto"
 )
 
-var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
+var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
 
 func createProject(path string) error {
 	// create .env with secret.
 	if env, err := os.Create(filepath.Join(path, ".env")); err == nil {
 		defer env.Close()
 		buffer := bufio.NewWriter(env)
-		buffer.WriteString(fmt.Sprintf("secret=%s", crypto.RandomString(64, pool)))
+		buffer.WriteString(fmt.Sprintf("secret=%s\n", crypto.RandomString(64, pool)))
 		buffer.Flush()
 	}
 	return nil
@@ -49,7 +49,7 @@ func createProject(path string) error {
 func Create(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 {
-		log.Print("Valid Project Name Missing")
+		web.Info("Valid Project Name Missing")
 	} else {
 		if cwd, err := os.Getwd(); err != nil {
 			panic(err)
