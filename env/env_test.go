@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package env
 
 import (
 	"os"
@@ -37,25 +37,25 @@ type Spec struct {
 
 func setup() {
 	os.Clearenv()
-	Env.Set("app", "example")
-	Env.Set("debug", "true")
-	Env.Set("total", "100")
-	Env.Set("version", "32.1")
-	Env.Set("multiple_words_tag", "ALT")
+	Set("app", "example")
+	Set("debug", "true")
+	Set("total", "100")
+	Set("version", "32.1")
+	Set("multiple_words_tag", "ALT")
 }
 
 func TestFindKeyValue(t *testing.T) {
-	k, v := Env.findKeyValue(" test: value")
+	k, v := findKeyValue(" test: value")
 	if k != "test" || v != "value" {
 		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
 	}
 
-	k, v = Env.findKeyValue(" test: value")
+	k, v = findKeyValue(" test: value")
 	if k != "test" || v != "value" {
 		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
 	}
 
-	k, v = Env.findKeyValue("\ttest:\tvalue\t\n")
+	k, v = findKeyValue("\ttest:\tvalue\t\n")
 	if k != "test" || v != "value" {
 		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
 	}
@@ -63,13 +63,13 @@ func TestFindKeyValue(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	Env.Load()
+	Load()
 }
 
 func TestLoadInto(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 }
@@ -79,7 +79,7 @@ func TestGetString(t *testing.T) {
 
 	setup()
 
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.App != "example" {
@@ -90,7 +90,7 @@ func TestGetString(t *testing.T) {
 func TestGetBool(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -98,7 +98,7 @@ func TestGetBool(t *testing.T) {
 		t.Errorf("Expect: true, Got: %v", spec.Debug)
 	}
 
-	value, err := Env.GetBool("NotFound")
+	value, err := GetBool("NotFound")
 	if value || err != nil {
 		t.Errorf("Expect: false, Got: %v", value)
 	}
@@ -107,7 +107,7 @@ func TestGetBool(t *testing.T) {
 func TestGetInt(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -119,7 +119,7 @@ func TestGetInt(t *testing.T) {
 func TestGetFloat(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -131,7 +131,7 @@ func TestGetFloat(t *testing.T) {
 func TestTag(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadInto(&spec); err != nil {
+	if err := LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.Tag != "ALT" {
@@ -140,30 +140,30 @@ func TestTag(t *testing.T) {
 }
 
 func TestAccess(t *testing.T) {
-	Env.Set("shell", "/bin/zsh")
-	if Env.Get("shell") != "/bin/zsh" {
-		t.Errorf("Expect: /bin/zsh, Got: %s", Env.Get("shell"))
+	Set("shell", "/bin/zsh")
+	if Get("shell") != "/bin/zsh" {
+		t.Errorf("Expect: /bin/zsh, Got: %s", Get("shell"))
 	}
 
-	Env.Set("Anything", "content")
-	if Env.Get("anything") != "content" {
-		t.Errorf("Expect: 'content', Got: %s", Env.Get("anything"))
+	Set("Anything", "content")
+	if Get("anything") != "content" {
+		t.Errorf("Expect: 'content', Got: %s", Get("anything"))
 	}
 
-	if Env.Get("NotFound") != "" {
-		t.Errorf("Expect empty string, Got: %s", Env.Get("NotFound"))
+	if Get("NotFound") != "" {
+		t.Errorf("Expect empty string, Got: %s", Get("NotFound"))
 	}
 }
 
 func TestValues(t *testing.T) {
 	os.Clearenv()
-	values := Env.Values()
+	values := Values()
 	if len(values) != 0 {
 		t.Errorf("Expect: 0, Got: %d", len(values))
 	}
-	Env.Set("app", "me")
+	Set("app", "me")
 
-	values = Env.Values()
+	values = Values()
 	if len(values) != 1 {
 		t.Errorf("Expect: 1, Got: %d", len(values))
 	}

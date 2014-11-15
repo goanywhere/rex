@@ -25,6 +25,8 @@ package web
 import (
 	"html/template"
 	"path/filepath"
+
+	"github.com/goanywhere/web/env"
 )
 
 // TODO boost ME.
@@ -42,7 +44,7 @@ func loadTemplates(filename string, others ...string) *template.Template {
 	page, exists := templates[filename]
 	if !exists {
 		var files []string
-		folder := Env.Get("templates")
+		folder := env.Get("templates")
 		files = append(files, filepath.Join(folder, filename))
 		for _, item := range others {
 			files = append(files, filepath.Join(folder, item))

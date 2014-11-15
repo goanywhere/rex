@@ -22,7 +22,7 @@
  */
 
 // Env loads & parses the exported system environmental values via pre-defined struct.
-package web
+package env
 
 import (
 	"bufio"
@@ -37,42 +37,27 @@ import (
 	"strings"
 )
 
+// env processes all key/value under the prefix.
+const Prefix string = "GoAnywhere"
+
 var (
-	Env *env
-	// env processes all key/value under the prefix.
-	Prefix string = "GoAnywhere"
+	pattern *regexp.Regexp
+	space   *regexp.Regexp
 )
-
-type (
-	env struct {
-		pattern *regexp.Regexp
-		space   *regexp.Regexp
-
-		Key   string // The actual key to store in os.Environ.
-		Value string // String value of the storage.
-		Name  string // User's specified field name.
-		Type  string // The actual type of the value.
-	}
-)
-
-// Implements the Error interface.
-func (self *env) Error() string {
-	return fmt.Sprintf("Env.Load: <%s/%s> <%s => %s>", self.Key, self.Name, self.Value, self.Type)
-}
 
 // ---------------------------------------------------------------------------
 //  Internal Helpers
 // ---------------------------------------------------------------------------
-// key constructs the real key for storing the name/value pair under prefix.
-func (self *env) key(name string) string {
+// getKey constructs the real key for storing the name/value pair under prefix.
+func getKey(name string) string {
 	return fmt.Sprintf("%s_%s", Prefix, strings.ToUpper(name))
 }
 
 // findKeyValue finds ':' or '=' separated key/value pair from the given string.
-func (self *env) findKeyValue(str string) (key, value string) {
-	result := self.pattern.FindString(str)
+func findKeyValue(str string) (key, value string) {
+	result := pattern.FindString(str)
 	if result != "" {
-		raw := self.space.ReplaceAllString(result, "")
+		raw := space.ReplaceAllString(result, "")
 		var kv []string
 		if strings.Index(raw, ":") >= 0 {
 			kv = strings.Split(raw, ":")
@@ -86,8 +71,8 @@ func (self *env) findKeyValue(str string) (key, value string) {
 }
 
 // Load fetches the values from '.env' from project's CWD.
-func (self *env) Load() error {
-	if file, err := os.Open(filepath.Join(self.Get("root"), ".env")); err == nil {
+func Load() error {
+	if file, err := os.Open(filepath.Join(Get("root"), ".env")); err == nil {
 		defer file.Close()
 		reader := bufio.NewReader(file)
 		for {
@@ -95,9 +80,9 @@ func (self *env) Load() error {
 			if e != nil || e == io.EOF {
 				return e
 			}
-			k, v := self.findKeyValue(line)
+			k, v := findKeyValue(line)
 			if k != "" && v != "" {
-				self.Set(k, v)
+				Set(k, v)
 			}
 		}
 	} else {
@@ -107,7 +92,7 @@ func (self *env) Load() error {
 }
 
 // LoadObject fetches the key/value pairs under the prefix into the given spec. struct.
-func (self *env) LoadInto(spec interface{}) error {
+func LoadInto(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
 		return errors.New("Configuration Spec. *MUST* be a struct.")
@@ -124,7 +109,7 @@ func (self *env) LoadInto(spec interface{}) error {
 				name = stype.Field(index).Name
 			}
 
-			key := self.key(name)
+			key := getKey(name)
 			value := os.Getenv(key)
 			if value == "" {
 				continue
@@ -139,32 +124,20 @@ func (self *env) LoadInto(spec interface{}) error {
 				if val, err := ToBool(value); err == nil {
 					field.SetBool(val)
 				} else {
-					self.Key = key
-					self.Value = value
-					self.Name = name
-					self.Type = field.Type().String()
-					return self
+					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				// if val, err := ToInt(value); err == nil {
 				if val, err := strconv.ParseInt(value, 0, field.Type().Bits()); err == nil {
 					field.SetInt(val)
 				} else {
-					self.Key = key
-					self.Value = value
-					self.Name = name
-					self.Type = field.Type().String()
-					return self
+					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			case reflect.Float32, reflect.Float64:
 				if val, err := ToFloat(value); err == nil {
 					field.SetFloat(val)
 				} else {
-					self.Key = key
-					self.Value = value
-					self.Name = name
-					self.Type = field.Type().String()
-					return self
+					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			}
 		}
@@ -173,32 +146,32 @@ func (self *env) LoadInto(spec interface{}) error {
 }
 
 // Get returns the value for the name under env. prefix.
-func (self *env) Get(name string) string {
-	return os.Getenv(self.key(name))
+func Get(name string) string {
+	return os.Getenv(getKey(name))
 }
 
 // GetBool returns & parses the stored string value to bool.
-func (self *env) GetBool(name string) (bool, error) {
-	return ToBool(self.Get(name))
+func GetBool(name string) (bool, error) {
+	return ToBool(Get(name))
 }
 
 // GetFloat returns & parsed the stored string value to int.
-func (self *env) GetFloat(name string) (float64, error) {
-	return ToFloat(self.Get(name))
+func GetFloat(name string) (float64, error) {
+	return ToFloat(Get(name))
 }
 
 // GetInt returns & parsed the stored string value to int.
-func (self *env) GetInt(name string) (int, error) {
-	return ToInt(self.Get(name))
+func GetInt(name string) (int, error) {
+	return ToInt(Get(name))
 }
 
 // Set sets the value for the name under env. prefix.
-func (self *env) Set(name, value string) error {
-	return os.Setenv(self.key(name), value)
+func Set(name, value string) error {
+	return os.Setenv(getKey(name), value)
 }
 
 // Values constructs [string]string map for key/value under env. prefix.
-func (self *env) Values() map[string]string {
+func Values() map[string]string {
 	environ := os.Environ()
 	values := make(map[string]string)
 	for _, pair := range environ {
@@ -213,7 +186,6 @@ func (self *env) Values() map[string]string {
 }
 
 func init() {
-	Env = new(env)
-	Env.pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(\w+)`)
-	Env.space = regexp.MustCompile(`\s`)
+	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(\w+)`)
+	space = regexp.MustCompile(`\s`)
 }

@@ -30,6 +30,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/goanywhere/web/env"
 	"github.com/gorilla/mux"
 )
 
@@ -87,10 +88,10 @@ func (self *Application) handle(method, pattern string, h interface{}) {
 	self.router.Handle(pattern, handler).Methods(method).Name(name)
 }
 
-// Address fetches the address predefined in `os.Environ` by combineing
+// Address fetches the address predefined in `os.environ` by combineing
 // `os.Getenv("host")` & os.Getenv("port").
 func (self *Application) Address() string {
-	return fmt.Sprintf("%s:%s", Env.Get("host"), Env.Get("port"))
+	return fmt.Sprintf("%s:%s", env.Get("host"), env.Get("port"))
 }
 
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
@@ -177,9 +178,9 @@ func init() {
 	} else {
 		panic(err)
 	}
-	Env.Set("root", root)
-	Env.Set("deubg", "true")
-	Env.Set("host", "0.0.0.0")
-	Env.Set("port", "5000")
-	Env.Set("templates", "templates")
+	env.Set("root", root)
+	env.Set("deubg", "true")
+	env.Set("host", "0.0.0.0")
+	env.Set("port", "5000")
+	env.Set("templates", "templates")
 }

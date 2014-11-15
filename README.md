@@ -95,6 +95,7 @@ package main
 
 import (
     "github.com/goanywhere/web"
+    "github.com/goanywhere/web/env"
 )
 
 func index (ctx *web.Context) {
@@ -103,7 +104,7 @@ func index (ctx *web.Context) {
 
 func main() {
     // Override default 5000 port here.
-    web.Env.Set("port", "9394")
+    env.Set("port", "9394")
 
     app := web.New()
     app.Get("/", index)
@@ -121,7 +122,7 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/web"
+    "github.com/goanywhere/web/env"
 )
 
 type Spec struct {
@@ -131,8 +132,8 @@ type Spec struct {
 func main() {
     var spec Spec
 
-    web.Env.Set("app", "myapplication")
-    web.Env.LoadInto(&spec)
+    env.Set("app", "myapplication")
+    env.LoadInto(&spec)
 
     fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
 }
@@ -151,15 +152,15 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/web"
+    "github.com/goanywhere/web/env"
 )
 
 func main() {
     // This will load '.env' from current working directory.
-    web.Env.Load()
+    env.Load()
 
-    fmt.Printf("<test: %s>", web.Env.Get("test"))     // output: "value"
-    fmt.Printf("<test2: %s>", web.Env.Get("test2"))   // output: "value2"
+    fmt.Printf("<test: %s>", env.Get("test"))     // output: "value"
+    fmt.Printf("<test2: %s>", env.Get("test2"))   // output: "value2"
 }
 ```
 
