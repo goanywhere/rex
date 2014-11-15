@@ -151,7 +151,6 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 		}
 	}
 	app.ServeHTTP(writer, request)
-	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
@@ -165,6 +164,7 @@ func (self *Application) Serve() {
 }
 
 func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Application Defaults
 	var root string
 	if cwd, err := os.Getwd(); err == nil {

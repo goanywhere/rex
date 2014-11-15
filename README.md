@@ -33,8 +33,6 @@ After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html
 package main
 
 import (
-    "net/http"
-
     "github.com/goanywhere/web"
 )
 
@@ -56,7 +54,7 @@ Then start your server:
 go run server.go
 ```
 
-You will now have a HTTP server running on `localhost:9394`.
+You will now have a HTTP server running on `localhost:5000`.
 
 
 ## Context
@@ -68,8 +66,6 @@ Context is a very useful helper shipped with Web.*go*. It allows you to access i
 package main
 
 import (
-    "net/http"
-
     "github.com/goanywhere/web"
 )
 
@@ -89,6 +85,57 @@ func main() {
 }
 ```
 
+
+## Settings
+
+All settings on Web.*go* utilize system evironment via `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, this also make configuration extremly easy & flexible via both command line & application.
+
+``` go
+package main
+
+import (
+    "github.com/goanywhere/web"
+)
+
+func index (ctx *web.Context) {
+    ctx.HTML("layout.html", "index.html", "header.html")
+}
+
+func main() {
+    // Override default 5000 port here.
+    web.Env.Set("port", "9394")
+
+    app := web.New()
+    app.Get("/", index)
+    app.Serve()
+}
+```
+
+You will now have the HTTP server running on `0.0.0.0:9394`.
+
+`web.Env` also supports custom struct for you to access the reflected values (the key is case-insensitive).
+
+``` go
+package main
+
+import (
+    "fmt"
+
+    "github.com/goanywhere/web"
+)
+
+type Spec struct {
+    App string
+}
+
+func main() {
+    web.Env.Set("app", "myapplication")
+
+    var spec Spec
+    web.Env.Load(&spec)
+    fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
+}
+```
 
 
 ## Middleware
