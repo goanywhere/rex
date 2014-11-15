@@ -37,10 +37,11 @@ import (
 	"strings"
 )
 
-// env processes all key/value under the prefix.
-const Prefix = "GoAnywhere"
-
-var Env *env
+var (
+	Env *env
+	// env processes all key/value under the prefix.
+	Prefix string = "GoAnywhere"
+)
 
 type (
 	env struct {
@@ -62,6 +63,11 @@ func (self *env) Error() string {
 // ---------------------------------------------------------------------------
 //  Internal Helpers
 // ---------------------------------------------------------------------------
+// key constructs the real key for storing the name/value pair under prefix.
+func (self *env) key(name string) string {
+	return fmt.Sprintf("%s_%s", Prefix, strings.ToUpper(name))
+}
+
 // findKeyValue finds ':' or '=' separated key/value pair from the given string.
 func (self *env) findKeyValue(str string) (key, value string) {
 	result := self.pattern.FindString(str)
@@ -73,9 +79,10 @@ func (self *env) findKeyValue(str string) (key, value string) {
 		} else {
 			kv = strings.Split(raw, "=")
 		}
-		return kv[0], kv[1]
+		key = kv[0]
+		value = kv[1]
 	}
-	return "", ""
+	return
 }
 
 // Load fetches the values from '.env' from project's CWD.
@@ -162,11 +169,6 @@ func (self *env) LoadInto(spec interface{}) error {
 		}
 	}
 	return nil
-}
-
-// key constructs the real key for storing the name/value pair under prefix.
-func (self *env) key(name string) string {
-	return fmt.Sprintf("%s_%s", Prefix, strings.ToUpper(name))
 }
 
 // Get returns the value for the name under env. prefix.

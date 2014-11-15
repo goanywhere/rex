@@ -27,6 +27,8 @@ import (
 	"path/filepath"
 )
 
+// TODO boost ME.
+
 var templates map[string]*template.Template
 
 // ---------------------------------------------------------------------------
