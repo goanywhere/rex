@@ -100,7 +100,7 @@ func (self *env) Load() error {
 }
 
 // LoadObject fetches the key/value pairs under the prefix into the given spec. struct.
-func (self *env) LoadObject(spec interface{}) error {
+func (self *env) LoadInto(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
 		return errors.New("Configuration Spec. *MUST* be a struct.")

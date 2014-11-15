@@ -132,13 +132,39 @@ func main() {
     var spec Spec
 
     web.Env.Set("app", "myapplication")
-    web.Env.Load(&spec)
+    web.Env.LoadInto(&spec)
 
     fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
 }
 ```
 
-Hey, dude, why not using those popular approaches, like file-based configurations? We know you'll be askin & we have the answer as well, [this](//12factor.net/config).
+We also includes dotenv supports:
+
+``` text
+test: value
+test2  =  value2
+```
+
+``` go
+package main
+
+import (
+    "fmt"
+
+    "github.com/goanywhere/web"
+)
+
+func main() {
+    // This will load '.env' from current working directory.
+    web.Env.Load()
+
+    fmt.Printf("<test: %s>", web.Env.Get("test"))     // output: "value"
+    fmt.Printf("<test2: %s>", web.Env.Get("test2"))   // output: "value2"
+}
+```
+
+
+Hey, dude, why not using those popular approaches, like file-based configurations? We know you'll be askin & we have the answer as well, [here](//12factor.net/config).
 
 
 ## Middleware

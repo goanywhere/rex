@@ -66,10 +66,10 @@ func TestLoad(t *testing.T) {
 	Env.Load()
 }
 
-func TestLoadObject(t *testing.T) {
+func TestLoadInto(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 }
@@ -79,7 +79,7 @@ func TestGetString(t *testing.T) {
 
 	setup()
 
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.App != "example" {
@@ -90,7 +90,7 @@ func TestGetString(t *testing.T) {
 func TestGetBool(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -107,7 +107,7 @@ func TestGetBool(t *testing.T) {
 func TestGetInt(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -119,7 +119,7 @@ func TestGetInt(t *testing.T) {
 func TestGetFloat(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -131,7 +131,7 @@ func TestGetFloat(t *testing.T) {
 func TestTag(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.LoadObject(&spec); err != nil {
+	if err := Env.LoadInto(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.Tag != "ALT" {
