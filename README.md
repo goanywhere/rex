@@ -138,6 +138,8 @@ func main() {
 }
 ```
 
+Hey, dude, why not using those popular approaches, like file-based configurations? We know you'll be askin & we have the answer as well, [this](//12factor.net/config).
+
 
 ## Middleware
 

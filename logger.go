@@ -27,7 +27,7 @@ import (
 	"os"
 )
 
-var logger = log.New(os.Stdout, "[web.go]", 0)
+var logger = log.New(os.Stdout, "[Web.go]", 0)
 
 func Debug(format string, values ...interface{}) {
 	logger.Printf("[DEBUG] "+format, values...)
