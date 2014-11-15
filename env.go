@@ -25,10 +25,14 @@
 package web
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -40,6 +44,9 @@ var Env *env
 
 type (
 	env struct {
+		pattern *regexp.Regexp
+		space   *regexp.Regexp
+
 		Key   string // The actual key to store in os.Environ.
 		Value string // String value of the storage.
 		Name  string // User's specified field name.
@@ -52,8 +59,48 @@ func (self *env) Error() string {
 	return fmt.Sprintf("Env.Load: <%s/%s> <%s => %s>", self.Key, self.Name, self.Value, self.Type)
 }
 
-// Load fetches the key/value pairs under the prefix into the given spec. struct.
-func (self *env) Load(spec interface{}) error {
+// ---------------------------------------------------------------------------
+//  Internal Helpers
+// ---------------------------------------------------------------------------
+// findKeyValue finds ':' or '=' separated key/value pair from the given string.
+func (self *env) findKeyValue(str string) (key, value string) {
+	result := self.pattern.FindString(str)
+	if result != "" {
+		raw := self.space.ReplaceAllString(result, "")
+		var kv []string
+		if strings.Index(raw, ":") >= 0 {
+			kv = strings.Split(raw, ":")
+		} else {
+			kv = strings.Split(raw, "=")
+		}
+		return kv[0], kv[1]
+	}
+	return "", ""
+}
+
+// Load fetches the values from '.env' from project's CWD.
+func (self *env) Load() error {
+	if file, err := os.Open(filepath.Join(self.Get("root"), ".env")); err == nil {
+		defer file.Close()
+		reader := bufio.NewReader(file)
+		for {
+			line, e := reader.ReadString('\n')
+			if e != nil || e == io.EOF {
+				return e
+			}
+			k, v := self.findKeyValue(line)
+			if k != "" && v != "" {
+				self.Set(k, v)
+			}
+		}
+	} else {
+		return err
+	}
+	return nil
+}
+
+// LoadObject fetches the key/value pairs under the prefix into the given spec. struct.
+func (self *env) LoadObject(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
 		return errors.New("Configuration Spec. *MUST* be a struct.")
@@ -164,4 +211,6 @@ func (self *env) Values() map[string]string {
 
 func init() {
 	Env = new(env)
+	Env.pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(\w+)`)
+	Env.space = regexp.MustCompile(`\s`)
 }

@@ -44,10 +44,32 @@ func setup() {
 	Env.Set("multiple_words_tag", "ALT")
 }
 
+func TestFindKeyValue(t *testing.T) {
+	k, v := Env.findKeyValue(" test: value")
+	if k != "test" || v != "value" {
+		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
+	}
+
+	k, v = Env.findKeyValue(" test: value")
+	if k != "test" || v != "value" {
+		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
+	}
+
+	k, v = Env.findKeyValue("\ttest:\tvalue\t\n")
+	if k != "test" || v != "value" {
+		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
+	}
+
+}
+
 func TestLoad(t *testing.T) {
+	Env.Load()
+}
+
+func TestLoadObject(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 }
@@ -57,7 +79,7 @@ func TestGetString(t *testing.T) {
 
 	setup()
 
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.App != "example" {
@@ -68,19 +90,24 @@ func TestGetString(t *testing.T) {
 func TestGetBool(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
 	if !spec.Debug {
 		t.Errorf("Expect: true, Got: %v", spec.Debug)
 	}
+
+	value, err := Env.GetBool("NotFound")
+	if value || err != nil {
+		t.Errorf("Expect: false, Got: %v", value)
+	}
 }
 
 func TestGetInt(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -92,7 +119,7 @@ func TestGetInt(t *testing.T) {
 func TestGetFloat(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 
@@ -104,7 +131,7 @@ func TestGetFloat(t *testing.T) {
 func TestTag(t *testing.T) {
 	var spec Spec
 	setup()
-	if err := Env.Load(&spec); err != nil {
+	if err := Env.LoadObject(&spec); err != nil {
 		t.Error(err.Error())
 	}
 	if spec.Tag != "ALT" {
