@@ -26,7 +26,6 @@ package env
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -70,19 +69,20 @@ func findKeyValue(str string) (key, value string) {
 	return
 }
 
+// ---------------------------------------------------------------------------
+//  Public APIs
+// ---------------------------------------------------------------------------
 // Load fetches the values from '.env' from project's CWD.
 // *NOTE* value *MUST* not include ":" or "=".
 func Load() error {
-	dotenv := filepath.Join(Get("root"), ".env")
-	fmt.Printf("dotenv: %s\n", dotenv)
-
-	if file, err := os.Open(dotenv); err == nil {
-		defer file.Close()
-		reader := bufio.NewReader(file)
+	if dotenv, err := os.Open(filepath.Join(Get("root"), ".env")); err == nil {
+		defer dotenv.Close()
+		reader := bufio.NewReader(dotenv)
 		for {
-			line, e := reader.ReadString('\n')
-			if e != nil || e == io.EOF {
-				return e
+			var line string
+			line, err = reader.ReadString('\n')
+			if err != nil || err == io.EOF {
+				return err
 			}
 			k, v := findKeyValue(line)
 			if k != "" && v != "" {
@@ -99,7 +99,7 @@ func Load() error {
 func LoadInto(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
-		return errors.New("Configuration Spec. *MUST* be a struct.")
+		return fmt.Errorf("Configuration Spec. *MUST* be a struct.")
 	}
 
 	var stype reflect.Type = s.Type()
@@ -195,8 +195,8 @@ func init() {
 	space = regexp.MustCompile(`\s`)
 
 	// Use CWD as fallback.
-	if Get("root") == "" {
-		cwd, _ := os.Getwd()
-		Set("root", cwd)
-	}
+	//if Get("root") == "" {
+	//cwd, _ := os.Getwd()
+	//Set("root", cwd)
+	//}
 }
