@@ -136,7 +136,7 @@ func (self *env) LoadInto(spec interface{}) error {
 			case reflect.String:
 				field.SetString(value)
 			case reflect.Bool:
-				if val, err := strconv.ParseBool(value); err == nil {
+				if val, err := ToBool(value); err == nil {
 					field.SetBool(val)
 				} else {
 					self.Key = key
@@ -146,6 +146,7 @@ func (self *env) LoadInto(spec interface{}) error {
 					return self
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				// if val, err := ToInt(value); err == nil {
 				if val, err := strconv.ParseInt(value, 0, field.Type().Bits()); err == nil {
 					field.SetInt(val)
 				} else {
@@ -156,7 +157,7 @@ func (self *env) LoadInto(spec interface{}) error {
 					return self
 				}
 			case reflect.Float32, reflect.Float64:
-				if val, err := strconv.ParseFloat(value, field.Type().Bits()); err == nil {
+				if val, err := ToFloat(value); err == nil {
 					field.SetFloat(val)
 				} else {
 					self.Key = key
