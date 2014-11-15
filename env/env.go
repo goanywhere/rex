@@ -195,8 +195,8 @@ func init() {
 	space = regexp.MustCompile(`\s`)
 
 	// Use CWD as fallback.
-	//if Get("root") == "" {
-	//cwd, _ := os.Getwd()
-	//Set("root", cwd)
-	//}
+	if Get("root") == "" {
+		cwd, _ := os.Getwd()
+		Set("root", cwd)
+	}
 }
