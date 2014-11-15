@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       web.go
+ *  @file       mux.go
  *  @date       2014-10-16
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
