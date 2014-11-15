@@ -52,3 +52,66 @@ func ToBool(raw interface{}) (bool, error) {
 	}
 	return false, fmt.Errorf("Unable to convert %v to bool", raw)
 }
+
+// ToFloat converts string/int to their float64 value.
+func ToFloat(raw interface{}) (float64, error) {
+	switch val := raw.(type) {
+	case float32:
+		return float64(val), nil
+	case float64:
+		return val, nil
+	case int, int8, int16, int32, int64:
+		return float64(val.(int)), nil
+	case string:
+		v, err := strconv.ParseFloat(val, 64)
+		if err == nil {
+			return float64(v), nil
+		}
+		return 0.0, fmt.Errorf("Unable to convert %v to float", val)
+	default:
+		return 0.0, fmt.Errorf("Unable to convert %v to float", val)
+	}
+}
+
+// ToInt converts int/float/bool/nil to int value.
+func ToInt(raw interface{}) (int, error) {
+	switch val := raw.(type) {
+	case bool:
+		if bool(val) {
+			return 1, nil
+		}
+		return 0, nil
+	case int, int8, int16, int32, int64:
+		return raw.(int), nil
+	case float64:
+		return int(val), nil
+	case string:
+		v, err := strconv.ParseInt(val, 0, 0)
+		if err == nil {
+			return int(v), nil
+		}
+		return 0, fmt.Errorf("Unable to convert %v to int", raw)
+	case nil:
+		return 0, nil
+	default:
+		return 0, fmt.Errorf("Unable to convert %v to int", raw)
+	}
+}
+
+// ToString converts float/int/byte/nil into string value.
+func ToString(raw interface{}) (string, error) {
+	switch val := raw.(type) {
+	case string:
+		return val, nil
+	case []byte:
+		return string(val), nil
+	case int:
+		return strconv.FormatInt(int64(raw.(int)), 10), nil
+	case float64:
+		return strconv.FormatFloat(raw.(float64), 'f', -1, 64), nil
+	case nil:
+		return "", nil
+	default:
+		return "", fmt.Errorf("Unable to convert %v to string", raw)
+	}
+}

@@ -127,6 +127,21 @@ func (self *env) Get(name string) string {
 	return os.Getenv(self.key(name))
 }
 
+// GetBool returns & parses the stored string value to bool.
+func (self *env) GetBool(name string) (bool, error) {
+	return ToBool(self.Get(name))
+}
+
+// GetFloat returns & parsed the stored string value to int.
+func (self *env) GetFloat(name string) (float64, error) {
+	return ToFloat(self.Get(name))
+}
+
+// GetInt returns & parsed the stored string value to int.
+func (self *env) GetInt(name string) (int, error) {
+	return ToInt(self.Get(name))
+}
+
 // Set sets the value for the name under env. prefix.
 func (self *env) Set(name, value string) error {
 	return os.Setenv(self.key(name), value)
