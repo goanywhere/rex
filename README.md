@@ -83,8 +83,8 @@ func json (ctx *web.Context) {
 
 func main() {
     app := web.New()
-    app.GET("/", index)
-    app.GET("/api", json)
+    app.Get("/", index)
+    app.Get("/api", json)
     app.Serve()
 }
 ```
@@ -128,7 +128,7 @@ Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We develo
 
 - [X] Sharding Supports
 - [X] Live Reload Integration
-- [ ] Env-Based Configurations
+- [X] Env-Based Configurations
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] i18n Supports

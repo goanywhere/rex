@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project	web.go
+ *  @project	app.go
  *  @file       web.go
  *  @date       2014-10-16
  *  @author     Jim Zhan <jim.zhan@me.com>
@@ -51,17 +51,6 @@ type (
 // New creates an application instance & setup its default settings..
 func New() *Application {
 	app := &Application{mux.NewRouter(), nil}
-	// Application Defaults
-	var root string
-	if cwd, err := os.Getwd(); err == nil {
-		root, _ = filepath.Abs(cwd)
-	} else {
-		panic(err)
-	}
-	Env.Set("root", root)
-	Env.Set("host", "0.0.0.0")
-	Env.Set("port", "3000")
-	Env.Set("templates", "templates")
 	return app
 }
 
@@ -173,4 +162,18 @@ func (self *Application) Serve() {
 	if err := http.ListenAndServe(address, self); err != nil {
 		panic(err)
 	}
+}
+
+func init() {
+	// Application Defaults
+	var root string
+	if cwd, err := os.Getwd(); err == nil {
+		root, _ = filepath.Abs(cwd)
+	} else {
+		panic(err)
+	}
+	Env.Set("root", root)
+	Env.Set("host", "0.0.0.0")
+	Env.Set("port", "5000")
+	Env.Set("templates", "templates")
 }
