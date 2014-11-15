@@ -87,6 +87,12 @@ func (self *Application) handle(method, pattern string, h interface{}) {
 	self.router.Handle(pattern, handler).Methods(method).Name(name)
 }
 
+// Address fetches the address predefined in `os.Environ` by combineing
+// `os.Getenv("host")` & os.Getenv("port").
+func (self *Application) Address() string {
+	return fmt.Sprintf("%s:%s", Env.Get("host"), Env.Get("port"))
+}
+
 // GET is a shortcut for app.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Application) Get(pattern string, handler interface{}) {
@@ -143,6 +149,7 @@ func (self *Application) Use(middlewares ...Middleware) {
 
 // ServeHTTP turn Application into http.Handler by implementing the http.Handler interface.
 func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	Info("Application server started [%s]", self.Address())
 	var app http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {
@@ -156,9 +163,7 @@ func (self *Application) ServeHTTP(writer http.ResponseWriter, request *http.Req
 // Serve starts serving the requests at the pre-defined address from settings.
 // TODO command line arguments.
 func (self *Application) Serve() {
-	address := fmt.Sprintf("%s:%s", Env.Get("host"), Env.Get("port"))
-	Info("Application server started [%s]", address)
-	if err := http.ListenAndServe(address, self); err != nil {
+	if err := http.ListenAndServe(self.Address(), self); err != nil {
 		panic(err)
 	}
 }
