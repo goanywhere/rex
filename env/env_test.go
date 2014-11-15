@@ -23,8 +23,12 @@
 package env
 
 import (
+	"bufio"
+	"fmt"
 	"os"
 	"testing"
+
+	"github.com/goanywhere/web/crypto"
 )
 
 type Spec struct {
@@ -63,7 +67,25 @@ func TestFindKeyValue(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	Load()
+	Set("root", "/tmp")
+
+	var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
+	if env, err := os.Create("/tmp/.env"); err == nil {
+		defer env.Close()
+		secret := crypto.RandomString(64, pool)
+		buffer := bufio.NewWriter(env)
+		buffer.WriteString(fmt.Sprintf("secret=%s\n", secret))
+		buffer.WriteString("app=myapp\n")
+		buffer.Flush()
+
+		Load()
+
+		value := Get("secret")
+		if value != secret {
+			t.Errorf("Expected: %s, Got: %s", secret, value)
+		}
+	}
+	os.Remove(".env")
 }
 
 func TestLoadInto(t *testing.T) {

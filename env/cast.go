@@ -75,6 +75,7 @@ func ToFloat(raw interface{}) (float64, error) {
 }
 
 // ToInt converts int/float/bool/nil to int value.
+// FIXME int64 returned???
 func ToInt(raw interface{}) (int, error) {
 	switch val := raw.(type) {
 	case bool:

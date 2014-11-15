@@ -23,6 +23,8 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,12 +33,16 @@ import (
 	"github.com/goanywhere/web/crypto"
 )
 
-func generateSecret() string {
-	chars := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
-	return crypto.RandomString(64, chars)
-}
+var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
 
 func createProject(path string) error {
+	// create .env with secret.
+	if env, err := os.Create(filepath.Join(path, ".env")); err == nil {
+		defer env.Close()
+		buffer := bufio.NewWriter(env)
+		buffer.WriteString(fmt.Sprintf("secret=%s", crypto.RandomString(64, pool)))
+		buffer.Flush()
+	}
 	return nil
 }
 

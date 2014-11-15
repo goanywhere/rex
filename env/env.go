@@ -71,6 +71,7 @@ func findKeyValue(str string) (key, value string) {
 }
 
 // Load fetches the values from '.env' from project's CWD.
+// *NOTE* value *MUST* not include ":" or "=".
 func Load() error {
 	if file, err := os.Open(filepath.Join(Get("root"), ".env")); err == nil {
 		defer file.Close()
@@ -186,6 +187,7 @@ func Values() map[string]string {
 }
 
 func init() {
-	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(.+)`)
+	// this wildcard almost any printable characters expect "=" & ":".
+	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*([[:graph:]]+)`)
 	space = regexp.MustCompile(`\s`)
 }
