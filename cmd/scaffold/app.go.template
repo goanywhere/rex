@@ -1,0 +1,18 @@
+package {{.package}}
+
+import (
+	"github.com/goanywhere/web"
+	"github.com/goanywhere/web/env"
+)
+
+func index(ctx *web.Context) {
+	ctx.String("Thanks for using Web.go")
+}
+
+func main() {
+	env.Set("debug", "true")
+
+	app := web.New()
+	app.Get("/", index)
+	app.Serve()
+}

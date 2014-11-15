@@ -85,6 +85,11 @@ func TestGetString(t *testing.T) {
 	if spec.App != "example" {
 		t.Errorf("Expect: 'example', Got: %s", spec.App)
 	}
+
+	Set("secret", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
+	if Get("secret") != "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)" {
+		t.Errorf("Expect: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)', Got: %s", Get("secret"))
+	}
 }
 
 func TestGetBool(t *testing.T) {

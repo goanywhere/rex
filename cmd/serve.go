@@ -31,13 +31,9 @@ import (
 	"github.com/pilu/fresh/runner"
 )
 
-func here(config string) string {
-	_, filename, _, _ := runtime.Caller(1)
-	return path.Join(path.Dir(filename), config)
-}
-
 func Serve(context *cli.Context) {
-	config := here("webapp.conf")
+	_, filename, _, _ := runtime.Caller(1)
+	config := path.Join(path.Dir(filename), "webapp.conf")
 	os.Setenv("RUNNER_CONFIG_PATH", config)
 	runner.Start()
 }

@@ -116,7 +116,7 @@ func LoadInto(spec interface{}) error {
 			}
 			// converts the environmental value from string to its real type.
 			// Supports: String | Bool | Float | Integer
-			// TODO more formats
+			// TODO Complex Object?
 			switch field.Kind() {
 			case reflect.String:
 				field.SetString(value)
@@ -186,6 +186,6 @@ func Values() map[string]string {
 }
 
 func init() {
-	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(\w+)`)
+	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(.+)`)
 	space = regexp.MustCompile(`\s`)
 }

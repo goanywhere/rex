@@ -55,7 +55,7 @@
 //  3. After ignoring S - A, the remaining ids are (3, 1, 4, 2, 0)
 //  4. Therefore, the key belongs to shard 3.
 
-package web
+package sharding
 
 import (
 	"crypto/hmac"

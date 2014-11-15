@@ -24,6 +24,8 @@ package cmd
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/goanywhere/web/crypto"
@@ -34,11 +36,23 @@ func generateSecret() string {
 	return crypto.RandomString(64, chars)
 }
 
+func createProject(path string) error {
+	return nil
+}
+
 func Create(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 {
 		log.Print("Valid Project Name Missing")
 	} else {
-		// create skeleton here
+		if cwd, err := os.Getwd(); err != nil {
+			panic(err)
+		} else {
+			path := filepath.Join(cwd, args[0])
+			if err := os.Mkdir(path, os.ModePerm); err != nil {
+				panic(err)
+			}
+			createProject(path)
+		}
 	}
 }

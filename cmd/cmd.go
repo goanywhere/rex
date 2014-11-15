@@ -24,10 +24,14 @@ package cmd
 
 import (
 	"os"
+	"path"
+	"path/filepath"
 	"runtime"
 
 	"github.com/codegangsta/cli"
 )
+
+var here string
 
 var commands = []cli.Command{
 	{
@@ -57,4 +61,9 @@ func Execute() {
 	app.Version = "0.1.1"
 	app.Commands = commands
 	app.Run(os.Args)
+}
+
+func init() {
+	_, filename, _, _ := runtime.Caller(1)
+	here, _ = filepath.Abs(path.Dir(filename))
 }

@@ -211,7 +211,7 @@ $ webapp serve
 
 ## Frameworks comes & dies, will this be supported?
 
-Positive! Web.*go* is an internal & fundamental project at GoAnywhere. We developed it and we are going to continue using/improving it.
+Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We developed it and we are going to continue using/improving it.
 
 
 ##Roadmap for v1.0
