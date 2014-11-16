@@ -58,18 +58,19 @@ var (
 )
 
 type xsrf struct {
-	ctx *web.Context
+	*web.Context
+	token string
 }
 
 // See http://en.wikipedia.org/wiki/Same-origin_policy
 func (self *xsrf) checkOrigin() bool {
-	if self.ctx.Request.URL.Scheme == "https" {
+	if self.Request.URL.Scheme == "https" {
 		// See [OWASP]; Checking the Referer Header.
-		referer, err := url.Parse(self.ctx.Request.Header.Get("Referer"))
+		referer, err := url.Parse(self.Request.Header.Get("Referer"))
 
 		if err != nil || referer.String() == "" ||
-			referer.Scheme != self.ctx.Request.URL.Scheme ||
-			referer.Host != self.ctx.Request.URL.Host {
+			referer.Scheme != self.Request.URL.Scheme ||
+			referer.Host != self.Request.URL.Host {
 
 			return false
 		}
@@ -80,9 +81,9 @@ func (self *xsrf) checkOrigin() bool {
 func (self *xsrf) checkToken(token string) bool {
 	// Header always takes precedance of form field since some popular
 	// JavaScript frameworks allow global custom headers for all AJAX requests.
-	query := self.ctx.Request.Header.Get(xsrfFieldName)
+	query := self.Request.Header.Get(xsrfFieldName)
 	if query == "" {
-		query = self.ctx.Request.FormValue(xsrfFieldName)
+		query = self.Request.FormValue(xsrfFieldName)
 	}
 
 	// 1) basic length comparison.
@@ -124,13 +125,13 @@ func (self *xsrf) checkToken(token string) bool {
 	return true
 }
 
-func (self *xsrf) token() string {
+func (self *xsrf) generate() {
 	var secure bool = false
-	if self.ctx.Request.URL.Scheme == "https" {
+	if self.Request.URL.Scheme == "https" {
 		secure = true
 	}
 	// Ensure we have XSRF token in the cookie first.
-	token := self.ctx.Cookie(xsrfCookieName)
+	token := self.Cookie(xsrfCookieName)
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
@@ -141,7 +142,7 @@ func (self *xsrf) token() string {
 
 		// The max-age directive takes priority over Expires.
 		//	http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-		self.ctx.SetCookie(&http.Cookie{
+		self.SetCookie(&http.Cookie{
 			Name:     xsrfCookieName,
 			Value:    token,
 			MaxAge:   xsrfMaxAge,
@@ -150,9 +151,9 @@ func (self *xsrf) token() string {
 			Secure:   secure,
 		})
 	}
-	self.ctx.Header().Set(xsrfHeaderName, token)
-	self.ctx.Set(xsrfFieldName, token)
-	return token
+	self.Header().Set(xsrfHeaderName, token)
+	self.Set(xsrfFieldName, token)
+	self.token = token
 }
 
 // ---------------------------------------------------------------------------
@@ -160,8 +161,9 @@ func (self *xsrf) token() string {
 // ---------------------------------------------------------------------------
 func XSRF(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		x := &xsrf{web.NewContext(w, r)}
-		token := x.token()
+		x := new(xsrf)
+		x.Context = web.NewContext(w, r)
+		x.generate()
 
 		if unsafeMethods.MatchString(r.Method) {
 			// Ensure the URL came for "Referer" under HTTPS.
@@ -170,7 +172,7 @@ func XSRF(next http.Handler) http.Handler {
 			}
 
 			// length => bytes => issue time checkpoints.
-			if !x.checkToken(token) {
+			if !x.checkToken(x.token) {
 				http.Error(w, errInvalidToken, http.StatusForbidden)
 			}
 		}
