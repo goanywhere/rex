@@ -26,6 +26,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGet(t *testing.T) {
@@ -44,12 +46,10 @@ func TestGet(t *testing.T) {
 
 	body := w.Body.String()
 	status := w.Code
-	if body != "hello" {
-		t.Errorf("Respsonse was not correctly parsed. Should be 'hello', but got %s.", body)
-	}
-	if status != http.StatusOK {
-		t.Errorf("Expected Status: 200, Got: %d", status)
-	}
+	Convey("http 200@hello GET test", t, func() {
+		So(body, ShouldEqual, "hello")
+		So(status, ShouldEqual, http.StatusOK)
+	})
 
 	app.Get("/404", func(ctx *Context) {
 		ctx.WriteHeader(http.StatusNotFound)
@@ -60,12 +60,10 @@ func TestGet(t *testing.T) {
 	app.ServeHTTP(w, r)
 	body = w.Body.String()
 	status = w.Code
-	if status != http.StatusNotFound {
-		t.Errorf("Expected Status: 404, Got: %d", status)
-	}
-	if body != "NotFound" {
-		t.Errorf("Respsonse was not correctly parsed. Should be 'NotFound', but got %s.", body)
-	}
+	Convey("http 400 GET test", t, func() {
+		So(body, ShouldEqual, "NotFound")
+		So(status, ShouldEqual, http.StatusNotFound)
+	})
 }
 
 func TestPost(t *testing.T) {}

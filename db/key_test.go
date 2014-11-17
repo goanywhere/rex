@@ -24,6 +24,8 @@ package db
 
 import (
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func BenchmarkNewKey(b *testing.B) {
@@ -34,11 +36,8 @@ func BenchmarkNewKey(b *testing.B) {
 
 func TestNewKey(t *testing.T) {
 	key := NewKey()
-	if len(key) != 12 {
-		t.Errorf("Invalid Key Generated: %v", key)
-	}
-	hex := key.Hex()
-	if len(hex) != 24 {
-		t.Errorf("Invalid Key Hex Generated: %s", hex)
-	}
+	Convey("db.Key basic test", t, func() {
+		So(len(key), ShouldEqual, 12)
+		So(len(key.Hex()), ShouldEqual, 24)
+	})
 }

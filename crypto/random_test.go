@@ -22,7 +22,11 @@
  */
 package crypto
 
-import "testing"
+import (
+	"testing"
+
+	//	. "github.com/smartystreets/goconvey/convey"
+)
 
 func BenchmarkRandomString(b *testing.B) {
 	for index := 0; index < b.N; index++ {

@@ -22,7 +22,11 @@
  */
 package crypto
 
-import "testing"
+import (
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
 
 func BenchmarkNewV1(b *testing.B) {
 	for index := 0; index < b.N; index++ {
@@ -52,24 +56,18 @@ func TestNewV3(t *testing.T) {
 	//""f2107fc9-aea6-3bf0-9ad8-3bef1b5f808b
 	uuid := NewV3(NamespaceOID, "test@example.com")
 	str := "70cd6896-ecb5-3388-85ca-384edc3f3e66"
-	if uuid.Version() != 3 {
-		t.Errorf("Invalid Version Number for UUID Version3")
-	}
-
-	if uuid.String() != str {
-		t.Errorf("Invalid UUID <string: %s> for <test@example.com> under ObjectId namespace. <Expect UUID: %s>", uuid, str)
-	}
+	Convey("UUID Version 3 test", t, func() {
+		So(uuid.Version(), ShouldEqual, 3)
+		So(uuid.String(), ShouldEqual, str)
+	})
 }
 
 func TestNewV5(t *testing.T) {
 	//""f2107fc9-aea6-3bf0-9ad8-3bef1b5f808b
 	uuid := NewV5(NamespaceOID, "test@example.com")
 	str := "067f23a9-76a5-5585-b119-32402a120978"
-	if uuid.Version() != 5 {
-		t.Errorf("Invalid Version Number for UUID Version5")
-	}
-
-	if uuid.String() != str {
-		t.Errorf("Invalid UUID <string: %s> for <test@example.com> under ObjectId namespace. <Expect UUID: %s>", uuid, str)
-	}
+	Convey("UUID Version 5 test", t, func() {
+		So(uuid.Version(), ShouldEqual, 5)
+		So(uuid.String(), ShouldEqual, str)
+	})
 }

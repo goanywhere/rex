@@ -26,6 +26,7 @@ package env
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -37,11 +38,15 @@ import (
 )
 
 // env processes all key/value under the prefix.
-const Prefix string = "GoAnywhere"
+const (
+	Prefix string = "GoAnywhere"
+	tag    string = "web"
+)
 
 var (
-	pattern *regexp.Regexp
-	space   *regexp.Regexp
+	pattern     *regexp.Regexp
+	space       *regexp.Regexp
+	keyNotExist = errors.New("field does not exist")
 )
 
 // ---------------------------------------------------------------------------
@@ -96,7 +101,7 @@ func Load() error {
 }
 
 // LoadObject fetches the key/value pairs under the prefix into the given spec. struct.
-func LoadInto(spec interface{}) error {
+func LoadSpec(spec interface{}) error {
 	s := reflect.ValueOf(spec).Elem()
 	if s.Kind() != reflect.Struct {
 		return fmt.Errorf("Configuration Spec. *MUST* be a struct.")
@@ -108,13 +113,12 @@ func LoadInto(spec interface{}) error {
 	for index := 0; index < s.NumField(); index++ {
 		field = s.Field(index)
 		if field.CanSet() {
-			name := stype.Field(index).Tag.Get("web")
+			name := stype.Field(index).Tag.Get(tag)
 			if name == "" {
 				name = stype.Field(index).Name
 			}
 
-			key := getKey(name)
-			value := os.Getenv(key)
+			value := Get(name)
 			if value == "" {
 				continue
 			}
@@ -128,20 +132,20 @@ func LoadInto(spec interface{}) error {
 				if val, err := ToBool(value); err == nil {
 					field.SetBool(val)
 				} else {
-					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
+					return fmt.Errorf("env.LoadSpec: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				// if val, err := ToInt(value); err == nil {
 				if val, err := strconv.ParseInt(value, 0, field.Type().Bits()); err == nil {
 					field.SetInt(val)
 				} else {
-					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
+					return fmt.Errorf("env.LoadSpec: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			case reflect.Float32, reflect.Float64:
 				if val, err := ToFloat(value); err == nil {
 					field.SetFloat(val)
 				} else {
-					return fmt.Errorf("env.LoadInto: <%s (%s): %s>", name, field.Type().String(), value)
+					return fmt.Errorf("env.LoadSpec: <%s (%s): %s>", name, field.Type().String(), value)
 				}
 			}
 		}
@@ -156,17 +160,29 @@ func Get(name string) string {
 
 // GetBool returns & parses the stored string value to bool.
 func GetBool(name string) (bool, error) {
-	return ToBool(Get(name))
+	if value := Get(name); value == "" {
+		return false, keyNotExist
+	} else {
+		return ToBool(value)
+	}
 }
 
 // GetFloat returns & parsed the stored string value to int.
 func GetFloat(name string) (float64, error) {
-	return ToFloat(Get(name))
+	if value := Get(name); value == "" {
+		return 0.0, keyNotExist
+	} else {
+		return ToFloat(value)
+	}
 }
 
 // GetInt returns & parsed the stored string value to int.
 func GetInt(name string) (int, error) {
-	return ToInt(Get(name))
+	if value := Get(name); value == "" {
+		return 0, keyNotExist
+	} else {
+		return ToInt(value)
+	}
 }
 
 // Set sets the value for the name under env. prefix.

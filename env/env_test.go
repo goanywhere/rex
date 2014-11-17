@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/goanywhere/web/crypto"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 type Spec struct {
@@ -49,152 +50,128 @@ func setup() {
 }
 
 func TestFindKeyValue(t *testing.T) {
-	k, v := findKeyValue(" test: value")
-	if k != "test" || v != "value" {
-		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
-	}
+	Convey("[private] Find key value pair from string", t, func() {
+		k, v := findKeyValue(" test: value")
+		So(k, ShouldEqual, "test")
+		So(v, ShouldEqual, "value")
 
-	k, v = findKeyValue(" test: value")
-	if k != "test" || v != "value" {
-		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
-	}
+		k, v = findKeyValue(" test: value")
+		So(k, ShouldEqual, "test")
+		So(v, ShouldEqual, "value")
 
-	k, v = findKeyValue("\ttest:\tvalue\t\n")
-	if k != "test" || v != "value" {
-		t.Errorf("Expect: <test: value>', Got: <%s: %s>", k, v)
-	}
-
+		k, v = findKeyValue("\ttest:\tvalue\t\n")
+		So(k, ShouldEqual, "test")
+		So(v, ShouldEqual, "value")
+	})
 }
 
 func TestLoad(t *testing.T) {
-	Set("root", "/tmp")
-
 	var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-	if env, err := os.Create("/tmp/.env"); err == nil {
+	filename := "/tmp/.env"
+	if env, err := os.Create(filename); err == nil {
 		defer env.Close()
+		defer os.Remove(filename)
 		secret := crypto.RandomString(64, pool)
 		buffer := bufio.NewWriter(env)
 		buffer.WriteString(fmt.Sprintf("secret=%s\n", secret))
 		buffer.WriteString("app=myapp\n")
 		buffer.Flush()
 
-		Load()
-
-		value := Get("secret")
-		if value != secret {
-			t.Errorf("Expected: %s, Got: %s", secret, value)
-		}
+		Convey("Load key/value from dotenv file", t, func() {
+			Set("root", "/tmp")
+			Load()
+			So(Get("secret"), ShouldEqual, secret)
+		})
 	}
-	os.Remove(".env")
 }
 
-func TestLoadInto(t *testing.T) {
-	var spec Spec
-	setup()
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
+func TestLoadSpec(t *testing.T) {
+	Convey("Load key/value from `os.Envrion in pre-defined struct`", t, func() {
+		setup()
+		var spec Spec
+		err := LoadSpec(&spec)
+		So(err, ShouldBeNil)
+		So(spec.App, ShouldEqual, "example")
+		So(spec.Debug, ShouldBeTrue)
+		So(spec.Total, ShouldEqual, 100)
+		So(spec.Version, ShouldEqual, 32.1)
+		So(spec.Tag, ShouldEqual, "ALT")
+
+		Set("app", "myapplication")
+		LoadSpec(&spec)
+		So(spec.App, ShouldEqual, "myapplication")
+	})
 }
 
 func TestGetString(t *testing.T) {
-	var spec Spec
-
-	setup()
-
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
-	if spec.App != "example" {
-		t.Errorf("Expect: 'example', Got: %s", spec.App)
-	}
-
-	Set("secret", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)")
-	if Get("secret") != "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)" {
-		t.Errorf("Expect: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)', Got: %s", Get("secret"))
-	}
+	Convey("GetString from os.Environ", t, func() {
+		secret := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_=+)"
+		Set("secret", secret)
+		So(Get("secret"), ShouldEqual, secret)
+		So(Get("SeCrEt"), ShouldEqual, secret)
+	})
 }
 
 func TestGetBool(t *testing.T) {
-	var spec Spec
-	setup()
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
+	Convey("GetBool from os.Environ", t, func() {
+		value, err := GetBool("NotFound")
+		So(value, ShouldBeFalse)
+		So(err, ShouldNotBeNil)
 
-	if !spec.Debug {
-		t.Errorf("Expect: true, Got: %v", spec.Debug)
-	}
-
-	value, err := GetBool("NotFound")
-	if value || err != nil {
-		t.Errorf("Expect: false, Got: %v", value)
-	}
+		Set("enabled", "true")
+		value, err = GetBool("enabled")
+		So(value, ShouldBeTrue)
+		So(err, ShouldBeNil)
+	})
 }
 
 func TestGetInt(t *testing.T) {
-	var spec Spec
-	setup()
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
+	Convey("GetInt from os.Environ", t, func() {
+		value, err := GetInt("NotFound")
+		So(value, ShouldEqual, 0)
+		So(err, ShouldNotBeNil)
 
-	if spec.Total != 100 {
-		t.Errorf("Expect: 100, Got: %d", spec.Total)
-	}
+		Set("int", "123")
+		value, err = GetInt("int")
+		So(value, ShouldEqual, 123)
+		So(err, ShouldBeNil)
+	})
 }
 
 func TestGetFloat(t *testing.T) {
-	var spec Spec
-	setup()
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
+	Convey("GetFloat from os.Environ", t, func() {
+		value, err := GetFloat("NotFound")
+		So(value, ShouldEqual, 0.0)
+		So(err, ShouldNotBeNil)
 
-	if spec.Version != 32.1 {
-		t.Errorf("Expect: 32.1, Got: %f", spec.Version)
-	}
-}
-
-func TestTag(t *testing.T) {
-	var spec Spec
-	setup()
-	if err := LoadInto(&spec); err != nil {
-		t.Error(err.Error())
-	}
-	if spec.Tag != "ALT" {
-		t.Errorf("Expect: 'MULTIPLE_WORDS_TAG', Got: %s", spec.Tag)
-	}
+		Set("float", "32.1")
+		value, err = GetFloat("float")
+		So(value, ShouldEqual, 32.1)
+		So(err, ShouldBeNil)
+	})
 }
 
 func TestAccess(t *testing.T) {
-	Set("shell", "/bin/zsh")
-	if Get("shell") != "/bin/zsh" {
-		t.Errorf("Expect: /bin/zsh, Got: %s", Get("shell"))
-	}
+	Convey("Get/Set access to os.Environ", t, func() {
+		Set("shell", "/bin/zsh")
+		So(Get("shell"), ShouldEqual, "/bin/zsh")
 
-	Set("Anything", "content")
-	if Get("anything") != "content" {
-		t.Errorf("Expect: 'content', Got: %s", Get("anything"))
-	}
+		Set("AnyThiNg", "content")
+		So(Get("anything"), ShouldEqual, "content")
 
-	if Get("NotFound") != "" {
-		t.Errorf("Expect empty string, Got: %s", Get("NotFound"))
-	}
+		So(Get("NotFound"), ShouldEqual, "")
+	})
 }
 
 func TestValues(t *testing.T) {
-	os.Clearenv()
-	values := Values()
-	if len(values) != 0 {
-		t.Errorf("Expect: 0, Got: %d", len(values))
-	}
-	Set("app", "me")
+	Convey("Getting values from os.Environ", t, func() {
+		os.Clearenv()
+		values := Values()
+		So(len(values), ShouldBeZeroValue)
 
-	values = Values()
-	if len(values) != 1 {
-		t.Errorf("Expect: 1, Got: %d", len(values))
-	}
-	if values[Prefix+"_APP"] != "me" {
-		t.Errorf("Expect: 'me', Got: '%s'", values[Prefix+"_APP"])
-	}
+		Set("app", "me")
+		values = Values()
+		So(len(values), ShouldEqual, 1)
+		So(values[Prefix+"_APP"], ShouldEqual, "me")
+	})
 }

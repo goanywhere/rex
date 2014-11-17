@@ -26,6 +26,15 @@ import (
 	"os"
 )
 
+// Copy recursively copies files/(sub)directoires into the given path.
+// *NOTE* It walks the file tree rooted at root, calling walkFn for
+// each file or directory in the tree, including root, means that for
+// very large directories it can be inefficient. Copy does not follow symbolic links.
+func Copy(src, dest string) {
+
+}
+
+// Exists check if the given path exists.
 func Exists(path string) bool {
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {

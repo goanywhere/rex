@@ -133,7 +133,7 @@ func main() {
     var spec Spec
 
     env.Set("app", "myapplication")
-    env.LoadInto(&spec)
+    env.LoadSpec(&spec)
 
     fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
 }

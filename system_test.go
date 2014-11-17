@@ -26,15 +26,17 @@ import (
 	"bufio"
 	"os"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func before(handler func(f string)) {
-	filename := "/tmp/tmp.py"
+func setup(handler func(f string)) {
+	filename := "/tmp/tmpfile"
 	if file, err := os.Create(filename); err == nil {
 		defer file.Close()
 		defer os.Remove(filename)
 		buffer := bufio.NewWriter(file)
-		buffer.WriteString("#!/usr/bin/env python")
+		buffer.WriteString("I'm just a temp. file")
 		buffer.Flush()
 
 		handler(filename)
@@ -42,41 +44,39 @@ func before(handler func(f string)) {
 }
 
 func TestExists(t *testing.T) {
-	exists := Exists("/tmp")
-	if !exists {
-		t.Errorf("Expected: true, Got: %v", exists)
-	}
+	Convey("Checks if the given path exists", t, func() {
+		exists := Exists("/tmp")
+		So(exists, ShouldBeTrue)
 
-	exists = Exists("/NotExists")
-	if exists {
-		t.Errorf("Expected: false, Got: %v", exists)
-	}
+		exists = Exists("/NotExists")
+		So(exists, ShouldBeFalse)
+	})
 }
 
 func TestIsDir(t *testing.T) {
-	before(func(filename string) {
+	setup(func(filename string) {
 		flag := IsDir(filename)
-		if flag {
-			t.Errorf("Expected: false, Got: %v", flag)
-		}
+		Convey("Checks if the given path is a directory", t, func() {
+			So(flag, ShouldBeFalse)
+		})
 	})
 
 	flag := IsDir("/tmp")
-	if !flag {
-		t.Errorf("Expected: true, Got: %v", flag)
-	}
+	Convey("Checks if the given path is a directory", t, func() {
+		So(flag, ShouldBeTrue)
+	})
 }
 
 func TestIsFile(t *testing.T) {
-	before(func(filename string) {
+	setup(func(filename string) {
 		flag := IsFile(filename)
-		if !flag {
-			t.Errorf("Expected: true, Got: %v", flag)
-		}
+		Convey("Checks if the given path is a file", t, func() {
+			So(flag, ShouldBeTrue)
+		})
 	})
 
 	flag := IsFile("/tmp")
-	if flag {
-		t.Errorf("Expected: false, Got: %v", flag)
-	}
+	Convey("Checks if the given path is a file", t, func() {
+		So(flag, ShouldBeFalse)
+	})
 }

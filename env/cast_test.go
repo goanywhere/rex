@@ -24,108 +24,99 @@ package env
 
 import (
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestToBool(t *testing.T) {
-	val, err := ToBool("true")
-	if !val || err != nil {
-		t.Errorf("Expect: true, Got: %v", val)
-	}
+	Convey("ToBool conversion test", t, func() {
+		val, err := ToBool("true")
+		So(val, ShouldBeTrue)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool("hello")
-	if val || err == nil {
-		t.Errorf("Expect: false, Got: %v Err: %v", val, err)
-	}
+		val, err = ToBool("hello")
+		So(val, ShouldBeFalse)
+		So(err, ShouldNotBeNil)
 
-	val, err = ToBool("TrUe")
-	if !val || err != nil {
-		t.Errorf("Expect: true, Got: %v Err: %v", val, err)
-	}
+		val, err = ToBool("TrUe")
+		So(val, ShouldBeTrue)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool(1)
-	if !val || err != nil {
-		t.Errorf("Expect: true, Got: %v", val)
-	}
+		val, err = ToBool(1)
+		So(val, ShouldBeTrue)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool(false)
-	if val || err != nil {
-		t.Errorf("Expect: false, Got: %v", val)
-	}
+		val, err = ToBool(0)
+		So(val, ShouldBeFalse)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool(0)
-	if val || err != nil {
-		t.Errorf("Expect: false, Got: %v", val)
-	}
+		val, err = ToBool(true)
+		So(val, ShouldBeTrue)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool("TrUE")
-	if !val || err != nil {
-		t.Errorf("Expect: true, Got: %v Err: %v", val, err)
-	}
+		val, err = ToBool(false)
+		So(val, ShouldBeFalse)
+		So(err, ShouldBeNil)
 
-	val, err = ToBool("")
-	if val || err != nil {
-		t.Errorf("Expect: false, Got: %v Err: %v", val, err)
-	}
+		val, err = ToBool("")
+		So(val, ShouldBeFalse)
+		So(err, ShouldBeNil)
+	})
+
 }
 
 func TestToFloat(t *testing.T) {
-	val, err := ToFloat("123.45")
-	if val != 123.45 || err != nil {
-		t.Errorf("Expect 123.45, Got: %v, Err: %v", val, err)
-	}
+	Convey("ToFloat conversion test", t, func() {
+		val, err := ToFloat("123.45")
+		So(val, ShouldEqual, 123.45)
+		So(err, ShouldBeNil)
 
-	val, err = ToFloat(12345)
-	if val != 12345.0 || err != nil {
-		t.Errorf("Expect 12345.0, Got: %v, Err: %v", val, err)
-	}
+		val, err = ToFloat(12345)
+		So(val, ShouldEqual, 12345.0)
+		So(err, ShouldBeNil)
 
-	val, err = ToFloat(12345.000)
-	if val != 12345.0 || err != nil {
-		t.Errorf("Expect 12345.0, Got: %v, Err: %v", val, err)
-	}
-
+		val, err = ToFloat(12345.000)
+		So(val, ShouldEqual, 12345.0)
+		So(err, ShouldBeNil)
+	})
 }
 
 func TestToInt(t *testing.T) {
-	val, err := ToInt("23")
-	if val != 23 || err != nil {
-		t.Errorf("Expect: 23, Got: %v, Err: %v", val, err)
-	}
+	Convey("ToInt conversion test", t, func() {
+		val, err := ToInt("23")
+		So(val, ShouldEqual, 23)
+		So(err, ShouldBeNil)
 
-	val, err = ToInt(23)
-	if val != 23 || err != nil {
-		t.Errorf("Expect: 23, Got: %v, Err: %v", val, err)
-	}
+		val, err = ToInt(23)
+		So(val, ShouldEqual, 23)
+		So(err, ShouldBeNil)
 
-	val, err = ToInt(23.01)
-	if val != 23 || err != nil {
-		t.Errorf("Expect: 23, Got: %v, Err: %v", val, err)
-	}
+		val, err = ToInt(23.01)
+		So(val, ShouldEqual, 23)
+		So(err, ShouldBeNil)
 
-	val, err = ToInt(nil)
-	if val != 0 || err != nil {
-		t.Errorf("Expect: 0, Got: %v, Err: %v", val, err)
-	}
+		val, err = ToInt(nil)
+		So(val, ShouldEqual, 0)
+		So(err, ShouldBeNil)
+	})
 }
 
 func TestToString(t *testing.T) {
-	val, err := ToString(123)
-	if val != "123" || err != nil {
-		t.Errorf("Expect '123', Got: %v, Err: %v", val, err)
-	}
+	Convey("ToString conversion test", t, func() {
+		val, err := ToString(123)
+		So(val, ShouldEqual, "123")
+		So(err, ShouldBeNil)
 
-	val, err = ToString(123.34)
-	if val != "123.34" || err != nil {
-		t.Errorf("Expect '123.34', Got: %v, Err: %v", val, err)
-	}
+		val, err = ToString(123.34)
+		So(val, ShouldEqual, "123.34")
+		So(err, ShouldBeNil)
 
-	val, err = ToString([]byte{96})
-	if val != "`" || err != nil {
-		t.Errorf("Expect '`', Got: %v, Err: %v", val, err)
-	}
+		val, err = ToString([]byte{96})
+		So(val, ShouldEqual, "`")
+		So(err, ShouldBeNil)
 
-	val, err = ToString(nil)
-	if val != "" || err != nil {
-		t.Errorf("Expect empty string, Got: %v, Err: %v", val, err)
-	}
+		val, err = ToString(nil)
+		So(val, ShouldEqual, "")
+		So(err, ShouldBeNil)
+	})
 }
