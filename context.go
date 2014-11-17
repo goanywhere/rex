@@ -63,7 +63,6 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.ResponseWriter = w
 	ctx.Request = r
-	ctx.status = http.StatusOK
 	ctx.size = -1
 	return ctx
 }

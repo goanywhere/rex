@@ -88,7 +88,7 @@ func main() {
 
 ## Settings
 
-All settings on Web.*go* utilize system evironment via `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, this also make configuration extremly easy & flexible via both command line & application.
+All settings on Web.*go* utilize system evironment via `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, it also makes configuration extremly easy & flexible via both command line & application.
 
 ``` go
 package main
@@ -165,7 +165,7 @@ func main() {
 ```
 
 
-Hey, dude, why not using those popular approaches, like file-based configurations? We know you'll be askin & we have the answer as well, [here](//12factor.net/config).
+Hey, dude, why not just use those popular approaches, like file-based config? We know you'll be asking & we have the answer as well, [here](//12factor.net/config).
 
 
 ## Middleware
