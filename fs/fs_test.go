@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
- *  @project
- *  @file       system_test.go
+ *  @project	web.go
+ *  @file       fs_test.go
  *  @date       2014-11-17
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package fs
 
 import (
 	"bufio"

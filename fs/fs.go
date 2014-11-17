@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       system.go
+ *  @file       fs.go
  *  @date       2014-10-23
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package fs
 
 import (
 	"fmt"
@@ -35,20 +35,26 @@ import (
 // Supported Formats:
 //	* empty path  => current working directory.
 //	* '.', '..' & '~'
+// *NOTE* AbsDir does NOT check the existence of the path.
 func AbsDir(path string) string {
 	var abs string
 	cwd, _ := os.Getwd()
 
 	if path == "" || path == "." {
 		abs = cwd
+
 	} else if path == ".." {
 		abs = filepath.Join(cwd, path)
+
 	} else if strings.HasPrefix(path, "~/") {
 		abs = filepath.Join(UserDir(), path[2:])
+
 	} else if strings.HasPrefix(path, "./") {
 		abs = filepath.Join(cwd, path[2:])
+
 	} else if strings.HasPrefix(path, "../") {
 		abs = filepath.Join(cwd, "..", path[2:])
+
 	} else {
 		return path
 	}
