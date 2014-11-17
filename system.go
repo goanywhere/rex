@@ -23,15 +23,52 @@
 package web
 
 import (
+	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
+
+// AbsDir finds the absolute path for the given path.
+// Supported Formats:
+//	* empty path  => current working directory.
+//	* '.', '..' & '~'
+func AbsDir(path string) string {
+	var abs string
+	cwd, _ := os.Getwd()
+
+	if path == "" || path == "." {
+		abs = cwd
+	} else if path == ".." {
+		abs = filepath.Join(cwd, path)
+	} else if strings.HasPrefix(path, "~/") {
+		abs = filepath.Join(UserDir(), path[2:])
+	} else if strings.HasPrefix(path, "./") {
+		abs = filepath.Join(cwd, path[2:])
+	} else if strings.HasPrefix(path, "../") {
+		abs = filepath.Join(cwd, "..", path[2:])
+	} else {
+		return path
+	}
+	return abs
+}
 
 // Copy recursively copies files/(sub)directoires into the given path.
 // *NOTE* It walks the file tree rooted at root, calling walkFn for
 // each file or directory in the tree, including root, means that for
 // very large directories it can be inefficient. Copy does not follow symbolic links.
-func Copy(src, dest string) {
+func Copy(src, dest string) error {
+	if !Exists(src) || strings.HasPrefix(dest, src) {
+		return fmt.Errorf("Operation aborted, either the source does not exist or the destination is inside the source.")
+	}
 
+	fn := func(path string, f os.FileInfo, err error) error {
+		log.Printf("[*COPY*] %s with %d bytes\n", path, f.Size())
+		return nil
+	}
+	return filepath.Walk(src, fn)
 }
 
 // Exists check if the given path exists.
@@ -60,4 +97,16 @@ func IsFile(path string) bool {
 		return false
 	}
 	return !src.IsDir()
+}
+
+// UserDir finds base path of current system user.
+func UserDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
 }

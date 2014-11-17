@@ -43,6 +43,18 @@ func setup(handler func(f string)) {
 	}
 }
 
+func TestAbsDir(t *testing.T) {
+	Convey("Absolute path check", t, func() {
+		So(AbsDir("/tmp"), ShouldEqual, "/tmp")
+	})
+}
+
+func TestCopy(t *testing.T) {
+	Convey("Copy files/directories recursively", t, func() {
+		Copy("~/.dotvim/", "/tmp/")
+	})
+}
+
 func TestExists(t *testing.T) {
 	Convey("Checks if the given path exists", t, func() {
 		exists := Exists("/tmp")
