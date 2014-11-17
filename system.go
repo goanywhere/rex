@@ -35,10 +35,20 @@ func Exists(path string) bool {
 	return true
 }
 
-func IsFile(path string) bool {
-	info, err := os.Stat(path)
-	if os.IsExist(err) {
+// IsDir checks if the given path is a directory.
+func IsDir(path string) bool {
+	src, err := os.Stat(path)
+	if os.IsNotExist(err) {
 		return false
 	}
-	return !info.IsDir()
+	return src.IsDir()
+}
+
+// IsDir checks if the given path is a file.
+func IsFile(path string) bool {
+	src, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !src.IsDir()
 }
