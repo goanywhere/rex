@@ -161,6 +161,7 @@ import (
 
 func main() {
     // This will load '.env' from current working directory.
+    // Use env.Set("root", "<Other Dir. You Want>") to initiate different root path for .env.
     env.Load()
 
     fmt.Printf("<test: %s>", env.Get("test"))     // output: "value"
