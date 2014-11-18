@@ -23,20 +23,22 @@
 package fs
 
 import (
+	"bytes"
 	"fmt"
-	"log"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-// AbsDir finds the absolute path for the given path.
+// Abs finds the absolute path for the given path.
 // Supported Formats:
 //	* empty path  => current working directory.
 //	* '.', '..' & '~'
-// *NOTE* AbsDir does NOT check the existence of the path.
-func AbsDir(path string) string {
+// *NOTE* Abs does NOT check the existence of the path.
+func Abs(path string) string {
 	var abs string
 	cwd, _ := os.Getwd()
 
@@ -62,19 +64,36 @@ func AbsDir(path string) string {
 }
 
 // Copy recursively copies files/(sub)directoires into the given path.
-// *NOTE* It walks the file tree rooted at root, calling walkFn for
-// each file or directory in the tree, including root, means that for
-// very large directories it can be inefficient. Copy does not follow symbolic links.
-func Copy(src, dest string) error {
-	if !Exists(src) || strings.HasPrefix(dest, src) {
-		return fmt.Errorf("Operation aborted, either the source does not exist or the destination is inside the source.")
+// *NOTE* It uses platform's native copy commands (windows: copy, *nix: rsync).
+func Copy(src, dst string) (err error) {
+	var cmd *exec.Cmd
+	src, dst = Abs(src), Abs(dst)
+	// Determine the command we need to use.
+	if runtime.GOOS == "windows" {
+		// *NOTE* Not sure this will work correctly, we don't have Windows to test.
+		if IsFile(src) {
+			cmd = exec.Command("copy", src, dst)
+		} else {
+			cmd = exec.Command("xcopy", src, dst, "/S /E")
+		}
+	} else {
+		cmd = exec.Command("rsync", "-a", src, dst)
 	}
 
-	fn := func(path string, f os.FileInfo, err error) error {
-		log.Printf("[*COPY*] %s with %d bytes\n", path, f.Size())
-		return nil
+	if stdout, err := cmd.StdoutPipe(); err == nil {
+		if stderr, err := cmd.StderrPipe(); err == nil {
+			// Start capturing the stdout/err.
+			err = cmd.Start()
+			io.Copy(os.Stdout, stdout)
+			buffer := new(bytes.Buffer)
+			buffer.ReadFrom(stderr)
+			cmd.Wait()
+			if cmd.ProcessState.String() != "exit status 0" {
+				err = fmt.Errorf("\t%s\n", buffer.String())
+			}
+		}
 	}
-	return filepath.Walk(src, fn)
+	return
 }
 
 // Exists check if the given path exists.

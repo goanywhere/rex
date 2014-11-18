@@ -25,6 +25,7 @@ package fs
 import (
 	"bufio"
 	"os"
+	"os/exec"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -43,15 +44,27 @@ func setup(handler func(f string)) {
 	}
 }
 
-func TestAbsDir(t *testing.T) {
+func TestAbs(t *testing.T) {
 	Convey("Absolute path check", t, func() {
-		So(AbsDir("/tmp"), ShouldEqual, "/tmp")
+		So(Abs("/tmp"), ShouldEqual, "/tmp")
 	})
 }
 
 func TestCopy(t *testing.T) {
 	Convey("Copy files/directories recursively", t, func() {
-		Copy("~/.dotvim/", "/tmp/")
+		filename := "GoAnywhereFake"
+		exec.Command("touch", Abs("~/"+filename)).Run()
+		defer os.Remove("/tmp/" + filename)
+		err := Copy("~/"+filename, "/tmp")
+		So(Exists("/tmp/"+filename), ShouldBeTrue)
+		So(err, ShouldBeNil)
+
+		exec.Command("mkdir", Abs("~/GoAnywhere")).Run()
+		exec.Command("touch", Abs("~/GoAnywhere/Fake")).Run()
+		defer os.RemoveAll("~/GoAnywhere")
+		err = Copy("~/GoAnywhere", "/tmp")
+		So(Exists("/tmp/GoAnywhere"), ShouldBeTrue)
+		So(err, ShouldBeNil)
 	})
 }
 
