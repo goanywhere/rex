@@ -144,6 +144,10 @@ We also includes dotenv supports:
 ``` text
 test: value
 test2  =  value2
+test3: 'value'
+test4: "value"
+test5 = 'value'
+test5 = "value"
 ```
 
 ``` go
