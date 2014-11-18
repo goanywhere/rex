@@ -221,15 +221,15 @@ Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We develope
 - [X] Live Reload Integration
 - [X] Env-Based Configurations
 - [X] Project Home page
-- [ ] New Project Template
+- [X] Test Suite
 - [ ] i18n Supports
 - [ ] Template Functions
 - [ ] Improved Template Rendering
 - [ ] Improved Logging System
 - [ ] More Middlewares
 - [ ] Form Validations
-- [ ] Test Suite
 - [ ] Project Wiki
 - [ ] Continuous Integration
+- [ ] New Project Template
 - [ ] Performance Boost
 - [ ] Stable API
