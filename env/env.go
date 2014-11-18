@@ -28,7 +28,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -45,7 +44,7 @@ const (
 
 var (
 	pattern     *regexp.Regexp
-	space       *regexp.Regexp
+	spaceNquote *regexp.Regexp
 	keyNotExist = errors.New("field does not exist")
 )
 
@@ -61,7 +60,7 @@ func getKey(name string) string {
 func findKeyValue(str string) (key, value string) {
 	result := pattern.FindString(str)
 	if result != "" {
-		raw := space.ReplaceAllString(result, "")
+		raw := spaceNquote.ReplaceAllString(result, "")
 		var kv []string
 		if strings.Index(raw, ":") >= 0 {
 			kv = strings.Split(raw, ":")
@@ -77,27 +76,24 @@ func findKeyValue(str string) (key, value string) {
 // ---------------------------------------------------------------------------
 //  Public APIs
 // ---------------------------------------------------------------------------
-// Load fetches the values from '.env' from project's CWD.
+// Load fetches the values from file '.env' under project's root.
 // *NOTE* value *MUST* not include ":" or "=".
-func Load() error {
+func Load() (err error) {
 	if dotenv, err := os.Open(filepath.Join(Get("root"), ".env")); err == nil {
 		defer dotenv.Close()
 		reader := bufio.NewReader(dotenv)
 		for {
-			var line string
-			line, err = reader.ReadString('\n')
-			if err != nil || err == io.EOF {
-				return err
-			}
-			k, v := findKeyValue(line)
-			if k != "" && v != "" {
-				Set(k, v)
+			if line, err := reader.ReadString('\n'); err == nil {
+				k, v := findKeyValue(line)
+				if k != "" && v != "" {
+					Set(k, v)
+				}
+			} else {
+				break
 			}
 		}
-	} else {
-		return err
 	}
-	return nil
+	return
 }
 
 // LoadObject fetches the key/value pairs under the prefix into the given spec. struct.
@@ -207,8 +203,8 @@ func Values() map[string]string {
 
 func init() {
 	// catch almost any printable characters expect "=" & ":".
-	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*([[:graph:]]+)`)
-	space = regexp.MustCompile(`\s`)
+	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(([[:graph:]]+)|(['[:graph:]']+)|(["[:graph:]"]+))`)
+	spaceNquote = regexp.MustCompile(`(\s|'|")`)
 
 	var root string
 	if cwd, err := os.Getwd(); err == nil {

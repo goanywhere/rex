@@ -68,6 +68,7 @@ func TestFindKeyValue(t *testing.T) {
 func TestLoad(t *testing.T) {
 	var pool = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
 	filename := "/tmp/.env"
+	// plain value without quote
 	if env, err := os.Create(filename); err == nil {
 		defer env.Close()
 		defer os.Remove(filename)
@@ -78,6 +79,38 @@ func TestLoad(t *testing.T) {
 		buffer.Flush()
 
 		Convey("Load key/value from dotenv file", t, func() {
+			Set("root", "/tmp")
+			Load()
+			So(Get("secret"), ShouldEqual, secret)
+		})
+	}
+	// value with `` quote
+	if env, err := os.Create(filename); err == nil {
+		defer env.Close()
+		defer os.Remove(filename)
+		secret := crypto.RandomString(64, pool)
+		buffer := bufio.NewWriter(env)
+		buffer.WriteString(fmt.Sprintf("secret='%s'\n", secret))
+		buffer.WriteString("app=myapp\n")
+		buffer.Flush()
+
+		Convey("Load key/value from dotenv file with \"'\"", t, func() {
+			Set("root", "/tmp")
+			Load()
+			So(Get("secret"), ShouldEqual, secret)
+		})
+	}
+	// value with `"` quote
+	if env, err := os.Create(filename); err == nil {
+		defer env.Close()
+		defer os.Remove(filename)
+		secret := crypto.RandomString(64, pool)
+		buffer := bufio.NewWriter(env)
+		buffer.WriteString(fmt.Sprintf("secret=\"%s\"\n", secret))
+		buffer.WriteString("app=myapp\n")
+		buffer.Flush()
+
+		Convey("Load key/value from dotenv file with '\"'", t, func() {
 			Set("root", "/tmp")
 			Load()
 			So(Get("secret"), ShouldEqual, secret)
