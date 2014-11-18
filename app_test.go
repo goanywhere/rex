@@ -1,6 +1,6 @@
 /**
  *  ------------------------------------------------------------
- *  @project
+ *  @project	web.go
  *  @file       app_test.go
  *  @date       2014-11-15
  *  @author     Jim Zhan <jim.zhan@me.com>

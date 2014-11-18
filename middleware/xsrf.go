@@ -126,12 +126,12 @@ func (self *xsrf) checkToken(token string) bool {
 }
 
 func (self *xsrf) generate() {
-	var secure bool = false
-	if self.Request.URL.Scheme == "https" {
-		secure = true
-	}
+	//var secure bool = false
+	//if self.Request.URL.Scheme == "https" {
+	//secure = true
+	//}
 	// Ensure we have XSRF token in the cookie first.
-	token := self.Cookie(xsrfCookieName)
+	token := self.Cookie(xsrfCookieName).(string)
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
@@ -142,14 +142,15 @@ func (self *xsrf) generate() {
 
 		// The max-age directive takes priority over Expires.
 		//	http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-		self.SetCookie(&http.Cookie{
-			Name:     xsrfCookieName,
-			Value:    token,
-			MaxAge:   xsrfMaxAge,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   secure,
-		})
+		self.SetCookie(xsrfCookieName, token)
+		//self.SetCookie(&http.Cookie{
+		//Name:     xsrfCookieName,
+		//Value:    token,
+		//MaxAge:   xsrfMaxAge,
+		//Path:     "/",
+		//HttpOnly: true,
+		//Secure:   secure,
+		//})
 	}
 	self.Header().Set(xsrfHeaderName, token)
 	self.Set(xsrfFieldName, token)

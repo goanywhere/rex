@@ -235,6 +235,7 @@ Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We develope
 - [ ] More Middlewares
 - [ ] Form Validations
 - [ ] Project Wiki
+- [ ] Reduce External Deps
 - [ ] Continuous Integration
 - [ ] Performance Boost
 - [ ] Stable API

@@ -168,19 +168,31 @@ func (self *Context) Delete(key string) {
 // ---------------------------------------------------------------------------
 //  HTTP Cookies
 // ---------------------------------------------------------------------------
-func (self *Context) Cookie(name string) string {
-	var value string
+// Cookie deserializes the value from http cookie.
+func (self *Context) Cookie(name string) (value interface{}) {
 	if cookie, err := self.Request.Cookie(name); err == nil {
-		value = cookie.Value
+		if cookie.Value != "" {
+			Deserialize(cookie.Value, &value)
+		}
 	}
-	return value
+	return
 }
 
-func (self *Context) SetCookie(cookie *http.Cookie) {
-	http.SetCookie(self, cookie)
+// Cookie serializes the value into http cookie.
+func (self *Context) SetCookie(name string, value interface{}) (err error) {
+	if value, err := Serialize(value); err == nil {
+		cookie := new(http.Cookie)
+		cookie.Name = name
+		cookie.Value = value
+
+		//TODO Cookie Options
+
+		http.SetCookie(self, cookie)
+	}
+	return
 }
 
-func (self *Context) SecureCookie(name string) string {
+func (self *Context) SecureCookie2(name string) string {
 	var value string
 	if cookie, err := self.Request.Cookie(name); err == nil {
 		if err = secure.Decode(name, cookie.Value, &value); err == nil {
@@ -191,7 +203,7 @@ func (self *Context) SecureCookie(name string) string {
 }
 
 // SetSecureCookie signs a cookie so it cannot be forged.
-func (self *Context) SetSecureCookie(cookie *http.Cookie) {
+func (self *Context) SetSecureCookie2(cookie *http.Cookie) {
 	if secret == "" {
 		panic("Application secret is missing from settings file.")
 	}
@@ -204,7 +216,7 @@ func (self *Context) SetSecureCookie(cookie *http.Cookie) {
 	if value, err := secure.Encode(cookie.Name, cookie.Value); err == nil {
 		cookie.Value = value
 	}
-	self.SetCookie(cookie)
+	//	self.SetCookie(cookie)
 }
 
 // ---------------------------------------------------------------------------
