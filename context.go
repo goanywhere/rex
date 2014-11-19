@@ -97,13 +97,13 @@ func (self *Context) WriteHeader(status int) {
 // ---------------------------------------------------------------------------
 //  Implementation of http.ResponseWriter#Write
 // ---------------------------------------------------------------------------
-func (self *Context) Write(data []byte) (n int, err error) {
+func (self *Context) Write(data []byte) (size int, err error) {
 	if !self.Written() {
 		self.WriteHeader(http.StatusOK)
 	}
-	size, err := self.ResponseWriter.Write(data)
+	size, err = self.ResponseWriter.Write(data)
 	self.size += size
-	return size, err
+	return
 }
 
 // ---------------------------------------------------------------------------
@@ -198,10 +198,12 @@ func (self *Context) SecureCookie(key string) (value string) {
 
 // SetSecureCookie replaces the raw value with a signed one & write the cookie into Context.
 func (self *Context) SetSecureCookie(cookie *http.Cookie) {
-	if value, err := signature.Encode(cookie.Name, []byte(cookie.Value)); err == nil {
-		cookie.Value = value
-		http.SetCookie(self, cookie)
+	if cookie.Value != "" {
+		if value, err := signature.Encode(cookie.Name, []byte(cookie.Value)); err == nil {
+			cookie.Value = value
+		}
 	}
+	http.SetCookie(self, cookie)
 }
 
 // ---------------------------------------------------------------------------

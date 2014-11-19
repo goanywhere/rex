@@ -44,7 +44,13 @@ func deleteCookie(w http.ResponseWriter, name string) {
 
 func TestCookie(t *testing.T) {
 	Convey("Context Cookie", t, func() {
+		r, _ := http.NewRequest("GET", "/set", nil)
+		w := httptest.NewRecorder()
+		app := New()
+		app.Get("/set", func(ctx *Context) {
 
+		})
+		app.ServeHTTP(w, r)
 	})
 }
 

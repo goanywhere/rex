@@ -23,7 +23,7 @@
 package crypto
 
 import (
-	"crypto/subtle"
+	"bytes"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -39,7 +39,7 @@ func TestSignature(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		src, err := s.Decode(k, value)
-		So(subtle.ConstantTimeCompare(v, src), ShouldEqual, 1)
+		So(bytes.Compare(v, src), ShouldEqual, 0)
 		So(err, ShouldBeNil)
 	})
 }
