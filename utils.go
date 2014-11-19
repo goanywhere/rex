@@ -2,7 +2,7 @@
  *  ------------------------------------------------------------
  *  @project	web.go
  *  @file       utils.go
- *  @date       2014-11-18
+ *  @date       2014-11-19
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -29,20 +29,19 @@ import (
 )
 
 // Deserialize converts base64-encoded string back to its original object.
-func Deserialize(src string, value interface{}) (err error) {
-	if data, err := base64.URLEncoding.DecodeString(src); err == nil {
-		decoder := gob.NewDecoder(bytes.NewBuffer(data))
-		err = decoder.Decode(value)
+func Deserialize(value string, object interface{}) (err error) {
+	if bits, err := base64.URLEncoding.DecodeString(value); err == nil {
+		err = gob.NewDecoder(bytes.NewBuffer(bits)).Decode(object)
 	}
 	return
 }
 
 // Serialize converts any given object into base64-encoded string using `encoding/gob`.
 // NOTE struct must be registered using gob.Register() first.
-func Serialize(src interface{}) (value string, err error) {
+func Serialize(object interface{}) (value string, err error) {
 	buffer := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buffer)
-	if err = encoder.Encode(src); err == nil {
+	if err = encoder.Encode(object); err == nil {
 		value = base64.URLEncoding.EncodeToString(buffer.Bytes())
 	}
 	return

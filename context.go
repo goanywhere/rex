@@ -34,10 +34,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sync/atomic"
 	"time"
-
-	"github.com/gorilla/securecookie"
 )
 
 const ContentType = "Content-Type"
@@ -45,9 +44,8 @@ const ContentType = "Content-Type"
 var (
 	cid       uint64
 	cidPrefix string
-
-	secret string
-	secure *securecookie.SecureCookie
+	// SecureCookie pattern: timestamp|value|checksum
+	scpattern = regexp.MustCompile(`(\d{19})|(\w+)|(\w{40})`)
 )
 
 type Context struct {
@@ -178,8 +176,8 @@ func (self *Context) Cookie(name string) (value interface{}) {
 	return
 }
 
-// Cookie serializes the value into http cookie.
-func (self *Context) SetCookie(name string, value interface{}) (err error) {
+// SetCookie serializes the value into http cookie.
+func (self *Context) SetCookie(name string, value interface{}, options map[string]interface{}) (err error) {
 	if value, err := Serialize(value); err == nil {
 		cookie := new(http.Cookie)
 		cookie.Name = name
@@ -192,31 +190,12 @@ func (self *Context) SetCookie(name string, value interface{}) (err error) {
 	return
 }
 
-func (self *Context) SecureCookie2(name string) string {
-	var value string
-	if cookie, err := self.Request.Cookie(name); err == nil {
-		if err = secure.Decode(name, cookie.Value, &value); err == nil {
-			return value
-		}
-	}
-	return value
+func (self *Context) SecureCookie(key string) (object interface{}) {
+	return
 }
 
-// SetSecureCookie signs a cookie so it cannot be forged.
-func (self *Context) SetSecureCookie2(cookie *http.Cookie) {
-	if secret == "" {
-		panic("Application secret is missing from settings file.")
-	}
-
-	// initialize SecureCookie when first set.
-	if secure == nil {
-		secure = securecookie.New([]byte(secret), nil)
-	}
-
-	if value, err := secure.Encode(cookie.Name, cookie.Value); err == nil {
-		cookie.Value = value
-	}
-	//	self.SetCookie(cookie)
+func (self *Context) SetSecureCookie(key string, object interface{}, options map[string]interface{}) (err error) {
+	return
 }
 
 // ---------------------------------------------------------------------------

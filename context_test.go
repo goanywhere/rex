@@ -39,17 +39,22 @@ func setup(handler HandlerFunc) {
 	app.ServeHTTP(writer, request)
 }
 
+func deleteCookie(w http.ResponseWriter, name string) {
+	http.SetCookie(w, &http.Cookie{Name: name, Path: "/", MaxAge: -1})
+}
+
 func TestCookie(t *testing.T) {
-	var data int = 1234567890
+	name, value := "number", 123456789
 	Convey("Context Cookie", t, func() {
 		request, _ := http.NewRequest("GET", "/", nil)
 		writer := httptest.NewRecorder()
+		deleteCookie(writer, name)
 		app := New()
 		app.Get("/set", func(ctx *Context) {
-			ctx.SetCookie("test", data)
+			ctx.SetCookie(name, value, nil)
 		})
 		app.Get("/get", func(ctx *Context) {
-			So(ctx.Cookie("test").(int), ShouldEqual, data)
+			So(ctx.Cookie(name).(int), ShouldEqual, value)
 		})
 		app.ServeHTTP(writer, request)
 
@@ -59,12 +64,30 @@ func TestCookie(t *testing.T) {
 func TestSetCookie(t *testing.T) {
 	Convey("Context Set Cookie", t, func() {
 		setup(func(ctx *Context) {
-			var data int = 1234567890
-			value, _ := Serialize(data)
+			name, value := "number", 1234567890
+			src, _ := Serialize(value)
 
-			ctx.SetCookie("test", data)
+			ctx.SetCookie(name, value, nil)
 
-			So(ctx.Header().Get("Set-Cookie"), ShouldEqual, fmt.Sprintf("test=%s", value))
+			So(ctx.Header().Get("Set-Cookie"), ShouldEqual, fmt.Sprintf("%s=%s", name, src))
 		})
+	})
+}
+
+func TestSecureCookie(t *testing.T) {
+	name, value := "number", 1234567890
+	Convey("[contex#SecureCookie]", t, func() {
+		request, _ := http.NewRequest("GET", "/", nil)
+		writer := httptest.NewRecorder()
+		app := New()
+		app.Get("/set", func(ctx *Context) {
+			deleteCookie(writer, name)
+			ctx.SetSecureCookie(name, value, nil)
+		})
+		app.Get("/get", func(ctx *Context) {
+			So(32423, ShouldEqual, value)
+			t.Logf("Name (%s): %d", name, ctx.SecureCookie(name).(int))
+		})
+		app.ServeHTTP(writer, request)
 	})
 }

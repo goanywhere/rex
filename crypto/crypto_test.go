@@ -1,7 +1,7 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       utils_test.go
+ *  @file       uuid_test.go
  *  @date       2014-11-12
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
@@ -20,7 +20,7 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package crypto
 
 import (
 	"testing"
@@ -28,14 +28,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSerialization(t *testing.T) {
-	Convey("[utils#Serialization]", t, func() {
-		var input int = 1234567890
-		var output int
+func TestHash(t *testing.T) {
+	Convey("[crypto#Hash", t, func() {
 
-		v, _ := Serialize(input)
-		Deserialize(v, &output)
-
-		So(output, ShouldEqual, input)
 	})
 }

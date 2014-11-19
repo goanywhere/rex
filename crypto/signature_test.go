@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       utils_test.go
- *  @date       2014-11-12
+ *  @file       signature_test.go
+ *  @date       2014-11-18
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,22 +20,26 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package crypto
 
 import (
+	"crypto/subtle"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSerialization(t *testing.T) {
-	Convey("[utils#Serialization]", t, func() {
-		var input int = 1234567890
-		var output int
+func TestSignature(t *testing.T) {
+	s := NewSignature("5)IZ%QRmT__UWGOUx%RUZ2XQ_ybT)2GN6n9F9Tr*C7HIFt(CLhY^XB1DJgNdy@&0)")
 
-		v, _ := Serialize(input)
-		Deserialize(v, &output)
+	k, v := "name", []byte("Hello Signature")
+	Convey("[crypto#Signature]", t, func() {
+		value, err := s.Encode(k, v)
+		So(value, ShouldNotBeNil)
+		So(err, ShouldBeNil)
 
-		So(output, ShouldEqual, input)
+		src, err := s.Decode(k, value)
+		So(subtle.ConstantTimeCompare(v, src), ShouldEqual, 1)
+		So(err, ShouldBeNil)
 	})
 }

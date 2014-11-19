@@ -1,8 +1,8 @@
 /**
  *  ------------------------------------------------------------
  *  @project	web.go
- *  @file       utils_test.go
- *  @date       2014-11-12
+ *  @file       hash.go
+ *  @date       2014-11-19
  *  @author     Jim Zhan <jim.zhan@me.com>
  *
  *  Copyright © 2014 Jim Zhan.
@@ -20,22 +20,19 @@
  *  limitations under the License.
  *  ------------------------------------------------------------
  */
-package web
+package crypto
 
 import (
-	"testing"
-
-	. "github.com/smartystreets/goconvey/convey"
+	"crypto/hmac"
+	"encoding/hex"
+	"hash"
 )
 
-func TestSerialization(t *testing.T) {
-	Convey("[utils#Serialization]", t, func() {
-		var input int = 1234567890
-		var output int
-
-		v, _ := Serialize(input)
-		Deserialize(v, &output)
-
-		So(output, ShouldEqual, input)
-	})
+// Hash creates a hex string using the given crypto.
+// Example:
+//	Hash(sha1.New, "secret salt", "encrypt me please")
+func Hash(crypto func() hash.Hash, salt string, src []byte) string {
+	h := hmac.New(crypto, []byte(salt))
+	h.Write(src)
+	return hex.EncodeToString(h.Sum(nil))
 }
