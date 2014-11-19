@@ -100,10 +100,10 @@ func (self *Signature) Decode(key, value string) (src []byte, err error) {
 				// 2) verify the incoming CRC.
 				if values[2] == hex.EncodeToString(hash.Sum(nil)) {
 					// 3) verify nano timestamp
-					if !self.expired(nano) {
-						src, err = hex.DecodeString(values[1])
-					} else {
+					if self.expired(nano) {
 						err = errSignatureExpired
+					} else {
+						src, err = hex.DecodeString(values[1])
 					}
 				} else {
 					err = errSignatureInvalid
