@@ -54,7 +54,9 @@ func TestCookie(t *testing.T) {
 			ctx.SetCookie(name, value, nil)
 		})
 		app.Get("/get", func(ctx *Context) {
-			So(ctx.Cookie(name).(int), ShouldEqual, value)
+			var result int
+			ctx.Cookie(name, &result)
+			So(result, ShouldEqual, value)
 		})
 		app.ServeHTTP(writer, request)
 

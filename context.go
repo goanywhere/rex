@@ -37,6 +37,9 @@ import (
 	"regexp"
 	"sync/atomic"
 	"time"
+
+	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/web/env"
 )
 
 const ContentType = "Content-Type"
@@ -44,6 +47,7 @@ const ContentType = "Content-Type"
 var (
 	cid       uint64
 	cidPrefix string
+	signature *crypto.Signature
 	// SecureCookie pattern: timestamp|value|checksum
 	scpattern = regexp.MustCompile(`(\d{19})|(\w+)|(\w{40})`)
 )
@@ -166,36 +170,38 @@ func (self *Context) Delete(key string) {
 // ---------------------------------------------------------------------------
 //  HTTP Cookies
 // ---------------------------------------------------------------------------
-// Cookie deserializes the value from http cookie.
-func (self *Context) Cookie(name string) (value interface{}) {
-	if cookie, err := self.Request.Cookie(name); err == nil {
+// Cookie returns the cookie value previously set.
+func (self *Context) Cookie(key string) (value string) {
+	if cookie, err := self.Request.Cookie(key); err == nil {
 		if cookie.Value != "" {
-			Deserialize(cookie.Value, &value)
+			value = cookie.Value
 		}
 	}
 	return
 }
 
-// SetCookie serializes the value into http cookie.
-func (self *Context) SetCookie(name string, value interface{}, options map[string]interface{}) (err error) {
-	if value, err := Serialize(value); err == nil {
-		cookie := new(http.Cookie)
-		cookie.Name = name
-		cookie.Value = value
+// SetCookie writes cookie to ResponseWriter.
+func (self *Context) SetCookie(cookie *http.Cookie) {
+	http.SetCookie(self, cookie)
+}
 
-		//TODO Cookie Options
-
-		http.SetCookie(self, cookie)
+// SecureCookie decodes the signed value from cookie.
+// Empty string value will be returned if the signature is invalide or expired.
+func (self *Context) SecureCookie(key string) (value string) {
+	if src := self.Cookie(key); src != "" {
+		if bits, err := signature.Decode(key, src); err == nil {
+			value = string(bits)
+		}
 	}
 	return
 }
 
-func (self *Context) SecureCookie(key string) (object interface{}) {
-	return
-}
-
-func (self *Context) SetSecureCookie(key string, object interface{}, options map[string]interface{}) (err error) {
-	return
+// SetSecureCookie replaces the raw value with a signed one & write the cookie into Context.
+func (self *Context) SetSecureCookie(cookie *http.Cookie) {
+	if value, err := signature.Encode(cookie.Name, []byte(cookie.Value)); err == nil {
+		cookie.Value = value
+		http.SetCookie(self, cookie)
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -257,9 +263,9 @@ func (self *Context) XML(values interface{}) {
 }
 
 // String writes plain text back to the HTTP response.
-func (self *Context) String(content string) {
+func (self *Context) String(format string, values ...interface{}) {
 	self.Header().Set(ContentType, "text/plain; charset=utf-8")
-	self.Write([]byte(content))
+	self.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
 // Data writes binary data back into the HTTP response.
@@ -279,4 +285,13 @@ func init() {
 	// system pid combined with timestamp to identity current go process.
 	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
 	cidPrefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
+
+	secret := env.Get("secret")
+	if secret == "" {
+		Warn("Secret key missing, using a random string now")
+		pool := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
+		secret = crypto.RandomString(64, pool)
+	}
+
+	signature = crypto.NewSignature(secret)
 }

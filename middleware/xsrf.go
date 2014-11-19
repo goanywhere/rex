@@ -131,7 +131,8 @@ func (self *xsrf) generate() {
 		secure = true
 	}
 	// Ensure we have XSRF token in the cookie first.
-	token := self.Cookie(xsrfCookieName).(string)
+	var token string
+	self.Cookie(xsrfCookieName, &token)
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
