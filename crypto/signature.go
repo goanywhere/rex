@@ -85,7 +85,7 @@ func (self *Signature) Encode(key string, src []byte) (value string, err error) 
 
 // Decode unpacks the source string to original values.
 // Pattern:
-//	1) signed value		=> base64 decode	=> nano|value|crc
+//	1) signed value		=> base64 decode	=> nano|src(hex)|crc
 //	2) verify crc
 //	3) verify nano timestamp
 func (self *Signature) Decode(key, value string) (src []byte, err error) {
