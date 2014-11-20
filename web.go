@@ -21,22 +21,32 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package middleware
+package web
 
 import (
-	"log"
-	"net/http"
-	"os"
+	"runtime"
+
+	"github.com/goanywhere/web/env"
+	"github.com/gorilla/mux"
 )
 
-var logger = log.New(os.Stdout, "[web.go]", 0)
+type (
+	// Shortcut to create map.
+	H       map[string]interface{}
+	Options map[string]interface{}
+)
 
-// ---------------------------------------------------------------------------
-//  Logging Middleware Supports
-// ---------------------------------------------------------------------------
-func Logger(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
+// New creates an application instance & setup its default settings..
+func New() *Mux {
+	app := &Mux{mux.NewRouter(), nil}
+	return app
+}
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	// Application Defaults
+	env.Set("debug", "true")
+	env.Set("host", "0.0.0.0")
+	env.Set("port", "5000")
+	env.Set("templates", "templates")
 }
