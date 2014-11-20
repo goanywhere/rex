@@ -23,6 +23,7 @@
 package web
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,20 +44,43 @@ func deleteCookie(w http.ResponseWriter, name string) {
 }
 
 func TestCookie(t *testing.T) {
-	Convey("Context Cookie", t, func() {
-		r, _ := http.NewRequest("GET", "/set", nil)
-		w := httptest.NewRecorder()
-		app := New()
-		app.Get("/set", func(ctx *Context) {
+	Convey("context#Cookie", t, func() {
 
-		})
-		app.ServeHTTP(w, r)
+		cookie := &http.Cookie{Name: "number", Value: "123", Path: "/"}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := NewContext(w, r)
+			ctx.String(ctx.Cookie(cookie.Name))
+		}))
+		defer server.Close()
+
+		client := new(http.Client)
+		request, _ := http.NewRequest("GET", server.URL, nil)
+		request.AddCookie(cookie)
+
+		response, _ := client.Do(request)
+		defer response.Body.Close()
+
+		body, _ := ioutil.ReadAll(response.Body)
+		So(string(body), ShouldEqual, cookie.Value)
 	})
 }
 
 func TestSetCookie(t *testing.T) {
-	Convey("Context Set Cookie", t, func() {
+	Convey("context#SetCookie", t, func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := NewContext(w, r)
+			ctx.SetCookie(&http.Cookie{Name: "number", Value: "123", Path: "/"})
+			ctx.String("Hello Cookie")
+			return
+		}))
+		defer server.Close()
 
+		if response, err := http.Get(server.URL); err == nil {
+			cookie := response.Cookies()[0]
+			So(cookie.Name, ShouldEqual, "number")
+			So(cookie.Value, ShouldEqual, "123")
+		}
 	})
 }
 
