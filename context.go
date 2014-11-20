@@ -63,6 +63,7 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx.ResponseWriter = w
 	ctx.Request = r
 	ctx.size = -1
+	ctx.createSignature()
 	return ctx
 }
 
@@ -200,10 +201,6 @@ func (self *Context) SetCookie(cookie *http.Cookie) {
 // SecureCookie decodes the signed value from cookie.
 // Empty string value will be returned if the signature is invalide or expired.
 func (self *Context) SecureCookie(key string) (value string) {
-	// Lazily create signature when first access to secure cookie.
-	// *NOTE* We don't create it on NewContext as signature itself is global & it may be
-	// created by other process which will generate invalide signature when test.
-	self.createSignature()
 	if src := self.Cookie(key); src != "" {
 		if bits, err := signature.Decode(key, src); err == nil {
 			value = string(bits)
@@ -214,10 +211,6 @@ func (self *Context) SecureCookie(key string) (value string) {
 
 // SetSecureCookie replaces the raw value with a signed one & write the cookie into Context.
 func (self *Context) SetSecureCookie(cookie *http.Cookie) {
-	// Lazily create signature when first access to secure cookie.
-	// *NOTE* We don't create it on NewContext as signature itself is global & it may be
-	// created by other process which will generate invalide signature when test.
-	self.createSignature()
 	if cookie.Value != "" {
 		if value, err := signature.Encode(cookie.Name, []byte(cookie.Value)); err == nil {
 			cookie.Value = value

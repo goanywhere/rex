@@ -88,7 +88,8 @@ func TestSetCookie(t *testing.T) {
 func TestSecureCookie(t *testing.T) {
 	Convey("[contex#SecureCookie]", t, func() {
 		env.Set("secret", crypto.RandomString(32, nil))
-		signature := crypto.NewSignature(env.Get("secret"))
+		// Ensure we use the same signature as context does.
+		signature = crypto.NewSignature(env.Get("secret"))
 
 		name, value := "number", "1234567890"
 		src, _ := signature.Encode(name, []byte(value))
