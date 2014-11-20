@@ -28,6 +28,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/web/env"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -45,7 +47,6 @@ func deleteCookie(w http.ResponseWriter, name string) {
 
 func TestCookie(t *testing.T) {
 	Convey("context#Cookie", t, func() {
-
 		cookie := &http.Cookie{Name: "number", Value: "123", Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -86,6 +87,31 @@ func TestSetCookie(t *testing.T) {
 
 func TestSecureCookie(t *testing.T) {
 	Convey("[contex#SecureCookie]", t, func() {
+		env.Set("secret", crypto.RandomString(32, nil))
+		signature := crypto.NewSignature(env.Get("secret"))
 
+		name, value := "number", "1234567890"
+		src, _ := signature.Encode(name, []byte(value))
+		cookie := &http.Cookie{
+			Name:  name,
+			Value: src,
+			Path:  "/",
+		}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := NewContext(w, r)
+			ctx.String(ctx.SecureCookie(name))
+		}))
+		defer server.Close()
+
+		client := new(http.Client)
+		request, _ := http.NewRequest("GET", server.URL, nil)
+		request.AddCookie(cookie)
+
+		response, _ := client.Do(request)
+		defer response.Body.Close()
+
+		body, _ := ioutil.ReadAll(response.Body)
+		So(string(body), ShouldEqual, value)
 	})
 }
