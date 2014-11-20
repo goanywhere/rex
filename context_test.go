@@ -116,3 +116,28 @@ func TestSecureCookie(t *testing.T) {
 		So(string(body), ShouldEqual, value)
 	})
 }
+
+func TestSetSecureCookie(t *testing.T) {
+	Convey("context#SetSecureCookie", t, func() {
+		env.Set("secret", crypto.RandomString(32, nil))
+		// Ensure we use the same signature as context does.
+		signature = crypto.NewSignature(env.Get("secret"))
+
+		name, value := "number", "123"
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := NewContext(w, r)
+			ctx.SetSecureCookie(&http.Cookie{Name: name, Value: value, Path: "/"})
+			ctx.String("Hello Cookie")
+		}))
+		defer server.Close()
+
+		if response, err := http.Get(server.URL); err == nil {
+			cookie := response.Cookies()[0]
+			bits, _ := signature.Decode(cookie.Name, cookie.Value)
+
+			So(cookie.Name, ShouldEqual, name)
+			So(string(bits), ShouldEqual, value)
+		}
+	})
+}
