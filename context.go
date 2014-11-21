@@ -239,7 +239,7 @@ func (self *Context) HTML(filename string, others ...string) {
 	buffer := new(bytes.Buffer)
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
 	if err := loadTemplates(filename, others...).Execute(buffer, self.data); err != nil {
-		panic(err)
+		http.Error(self, err.Error(), http.StatusInternalServerError)
 	}
 	buffer.WriteTo(self)
 }
