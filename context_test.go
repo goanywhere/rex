@@ -169,16 +169,16 @@ func TestContextSet(t *testing.T) {
 
 func TestContextClear(t *testing.T) {
 	Convey("Context Data Clear", t, func() {
+		var a, b int
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
 			contextId := ctx.Id()
 			ctx.Set("id", contextId)
 			ctx.Set("cid", contextId)
 			ctx.Set("contextId", contextId)
-			ctx.String(ctx.Get("id").(string))
-			So(len(ctx.data), ShouldEqual, 3)
+			a = len(ctx.data)
 			ctx.Clear()
-			So(len(ctx.data), ShouldEqual, 0)
+			b = len(ctx.data)
 			ctx.String("DONE")
 		}))
 		defer server.Close()
@@ -186,6 +186,8 @@ func TestContextClear(t *testing.T) {
 		if response, err := http.Get(server.URL); err == nil {
 			body, _ := ioutil.ReadAll(response.Body)
 			defer response.Body.Close()
+			So(a, ShouldEqual, 3)
+			So(b, ShouldEqual, 0)
 			So(response.StatusCode, ShouldEqual, http.StatusOK)
 			So(string(body), ShouldEqual, "DONE")
 		}
@@ -194,12 +196,14 @@ func TestContextClear(t *testing.T) {
 
 func TestContextDelete(t *testing.T) {
 	Convey("Context Data Delete", t, func() {
+		var a, b int
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
 			contextId := ctx.Id()
 			ctx.Set("id", contextId)
+			a = len(ctx.data)
 			ctx.Delete("id")
-			So(len(ctx.data), ShouldEqual, 0)
+			b = len(ctx.data)
 			ctx.String("DONE")
 		}))
 		defer server.Close()
@@ -207,6 +211,9 @@ func TestContextDelete(t *testing.T) {
 		if response, err := http.Get(server.URL); err == nil {
 			body, _ := ioutil.ReadAll(response.Body)
 			defer response.Body.Close()
+
+			So(a, ShouldEqual, 1)
+			So(b, ShouldEqual, 0)
 			So(response.StatusCode, ShouldEqual, http.StatusOK)
 			So(string(body), ShouldEqual, "DONE")
 		}
