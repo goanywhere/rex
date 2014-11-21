@@ -25,6 +25,7 @@ package web
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -71,7 +72,7 @@ func (self *Mux) handle(method, pattern string, h interface{}) {
 	case func(ctx *Context):
 		handler = HandlerFunc(h.(func(ctx *Context)))
 	default:
-		panic(fmt.Sprintf("Unknown handler type (%v) passed in.", handler))
+		log.Fatalf("Unknown handler type (%v) passed in.", handler)
 	}
 	// finds the full function name (with package)
 	name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
