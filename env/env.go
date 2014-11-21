@@ -43,9 +43,9 @@ const (
 )
 
 var (
-	pattern     *regexp.Regexp
-	spaceNquote *regexp.Regexp
-	keyNotExist = errors.New("field does not exist")
+	regexKeyValue      *regexp.Regexp
+	regexSpaceAndQuote *regexp.Regexp
+	errorNotExist      = errors.New("field does not exist")
 )
 
 // ---------------------------------------------------------------------------
@@ -58,9 +58,9 @@ func getKey(name string) string {
 
 // findKeyValue finds ':' or '=' separated key/value pair from the given string.
 func findKeyValue(str string) (key, value string) {
-	result := pattern.FindString(str)
+	result := regexKeyValue.FindString(str)
 	if result != "" {
-		raw := spaceNquote.ReplaceAllString(result, "")
+		raw := regexSpaceAndQuote.ReplaceAllString(result, "")
 		var kv []string
 		if strings.Index(raw, ":") >= 0 {
 			kv = strings.Split(raw, ":")
@@ -157,7 +157,7 @@ func Get(name string) string {
 // GetBool returns & parses the stored string value to bool.
 func GetBool(name string) (bool, error) {
 	if value := Get(name); value == "" {
-		return false, keyNotExist
+		return false, errorNotExist
 	} else {
 		return ToBool(value)
 	}
@@ -166,7 +166,7 @@ func GetBool(name string) (bool, error) {
 // GetFloat returns & parsed the stored string value to int.
 func GetFloat(name string) (float64, error) {
 	if value := Get(name); value == "" {
-		return 0.0, keyNotExist
+		return 0.0, errorNotExist
 	} else {
 		return ToFloat(value)
 	}
@@ -175,7 +175,7 @@ func GetFloat(name string) (float64, error) {
 // GetInt returns & parsed the stored string value to int.
 func GetInt(name string) (int, error) {
 	if value := Get(name); value == "" {
-		return 0, keyNotExist
+		return 0, errorNotExist
 	} else {
 		return ToInt(value)
 	}
@@ -203,6 +203,6 @@ func Values() map[string]string {
 
 func init() {
 	// catch almost any printable characters expect "=" & ":".
-	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(([[:graph:]]+)|(['[:graph:]']+)|(["[:graph:]"]+))`)
-	spaceNquote = regexp.MustCompile(`(\s|'|")`)
+	regexKeyValue = regexp.MustCompile(`(\w+)\s*(:|=)\s*(([[:graph:]]+)|(['[:graph:]']+)|(["[:graph:]"]+))`)
+	regexSpaceAndQuote = regexp.MustCompile(`(\s|'|")`)
 }
