@@ -26,7 +26,9 @@ package web
 import (
 	"bufio"
 	"bytes"
-	"encoding/base64"
+	"crypto/hmac"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -45,8 +47,8 @@ import (
 const ContentType = "Content-Type"
 
 var (
-	cid       uint64
-	cidPrefix string
+	contextId uint64
+	prefix    string
 	signature *crypto.Signature
 )
 
@@ -61,10 +63,12 @@ type Context struct {
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
-	ctx.ResponseWriter = w
-	ctx.Request = r
 	ctx.size = -1
 	ctx.createSignature()
+	ctx.data = make(map[string]interface{})
+
+	ctx.ResponseWriter = w
+	ctx.Request = r
 	return ctx
 }
 
@@ -152,8 +156,7 @@ func (self *Context) Flush() {
 //  HTTP Request Context Data
 // ---------------------------------------------------------------------------
 func (self *Context) Id() string {
-	requestId := atomic.AddUint64(&cid, 1)
-	return fmt.Sprintf("%s-%06d", cidPrefix, requestId)
+	return fmt.Sprintf("%s-%07d", prefix, atomic.AddUint64(&contextId, 1))
 }
 
 func (self *Context) Get(key string) interface{} {
@@ -165,9 +168,6 @@ func (self *Context) Get(key string) interface{} {
 }
 
 func (self *Context) Set(key string, value interface{}) {
-	if self.data == nil {
-		self.data = make(map[string]interface{})
-	}
 	self.data[key] = value
 }
 
@@ -223,17 +223,6 @@ func (self *Context) SetSecureCookie(cookie *http.Cookie) {
 // ---------------------------------------------------------------------------
 //  HTTP Request Helpers
 // ---------------------------------------------------------------------------
-func (self *Context) ClientIP() string {
-	clientIP := self.Request.Header.Get("X-Real-IP")
-	if clientIP == "" {
-		clientIP = self.Request.Header.Get("X-Forwarded-For")
-	}
-	if clientIP == "" {
-		clientIP, _, _ = net.SplitHostPort(self.Request.RemoteAddr)
-	}
-	return clientIP
-}
-
 func (self *Context) IsAjax() bool {
 	return self.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
 }
@@ -294,11 +283,13 @@ func (self *Context) Data(data []byte) {
 //  Context Prerequisites
 // ---------------------------------------------------------------------------
 func init() {
+	// Here we generate a md5-based fixed length (32-bits) prefix for ContextId.
 	hostname, err := os.Hostname()
 	if hostname == "" || err != nil {
 		hostname = "localhost"
 	}
 	// system pid combined with timestamp to identity current go process.
 	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
-	cidPrefix = fmt.Sprintf("%s-%s", hostname, base64.URLEncoding.EncodeToString([]byte(pid)))
+	hash := hmac.New(md5.New, []byte(fmt.Sprintf("%s-%s", hostname, pid)))
+	prefix = hex.EncodeToString(hash.Sum(nil))
 }
