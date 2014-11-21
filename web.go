@@ -24,17 +24,16 @@
 package web
 
 import (
+	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/goanywhere/web/env"
 	"github.com/gorilla/mux"
 )
 
-type (
-	// Shortcut to create map.
-	H       map[string]interface{}
-	Options map[string]interface{}
-)
+// Shortcut to create map.
+type H map[string]interface{}
 
 // New creates an application instance & setup its default settings..
 func New() *Mux {
@@ -44,9 +43,18 @@ func New() *Mux {
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	if cwd, err := os.Getwd(); err == nil {
+		if root, err := filepath.Abs(cwd); err == nil {
+			env.Set("root", root)
+		} else {
+			panic(err)
+		}
+	} else {
+		panic(err)
+	}
 	// Application Defaults
 	env.Set("debug", "true")
-	env.Set("host", "0.0.0.0")
+	env.Set("host", "localhost")
 	env.Set("port", "5000")
 	env.Set("templates", "templates")
 }

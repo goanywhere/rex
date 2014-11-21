@@ -205,12 +205,4 @@ func init() {
 	// catch almost any printable characters expect "=" & ":".
 	pattern = regexp.MustCompile(`(\w+)\s*(:|=)\s*(([[:graph:]]+)|(['[:graph:]']+)|(["[:graph:]"]+))`)
 	spaceNquote = regexp.MustCompile(`(\s|'|")`)
-
-	var root string
-	if cwd, err := os.Getwd(); err == nil {
-		root, _ = filepath.Abs(cwd)
-	} else {
-		panic(err)
-	}
-	Set("root", root)
 }
