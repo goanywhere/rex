@@ -4,6 +4,12 @@ Web.*go*
 Web.*go* is a powerful starter kit for modular web applications/services in Golang.
 
 
+## Installation
+
+```shell
+$ go get -v gopkg.in/goanywhere/web.v0
+```
+
 ## NOTE
 
 This is a ongoing project at experiemental stage, consider it's version *ZERO* and *NOT* suitable for production usage yet.
