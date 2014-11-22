@@ -142,12 +142,10 @@ func main() {
 We also includes dotenv supports:
 
 ``` text
-test: value
-test2  =  value2
-test3: 'value'
-test4: "value"
-test5 = 'value'
-test5 = "value"
+test1  =  value1
+test2 = 'value2'
+test3 = "value3"
+export test4=value4
 ```
 
 ``` go
