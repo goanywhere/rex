@@ -46,9 +46,7 @@ type (
 	Middleware func(http.Handler) http.Handler
 )
 
-// ---------------------------------------------------------------------------
-//  Custom handler func with Context Supports
-// ---------------------------------------------------------------------------
+// Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self(NewContext(w, r))
 }
@@ -132,9 +130,7 @@ func (self *Mux) Group(path string) *Mux {
 	return &Mux{self.router.PathPrefix(path).Subrouter(), nil}
 }
 
-// ---------------------------------------------------------------------------
-//  HTTP Server with Middleware Supports
-// ---------------------------------------------------------------------------
+// Use append middleware into the serving list, middleware will be served in FIFO order.
 func (self *Mux) Use(middlewares ...Middleware) {
 	self.middlewares = append(self.middlewares, middlewares...)
 }
@@ -152,8 +148,8 @@ func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
-// TODO command line arguments.
 func (self *Mux) Serve() {
+	// TODO command line arguments.
 	Info("Mux server started [%s]", self.Address())
 	if err := http.ListenAndServe(self.Address(), self); err != nil {
 		panic(err)
