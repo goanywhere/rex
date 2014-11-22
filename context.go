@@ -40,8 +40,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/crypto"
-	"github.com/goanywhere/web/env"
 )
 
 const ContentType = "Content-Type"

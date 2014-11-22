@@ -30,7 +30,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/web/env"
+	"github.com/goanywhere/env"
 	"github.com/gorilla/mux"
 )
 

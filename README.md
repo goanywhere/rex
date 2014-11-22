@@ -94,8 +94,8 @@ All settings on Web.*go* utilize system evironment via `os.Environ`. By using th
 package main
 
 import (
+    "github.com/goanywhere/env"
     "github.com/goanywhere/web"
-    "github.com/goanywhere/web/env"
 )
 
 func index (ctx *web.Context) {
@@ -122,7 +122,7 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/web/env"
+    "github.com/goanywhere/env"
 )
 
 type Spec struct {
@@ -156,7 +156,7 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/web/env"
+    "github.com/goanywhere/env"
 )
 
 func main() {

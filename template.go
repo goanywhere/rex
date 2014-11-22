@@ -27,7 +27,7 @@ import (
 	"html/template"
 	"path/filepath"
 
-	"github.com/goanywhere/web/env"
+	"github.com/goanywhere/env"
 )
 
 // TODO boost ME.

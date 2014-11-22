@@ -30,8 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/crypto"
-	"github.com/goanywhere/web/env"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

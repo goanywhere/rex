@@ -25,6 +25,7 @@ package web
 
 import (
 	_ "github.com/codegangsta/cli"
+	_ "github.com/goanywhere/env"
 	_ "github.com/gorilla/mux"
 	_ "github.com/pilu/fresh/runner"
 	_ "github.com/smartystreets/goconvey/convey"
