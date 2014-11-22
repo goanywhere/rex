@@ -41,7 +41,7 @@ type Key []byte
 // using NewKey() function. It's used as a counter part of a key.
 var counter uint32 = 0
 
-// FIXME use more stable & fixed identity to replace this hostname based mid.
+// FIXME use more reliable & fixed identity to replace this hostname based mid.
 // machineId stores machine id generated once and used in subsequent calls
 // to NewKey function.
 var machineId []byte
