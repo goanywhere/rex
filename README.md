@@ -3,11 +3,12 @@ Web.*go*
 
 Web.*go* is a powerful starter kit for modular web applications/services in Golang.
 
+## Getting Started
 
-## Installation
+Install the package (**go 1.3** and greater is required):
 
 ```shell
-$ go get -v gopkg.in/goanywhere/web.v0
+$ go get -v gopkg.in/goanywhere/web.v1
 ```
 
 ## NOTE
@@ -24,22 +25,13 @@ This is a ongoing project at experiemental stage, consider it's version *ZERO* a
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
-## Getting Started
-
-Install the package (**go 1.3** and greater is required):
-
-~~~
-go get github.com/goanywhere/web
-~~~
-
-
 After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html#GOPATH), create your first server, we named it `server.go` here.
 
 ``` go
 package main
 
 import (
-    "github.com/goanywhere/web"
+    "gopkg.in/goanywhere/web.v1"
 )
 
 func main() {
@@ -72,7 +64,7 @@ Context is a very useful helper shipped with Web.*go*. It allows you to access i
 package main
 
 import (
-    "github.com/goanywhere/web"
+    "gopkg.in/goanywhere/web.v1"
 )
 
 func index (ctx *web.Context) {
@@ -100,8 +92,8 @@ All settings on Web.*go* utilize system evironment via `os.Environ`. By using th
 package main
 
 import (
-    "github.com/goanywhere/env"
-    "github.com/goanywhere/web"
+    "gopkg.in/goanywhere/env.v1"
+    "gopkg.in/goanywhere/web.v1"
 )
 
 func index (ctx *web.Context) {
@@ -128,7 +120,7 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/env"
+    "gopkg.in/goanywhere/env.v1"
 )
 
 type Spec struct {
@@ -160,7 +152,7 @@ package main
 import (
     "fmt"
 
-    "github.com/goanywhere/env"
+    "gopkg.in/goanywhere/env.v1"
 )
 
 func main() {
