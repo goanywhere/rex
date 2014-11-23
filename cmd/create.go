@@ -26,6 +26,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -34,7 +35,6 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/goanywhere/fs"
-	"github.com/goanywhere/web"
 	"github.com/goanywhere/web/crypto"
 )
 
@@ -64,14 +64,14 @@ func createProject(path string) (project string, err error) {
 			return
 		}
 		if err = os.MkdirAll(project, os.ModePerm); err == nil {
-			web.Info("Project created: %s", project)
+			log.Printf("Project created: %s", project)
 			filename := filepath.Join(project, ".env")
 			if dotenv, err := os.Create(filename); err == nil {
 				defer dotenv.Close()
 				buffer := bufio.NewWriter(dotenv)
 				buffer.WriteString(fmt.Sprintf("secret=\"%s\"\n", crypto.RandomString(64, pool)))
 				buffer.Flush()
-				web.Info("dotenv created: %s", filename)
+				log.Printf("dotenv created: %s", filename)
 			}
 		}
 	} else {
@@ -101,16 +101,16 @@ func setupProject(project string) (err error) {
 func Create(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 || !pattern.MatchString(args[0]) {
-		web.Info("Please provide a valid project name/path")
+		log.Printf("Please provide a valid project name/path")
 	} else {
 		var err error
 		if project, err := createProject(args[0]); err == nil {
 			if err = setupProject(project); err == nil {
-				web.Info("Project all set: %s", project)
+				log.Printf("Project all set: %s", project)
 				os.Exit(0)
 			}
 		}
-		web.Error("Failed to create project: %s", err)
+		log.Fatalf("Failed to create project: %s", err)
 	}
 }
 
