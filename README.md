@@ -8,7 +8,7 @@ Web.*go* is a powerful starter kit for modular web applications/services in Gola
 Install the package (**go 1.3** and greater is required):
 
 ```shell
-$ go get -v gopkg.in/goanywhere/web.v1
+$ go get -v github.com/goanywhere/web
 ```
 
 
@@ -27,7 +27,7 @@ After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html
 package main
 
 import (
-    "gopkg.in/goanywhere/web.v1"
+    "github.com/goanywhere/web"
 )
 
 func main() {
@@ -60,7 +60,7 @@ Context is a very useful helper shipped with Web.*go*. It allows you to access i
 package main
 
 import (
-    "gopkg.in/goanywhere/web.v1"
+    "github.com/goanywhere/web"
 )
 
 func index (ctx *web.Context) {
@@ -88,8 +88,8 @@ All settings on Web.*go* utilize system evironment via `os.Environ`. By using th
 package main
 
 import (
-    "gopkg.in/goanywhere/env.v1"
-    "gopkg.in/goanywhere/web.v1"
+    "github.com/goanywhere/env"
+    "github.com/goanywhere/web"
 )
 
 func index (ctx *web.Context) {
@@ -116,7 +116,7 @@ package main
 import (
     "fmt"
 
-    "gopkg.in/goanywhere/env.v1"
+    "github.com/goanywhere/env"
 )
 
 type Spec struct {
@@ -148,7 +148,7 @@ package main
 import (
     "fmt"
 
-    "gopkg.in/goanywhere/env.v1"
+    "github.com/goanywhere/env"
 )
 
 func main() {
