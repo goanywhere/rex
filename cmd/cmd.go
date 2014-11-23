@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package cmd
+package main
 
 import (
 	"os"
@@ -67,4 +67,8 @@ func Execute() {
 func init() {
 	_, filename, _, _ := runtime.Caller(1)
 	here, _ = filepath.Abs(path.Dir(filename))
+}
+
+func main() {
+	Execute()
 }
