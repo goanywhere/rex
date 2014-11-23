@@ -263,9 +263,6 @@ func (self *Context) Data(data []byte) {
 	self.Write(data)
 }
 
-// ---------------------------------------------------------------------------
-//  Context Prerequisites
-// ---------------------------------------------------------------------------
 func init() {
 	// Here we generate a md5-based fixed length (32-bits) prefix for ContextId.
 	hostname, err := os.Hostname()

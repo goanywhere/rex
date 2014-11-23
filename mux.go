@@ -83,43 +83,43 @@ func (self *Mux) Address() string {
 	return fmt.Sprintf("%s:%s", env.Get("host"), env.Get("port"))
 }
 
-// GET is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
+// Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Get(pattern string, handler interface{}) {
 	self.handle("GET", pattern, handler)
 }
 
-// POST is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
+// Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Post(pattern string, handler interface{}) {
 	self.handle("POST", pattern, handler)
 }
 
-// PUT is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
+// Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Put(pattern string, handler interface{}) {
 	self.handle("PUT", pattern, handler)
 }
 
-// DELETE is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
+// Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Delete(pattern string, handler interface{}) {
 	self.handle("DELETE", pattern, handler)
 }
 
-// PATCH is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
+// Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Patch(pattern string, handler http.HandlerFunc) {
 	self.handle("PATCH", pattern, handler)
 }
 
-// HEAD is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
+// Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Head(pattern string, handler http.HandlerFunc) {
 	self.handle("HEAD", pattern, handler)
 }
 
-// OPTIONS is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
+// Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Mux) Options(pattern string, handler http.HandlerFunc) {
 	self.handle("OPTIONS", pattern, handler)
@@ -137,6 +137,11 @@ func (self *Mux) Use(middlewares ...Middleware) {
 
 // ServeHTTP turn Mux into http.Handler by implementing the http.Handler interface.
 func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	// Try load dotenv settings first.
+	if err := env.Load(); err != nil {
+		Error(".env can't be loaded: %v", err)
+	}
+
 	var mux http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {

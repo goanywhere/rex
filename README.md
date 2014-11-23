@@ -11,10 +11,6 @@ Install the package (**go 1.3** and greater is required):
 $ go get -v gopkg.in/goanywhere/web.v1
 ```
 
-## NOTE
-
-This is a ongoing project at experiemental stage, consider it's version *ZERO* and *NOT* suitable for production usage yet.
-
 
 ## Features
 * Flexible Env-based configurations.
@@ -156,7 +152,7 @@ import (
 )
 
 func main() {
-    // This will load '.env' from current working directory.
+    // This will load '.env' from current working directory (enabled by Web.go by default)
     // Use env.Set("root", "<Other Dir. You Want>") to initiate different root path for .env.
     env.Load()
 
