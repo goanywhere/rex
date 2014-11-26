@@ -57,8 +57,8 @@ var commands = []cli.Command{
 func Execute() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	app := cli.NewApp()
-	app.Name = "webapp"
-	app.Usage = "manage web application project"
+	app.Name = "web"
+	app.Usage = "manage Web.go application project"
 	app.Version = "0.1.1"
 	app.Commands = commands
 	app.Run(os.Args)
@@ -67,4 +67,8 @@ func Execute() {
 func init() {
 	_, filename, _, _ := runtime.Caller(1)
 	here, _ = filepath.Abs(path.Dir(filename))
+}
+
+func main() {
+	Execute()
 }

@@ -194,8 +194,8 @@ To get started with Live Reload, you need to install the command line applicatio
 *NOTE* Please make sure you have $GOPATH & $GOBIN correctly set.
 
 ``` sh
-$ cd $GOPATH/src/pkg/github.com/goanywhere/web
-$ go install ./cmd -o $GOPATH/bin/web
+$ cd $GOPATH/src/github.com/goanywhere/web/cmd
+$ go build -o $GOPATH/bin/web
 ```
 
 Okay, you are good to Go now, simple as that:

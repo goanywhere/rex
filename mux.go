@@ -31,6 +31,7 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/env"
+	"github.com/goanywhere/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -155,7 +156,8 @@ func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 // Serve starts serving the requests at the pre-defined address from settings.
 func (self *Mux) Serve() {
 	// TODO command line arguments.
-	Info("Mux server started [%s]", self.Address())
+	logger := logging.New(logging.DEBUG)
+	logger.Info("Mux server started [%s]", self.Address())
 	if err := http.ListenAndServe(self.Address(), self); err != nil {
 		panic(err)
 	}
