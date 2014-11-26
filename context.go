@@ -33,6 +33,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -77,7 +78,7 @@ func (self *Context) createSignature() {
 	if signature == nil {
 		secret := env.Get("secret")
 		if secret == "" {
-			Warn("Secret key missing, using a random string now, previous cookie will be invalidate")
+			log.Print("Secret key missing, using a random string now, previous cookie will be invalidate")
 			pool := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
 			secret = crypto.RandomString(64, pool)
 		}

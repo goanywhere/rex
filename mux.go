@@ -31,7 +31,6 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/env"
-	"github.com/goanywhere/logging"
 	"github.com/gorilla/mux"
 )
 
@@ -140,7 +139,7 @@ func (self *Mux) Use(middlewares ...Middleware) {
 func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	// Try load dotenv settings first.
 	if err := env.Load(); err != nil {
-		Error(".env can't be loaded: %v", err)
+		log.Printf(".env can't be loaded: %v", err)
 	}
 
 	var mux http.Handler = self.router
@@ -156,8 +155,7 @@ func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 // Serve starts serving the requests at the pre-defined address from settings.
 func (self *Mux) Serve() {
 	// TODO command line arguments.
-	logger := logging.New(logging.DEBUG)
-	logger.Info("Mux server started [%s]", self.Address())
+	log.Printf("Mux server started [%s]", self.Address())
 	if err := http.ListenAndServe(self.Address(), self); err != nil {
 		panic(err)
 	}
