@@ -25,7 +25,6 @@ package web
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/hex"
@@ -33,6 +32,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"html/template"
 	"log"
 	"net"
 	"net/http"
@@ -218,13 +218,19 @@ func (self *Context) Query() url.Values {
 }
 
 // HTML renders cached HTML templates to response.
-func (self *Context) HTML(filename string, others ...string) {
-	buffer := new(bytes.Buffer)
+func (self *Context) HTML(filename string) {
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	if err := loadTemplates(filename, others...).Execute(buffer, self.data); err != nil {
-		http.Error(self, err.Error(), http.StatusInternalServerError)
-	}
-	buffer.WriteTo(self)
+	/*
+		buffer := new(bytes.Buffer)
+		self.Header().Set(ContentType, "text/html; charset=utf-8")
+		if err := loadTemplates(filename, others...).Execute(buffer, self.data); err != nil {
+			http.Error(self, err.Error(), http.StatusInternalServerError)
+		}
+		buffer.WriteTo(self)
+	*/
+	log.Printf("Template: %s", filename)
+	page := template.Must(template.New(filename).ParseFiles(filename))
+	page.Execute(self, self.data)
 }
 
 // JSON renders JSON data to response.

@@ -155,8 +155,9 @@ func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 // Serve starts serving the requests at the pre-defined address from settings.
 func (self *Mux) Serve() {
 	// TODO command line arguments.
-	log.Printf("Mux server started [%s]", self.Address())
-	if err := http.ListenAndServe(self.Address(), self); err != nil {
+	address := self.Address()
+	log.Printf("Application server started [%s]", address)
+	if err := http.ListenAndServe(address, self); err != nil {
 		panic(err)
 	}
 }

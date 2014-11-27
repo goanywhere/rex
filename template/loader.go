@@ -21,40 +21,32 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package web
+package template
 
 import (
-	"os"
+	"bytes"
+	"html/template"
 	"path/filepath"
-	"runtime"
-
-	"github.com/goanywhere/env"
-	"github.com/gorilla/mux"
 )
 
-// Shortcut to create map.
-type H map[string]interface{}
+var templates *template.Template
 
-// New creates an application instance & setup its default settings..
-func New() *Mux {
-	app := &Mux{mux.NewRouter(), nil}
-	return app
+func Load(path string) (err error) {
+	if templates, err = template.ParseGlob(filepath.Join(path, "*.html")); err == nil {
+
+	}
+	return
+}
+
+func ExecuteTemplate(values interface{}, layouts ...string) (buffer *bytes.Buffer, err error) {
+	for _, layout := range layouts {
+		if templates.Lookup(layout) != nil {
+			err = templates.ExecuteTemplate(buffer, layout, values)
+		}
+	}
+	return
 }
 
 func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	if cwd, err := os.Getwd(); err == nil {
-		if root, err := filepath.Abs(cwd); err == nil {
-			env.Set("root", root)
-		} else {
-			panic(err)
-		}
-	} else {
-		panic(err)
-	}
-	// Application Defaults
-	env.Set("debug", "true")
-	env.Set("host", "localhost")
-	env.Set("port", "5000")
-	env.Set("templates", filepath.Join(env.Get("root"), "templates"))
+	templates = template.New("templates")
 }

@@ -198,7 +198,7 @@ $ cd $GOPATH/src/github.com/goanywhere/web/cmd
 $ go build -o $GOPATH/bin/web
 ```
 
-Okay, you are good to Go now, simple as that:
+All set, you are good to Go now, simple as that:
 
 ``` sh
 $ web serve
@@ -221,10 +221,9 @@ Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We develope
 - [X] Test Suite
 - [X] New Project Template
 - [X] CLI Apps Integrations 
-- [ ] i18n Supports
 - [ ] Template Functions
 - [ ] Improved Template Rendering
-- [ ] Improved Logging System
+- [ ] i18n Supports
 - [ ] More Middlewares
 - [ ] Form Validations
 - [ ] Project Wiki
