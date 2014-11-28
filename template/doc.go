@@ -21,32 +21,15 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
+/*
+Package template (web/template) brings shortcuts for using standard "html/template",
+in addtions to the standard (& vanilla) way, it also add some helper tags like
+
+	{% extends "layouts/base.html" %}
+
+	{% include "partial/header.html" %}
+
+to make you template rendering much more easier.
+*/
+
 package template
-
-import (
-	"html/template"
-	"io/ioutil"
-)
-
-// Parse finds all extends chain & constructs the final page layout.
-func Parse(filename string) (page *template.Template) {
-	var err error
-	filenames := Extends(filename)
-
-	for _, item := range filenames {
-		if bits, err := ioutil.ReadFile(item); err == nil {
-			var tmpl *template.Template
-			// intialize final page template using the very first ancestor.
-			if page == nil {
-				page = template.New(item)
-			}
-			if item == page.Name() {
-				tmpl = page
-			} else {
-				tmpl = page.New(item)
-			}
-			_, err = tmpl.Parse(string(bits))
-		}
-	}
-	return template.Must(page, err)
-}

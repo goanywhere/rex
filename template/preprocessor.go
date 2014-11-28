@@ -24,29 +24,49 @@
 package template
 
 import (
-	"html/template"
-	"io/ioutil"
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/goanywhere/regex/tags"
 )
 
-// Parse finds all extends chain & constructs the final page layout.
-func Parse(filename string) (page *template.Template) {
-	var err error
-	filenames := Extends(filename)
+// Extends finds all ancesters (via jinja's syntax {% extends "ancester.html" %})
+// & combines them along with the filename iteself into correct order for parsing.
+func Extends(filename string) []string {
+	var paths = []string{filename}
+	cwd := filepath.Dir(filename)
 
-	for _, item := range filenames {
-		if bits, err := ioutil.ReadFile(item); err == nil {
-			var tmpl *template.Template
-			// intialize final page template using the very first ancestor.
-			if page == nil {
-				page = template.New(item)
-			}
-			if item == page.Name() {
-				tmpl = page
-			} else {
-				tmpl = page.New(item)
-			}
-			_, err = tmpl.Parse(string(bits))
+	for {
+		file, err := os.Open(filename)
+		defer file.Close()
+		if err != nil {
+			break
 		}
+
+		buffer := make([]byte, 1024)
+		reader := bufio.NewReader(file)
+
+		var path string
+		// Check if it contains "extends" tag.
+		for {
+			if buffer, _, err = reader.ReadLine(); err != nil {
+				break
+			} else {
+				line := string(buffer)
+				if match := tags.Extends.FindStringSubmatch(line); len(match) >= 2 {
+					path = filepath.Join(cwd, match[1])
+					if path == filename {
+						panic(fmt.Errorf("web/template: template cannot extend itself (%s)", filename))
+					}
+					paths = append([]string{path}, paths...)
+					break
+				}
+			}
+		}
+		// move to the ancester to check
+		filename = path
 	}
-	return template.Must(page, err)
+	return paths
 }
