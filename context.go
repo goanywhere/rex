@@ -25,6 +25,7 @@ package web
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/hex"
@@ -42,6 +43,7 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/web/template"
 )
 
 const ContentType = "Content-Type"
@@ -219,14 +221,10 @@ func (self *Context) Query() url.Values {
 // HTML renders cached HTML templates to response.
 func (self *Context) HTML(filename string) {
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	/*
-		buffer := new(bytes.Buffer)
-		if err := loadTemplates(filename, others...).Execute(buffer, self.data); err != nil {
-			http.Error(self, err.Error(), http.StatusInternalServerError)
-		}
-		buffer.WriteTo(self)
-	*/
-
+	buffer := new(bytes.Buffer)
+	page := template.Parse(filename)
+	page.Execute(buffer, self.data)
+	buffer.WriteTo(self)
 }
 
 // JSON renders JSON data to response.

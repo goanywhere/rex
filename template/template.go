@@ -35,12 +35,10 @@ import (
 	"github.com/goanywhere/regex"
 )
 
-var templates *template.Template
-
 // chain finds all ancesters (via "extends") & combines them along
 // with the filename iteself into correct order for parsing.
-func chain(filename string) (paths []string) {
-	paths = append(paths, filename)
+func chain(filename string) []string {
+	var paths = []string{filename}
 	cwd := filepath.Dir(filename)
 
 	for {
@@ -73,31 +71,32 @@ func chain(filename string) (paths []string) {
 		// move to the ancester to check
 		filename = path
 	}
-	return
+	return paths
 }
 
 // TODO modular filtering.
 //func Filter(filename string, pattern *regexp.Regexp, filter func()()) {}
 
 // Parse finds all extends chain & constructs the final page layout.
-func Parse(path string) *template.Template {
+func Parse(filename string) *template.Template {
 	var err error
 	var page *template.Template
 
-	filenames := chain(path)
+	filenames := chain(filename)
 
-	for _, filename := range filenames {
-		if bits, err := ioutil.ReadFile(filename); err == nil {
+	for _, item := range filenames {
+		if bits, err := ioutil.ReadFile(item); err == nil {
+			// remove the custom tag "extends" for standard parsing.
 			content := regex.Tag.Extends.ReplaceAllString(string(bits), "")
 
 			var tmpl *template.Template
 			if page == nil {
-				page = template.New(filename)
+				page = template.New(item)
 			}
-			if filename == page.Name() {
+			if item == page.Name() {
 				tmpl = page
 			} else {
-				tmpl = page.New(filename)
+				tmpl = page.New(item)
 			}
 			_, err = tmpl.Parse(content)
 		}
@@ -111,10 +110,5 @@ func Load(path string) (err error) {
 }
 
 func ExecuteTemplate(values interface{}, layouts ...string) (buffer *bytes.Buffer, err error) {
-	for _, layout := range layouts {
-		if templates.Lookup(layout) != nil {
-			err = templates.ExecuteTemplate(buffer, layout, values)
-		}
-	}
 	return
 }

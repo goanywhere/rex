@@ -30,7 +30,7 @@ import (
 	"github.com/goanywhere/env"
 )
 
-// TODO boost ME.
+// NOTE obsolete: use web/template.
 
 var templates map[string]*template.Template
 
