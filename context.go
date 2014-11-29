@@ -43,7 +43,6 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/crypto"
-	"github.com/goanywhere/web/template"
 )
 
 const ContentType = "Content-Type"
@@ -222,8 +221,8 @@ func (self *Context) Query() url.Values {
 func (self *Context) HTML(filename string) {
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
 	buffer := new(bytes.Buffer)
-	page := template.Parse(filename)
-	page.Execute(buffer, self.data)
+	//page := template.Parse(filename)
+	//page.Execute(buffer, self.data)
 	buffer.WriteTo(self)
 }
 
