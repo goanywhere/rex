@@ -51,6 +51,40 @@ go run server.go
 You will now have a HTTP server running on `localhost:5000`.
 
 
+## Template
+
+The standard template (html/template) package implements data-driven templates for generating HTML output safe against code injection, sounds nice? But once you step into the real world, you will soon find your code to be spaghetti. To parse multiple files with pieces of "define", say you have a "index.html", and header source defined in "header.html", footer source in "foot.html", you will need this:
+
+```go
+template.Must(template.ParseFiles("index.html", "header.html", "footer.html"))
+```
+
+What if another page say "contact.html" will share the same header & footer? Oops & yes, you'll need to do this again,
+
+```go
+template.Must(template.ParseFiles("contact.html", "header.html", "footer.html"))
+```
+
+Inheritance? They are pretty much the same, yes, you'll have to do this over & over again like this:
+
+```go
+template.Must(template.ParseFiles("layout.html", "index.html", "header.html", "footer.html"))
+
+template.Must(template.ParseFiles("layout.html", "contact.html", "header.html", "footer.html"))
+```
+
+Web.*go* solution? Simple, in addtition to the standard tags, we introduce two "new" (not really if you have ever use Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, the code will then will be like:
+
+```go
+import "github.com/goanywhere/web/template"
+
+loader := template.NewLoader("templates")
+template := loader.Load("index.html")
+```
+
+There you Go now, simple as that.
+
+
 ## Context
 
 Context is a very useful helper shipped with Web.*go*. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
@@ -64,7 +98,7 @@ import (
 )
 
 func index (ctx *web.Context) {
-    ctx.HTML("layout.html", "index.html", "header.html")
+    ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
 func json (ctx *web.Context) {
@@ -221,8 +255,8 @@ Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We develope
 - [X] Test Suite
 - [X] New Project Template
 - [X] CLI Apps Integrations 
+- [X] Improved Template Rendering
 - [ ] Template Functions
-- [ ] Improved Template Rendering
 - [ ] i18n Supports
 - [ ] More Middlewares
 - [ ] Form Validations
