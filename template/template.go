@@ -26,8 +26,11 @@ package template
 import (
 	"bufio"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"os"
-	"path/filepath"
+	"path"
+	"strings"
 
 	"github.com/goanywhere/regex/tags"
 )
@@ -37,40 +40,102 @@ type Page struct {
 	loader *Loader
 }
 
-// Ancesters finds all ancesters using jinja's syntax & combines
-// them along with the filename iteself into correct order for parsing.
+func (self *Page) path() string {
+	return path.Join(self.loader.root, self.Name)
+}
+
+func (self *Page) source() (src string) {
+	if bits, err := ioutil.ReadFile(self.path()); err == nil {
+		src = string(bits)
+	}
+	return
+}
+
+// Ancesters finds all ancestors absolute path using jinja's syntax
+// and combines them along with the page path iteself into correct order for parsing.
 // tag: {% extends "layout/base.html" %}
 func (self *Page) Ancestors() (paths []string) {
-	paths = append(paths, filepath.Join(self.loader.path, self.Name))
-
-	var filename string = paths[0]
+	var name = self.Name
+	paths = append(paths, name)
 
 	for {
-		file, err := os.Open(filename)
+		var orphan = false
+		file, err := os.Open(path.Join(self.loader.root, name))
 		defer file.Close()
 		if err != nil {
-			break
+			panic(fmt.Errorf("web/template: %v", err))
 		}
 		// find the very first "extends" tag.
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			matches := tags.Extends.FindStringSubmatch(scanner.Text())
-			if len(matches) == 2 {
-				if path := filepath.Join(self.loader.path, matches[1]); path == filename {
-					panic(fmt.Errorf("web/template: template cannot extend itself (%s)", filename))
+			result := tags.Extends.FindStringSubmatch(scanner.Text())
+			if len(result) == 2 {
+				if name == result[1] {
+					panic(fmt.Errorf("web/template: template cannot extend itself (%s)", name))
 				} else {
-					paths = append([]string{path}, paths...)
-					filename = path // move to the ancester to check.
-					break           // Only the very first one.
+					paths = append([]string{result[1]}, paths...) // insert the ancester into the first place.
+					name = result[1]
+					break
 				}
+			} else {
+				orphan = true
 			}
 		}
+
+		if orphan {
+			break
+		}
 	}
+
 	return
 }
 
 // Include finds all included external file sources recursively
 // & replace all the "include" tags with their actual sources.
-func (self *Page) Include() (src string) {
+// tag: {% include "partials/header.html" %}
+func (self *Page) Include() (source string) {
+	bits, err := ioutil.ReadFile(self.path())
+	if err != nil {
+		panic(fmt.Errorf("web/template: template cannot be opened (%s)", self.Name))
+	}
+
+	source = string(bits)
+	for {
+		result := tags.Include.FindAllStringSubmatch(source, -1)
+		if result == nil {
+			break
+		}
+
+		for _, match := range result {
+			tag, name := match[0], match[1]
+			if name == self.Name {
+				panic(fmt.Errorf("web/template: template cannot include itself (%s)", name))
+			}
+			page := self.loader.Load(name)
+			// reconstructs source to recursively find all included sources.
+			source = strings.Replace(source, tag, page.source(), -1)
+		}
+	}
 	return
+}
+
+func (self *Page) Parse() (output *template.Template) {
+	var err error
+	paths := self.Ancestors()
+
+	for _, path := range paths {
+		page := self.loader.Load(path)
+		var tmpl *template.Template
+
+		if output == nil {
+			output = template.New(path)
+		}
+		if path == output.Name() {
+			tmpl = output
+		} else {
+			tmpl = output.New(path)
+		}
+		_, err = tmpl.Parse(page.Include())
+	}
+	return template.Must(output, err)
 }
