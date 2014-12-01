@@ -24,11 +24,12 @@
 package template
 
 import (
-	"fmt"
 	"html/template"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/goanywhere/web"
 )
 
 var mutex sync.RWMutex
@@ -43,7 +44,7 @@ func NewLoader(path string) *Loader {
 	defer mutex.Unlock()
 	abspath, err := filepath.Abs(path)
 	if os.IsNotExist(err) {
-		panic(fmt.Errorf("web/template: %s does not exist", path))
+		web.Panic("web/template: %s does not exist", path)
 	}
 	loader := new(Loader)
 	loader.root = abspath
@@ -76,7 +77,7 @@ func (self *Loader) Load(name string) *template.Template {
 
 	abspath := filepath.Join(self.root, name)
 	if _, err := os.Stat(abspath); os.IsNotExist(err) {
-		panic(fmt.Errorf("web/template: template does not exist (%s)", abspath))
+		web.Panic("web/template: template does not exist (%s)", name)
 	}
 
 	if page, exists := self.templates[name]; exists {

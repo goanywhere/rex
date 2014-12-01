@@ -24,13 +24,13 @@
 package template
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path"
 	"strings"
 
 	"github.com/goanywhere/regex/tags"
+	"github.com/goanywhere/web"
 )
 
 type Page struct {
@@ -49,7 +49,7 @@ func (self *Page) ancestors() (names []string) {
 		// find the very first "extends" tag.
 		bits, err := ioutil.ReadFile(path.Join(self.loader.root, name))
 		if err != nil {
-			panic(fmt.Errorf("web/template: %v", err))
+			web.Panic("web/template: %v", err)
 		}
 
 		result := tags.Extends.FindSubmatch(bits)
@@ -59,7 +59,7 @@ func (self *Page) ancestors() (names []string) {
 
 		base := string(result[1])
 		if base == name {
-			panic(fmt.Errorf("web/template: template cannot extend itself (%s)", name))
+			web.Panic("web/template: template cannot extend itself (%s)", name)
 		}
 
 		names = append([]string{base}, names...) // insert the ancester into the first place.
@@ -75,7 +75,7 @@ func (self *Page) ancestors() (names []string) {
 func (self *Page) include() (source string) {
 	bits, err := ioutil.ReadFile(self.path())
 	if err != nil {
-		panic(fmt.Errorf("web/template: template cannot be opened (%s)", self.Name))
+		web.Panic("web/template: template cannot be opened (%s)", self.Name)
 	}
 
 	source = string(bits)
@@ -88,7 +88,7 @@ func (self *Page) include() (source string) {
 		for _, match := range result {
 			tag, name := match[0], match[1]
 			if name == self.Name {
-				panic(fmt.Errorf("web/template: template cannot include itself (%s)", name))
+				web.Panic("web/template: template cannot include itself (%s)", name)
 			}
 			page := self.loader.Page(name)
 			// reconstructs source to recursively find all included sources.
@@ -131,7 +131,7 @@ func (self *Page) source() (src string) {
 	if bits, err := ioutil.ReadFile(self.path()); err == nil {
 		src = string(bits)
 	} else {
-		panic(fmt.Errorf("web/template: template cannot be opened (%s)", self.Name))
+		web.Panic("web/template: template cannot be opened (%s)", self.Name)
 	}
 	return src
 }

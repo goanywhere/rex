@@ -49,6 +49,6 @@ func Serialize(object interface{}) (value string, err error) {
 	return
 }
 
-func Panic(format string, values ...string) {
-	panic(fmt.Errorf(format, values))
+func Panic(format string, values ...interface{}) {
+	panic(fmt.Errorf(format, values...))
 }
