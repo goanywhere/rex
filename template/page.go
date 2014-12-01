@@ -24,11 +24,9 @@
 package template
 
 import (
-	"bufio"
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"os"
 	"path"
 	"strings"
 
@@ -36,55 +34,36 @@ import (
 )
 
 type Page struct {
-	Name   string
-	loader *Loader
-}
-
-func (self *Page) path() string {
-	return path.Join(self.loader.root, self.Name)
-}
-
-func (self *Page) source() (src string) {
-	if bits, err := ioutil.ReadFile(self.path()); err == nil {
-		src = string(bits)
-	}
-	return
+	Name   string  // name of the page under laoder's root path.
+	loader *Loader // file loader.
 }
 
 // Ancesters finds all ancestors absolute path using jinja's syntax
 // and combines them along with the page path iteself into correct order for parsing.
 // tag: {% extends "layout/base.html" %}
-func (self *Page) Ancestors() (paths []string) {
+func (self *Page) ancestors() (names []string) {
 	var name = self.Name
-	paths = append(paths, name)
+	names = append(names, name)
 
 	for {
-		var orphan = false
-		file, err := os.Open(path.Join(self.loader.root, name))
-		defer file.Close()
+		// find the very first "extends" tag.
+		bits, err := ioutil.ReadFile(path.Join(self.loader.root, name))
 		if err != nil {
 			panic(fmt.Errorf("web/template: %v", err))
 		}
-		// find the very first "extends" tag.
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			result := tags.Extends.FindStringSubmatch(scanner.Text())
-			if len(result) == 2 {
-				if name == result[1] {
-					panic(fmt.Errorf("web/template: template cannot extend itself (%s)", name))
-				} else {
-					paths = append([]string{result[1]}, paths...) // insert the ancester into the first place.
-					name = result[1]
-					break
-				}
-			} else {
-				orphan = true
-			}
-		}
 
-		if orphan {
+		result := tags.Extends.FindSubmatch(bits)
+		if result == nil {
 			break
 		}
+
+		base := string(result[1])
+		if base == name {
+			panic(fmt.Errorf("web/template: template cannot extend itself (%s)", name))
+		}
+
+		names = append([]string{base}, names...) // insert the ancester into the first place.
+		name = base
 	}
 
 	return
@@ -93,7 +72,7 @@ func (self *Page) Ancestors() (paths []string) {
 // Include finds all included external file sources recursively
 // & replace all the "include" tags with their actual sources.
 // tag: {% include "partials/header.html" %}
-func (self *Page) Include() (source string) {
+func (self *Page) include() (source string) {
 	bits, err := ioutil.ReadFile(self.path())
 	if err != nil {
 		panic(fmt.Errorf("web/template: template cannot be opened (%s)", self.Name))
@@ -111,7 +90,7 @@ func (self *Page) Include() (source string) {
 			if name == self.Name {
 				panic(fmt.Errorf("web/template: template cannot include itself (%s)", name))
 			}
-			page := self.loader.Load(name)
+			page := self.loader.Page(name)
 			// reconstructs source to recursively find all included sources.
 			source = strings.Replace(source, tag, page.source(), -1)
 		}
@@ -119,23 +98,40 @@ func (self *Page) Include() (source string) {
 	return
 }
 
-func (self *Page) Parse() (output *template.Template) {
-	var err error
-	paths := self.Ancestors()
+// Path returns the abolute path of the page.
+func (self *Page) path() string {
+	return path.Join(self.loader.root, self.Name)
+}
 
-	for _, path := range paths {
-		page := self.loader.Load(path)
+// Parse constructs `template.Template` object with additional
+// "extends" & "include" like Jinja.
+func (self *Page) parse() (output *template.Template) {
+	var err error
+	names := self.ancestors()
+
+	for _, name := range names {
+		page := self.loader.Page(name)
 		var tmpl *template.Template
 
 		if output == nil {
-			output = template.New(path)
+			output = template.New(name)
 		}
-		if path == output.Name() {
+		if name == output.Name() {
 			tmpl = output
 		} else {
-			tmpl = output.New(path)
+			tmpl = output.New(name)
 		}
-		_, err = tmpl.Parse(page.Include())
+		_, err = tmpl.Parse(page.include())
 	}
 	return template.Must(output, err)
+}
+
+// Source returns the plain raw source of the page.
+func (self *Page) source() (src string) {
+	if bits, err := ioutil.ReadFile(self.path()); err == nil {
+		src = string(bits)
+	} else {
+		panic(fmt.Errorf("web/template: template cannot be opened (%s)", self.Name))
+	}
+	return src
 }

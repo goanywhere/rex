@@ -27,6 +27,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"fmt"
 )
 
 // Deserialize converts base64-encoded string back to its original object.
@@ -46,4 +47,8 @@ func Serialize(object interface{}) (value string, err error) {
 		value = base64.URLEncoding.EncodeToString(buffer.Bytes())
 	}
 	return
+}
+
+func Panic(format string, values ...string) {
+	panic(fmt.Errorf(format, values))
 }

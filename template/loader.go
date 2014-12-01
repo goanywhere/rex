@@ -25,6 +25,7 @@ package template
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"sync"
@@ -33,8 +34,8 @@ import (
 var mutex sync.RWMutex
 
 type Loader struct {
-	root  string
-	pages map[string]*Page
+	root      string
+	templates map[string]*template.Template
 }
 
 func NewLoader(path string) *Loader {
@@ -46,40 +47,41 @@ func NewLoader(path string) *Loader {
 	}
 	loader := new(Loader)
 	loader.root = abspath
-	loader.pages = make(map[string]*Page)
+	loader.templates = make(map[string]*template.Template)
 	return loader
-}
-
-// setup constructs a new Page object.
-func (self *Loader) setup(path string) *Page {
-	page := new(Page)
-	page.Name = path
-	page.loader = self
-	return page
 }
 
 // Reset clears the cached pages.
 func (self *Loader) Reset() {
 	mutex.Lock()
 	defer mutex.Unlock()
-	for k := range self.pages {
-		delete(self.pages, k)
+	for k := range self.templates {
+		delete(self.templates, k)
 	}
 }
 
+// page creates a internal page helper.
+func (self *Loader) Page(name string) *Page {
+	// setup constructs a new Page object.
+	page := new(Page)
+	page.Name = name
+	page.loader = self
+	return page
+}
+
 // Load returns cached page template.
-func (self *Loader) Load(path string) *Page {
+func (self *Loader) Load(name string) *template.Template {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	abspath := filepath.Join(self.root, path)
+	abspath := filepath.Join(self.root, name)
 	if _, err := os.Stat(abspath); os.IsNotExist(err) {
 		panic(fmt.Errorf("web/template: template does not exist (%s)", abspath))
 	}
 
-	if page, exists := self.pages[path]; exists {
+	if page, exists := self.templates[name]; exists {
 		return page
 	}
-	self.pages[path] = self.setup(path)
-	return self.pages[path]
+	self.templates[name] = self.Page(name).parse()
+	return self.templates[name]
 }
