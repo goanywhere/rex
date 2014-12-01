@@ -53,7 +53,7 @@ You will now have a HTTP server running on `localhost:5000`.
 
 ## Template
 
-The standard template (html/template) package implements data-driven templates for generating HTML output safe against code injection, sounds nice? But once you step into the real world, you will soon find your code to be spaghetti. To parse multiple files with pieces of "define", say you have a "index.html", and header source defined in "header.html", footer source in "foot.html", you will need this:
+The standard template (html/template) package implements data-driven templates for generating HTML output safe against code injection, sounds nice? But once you step into the real world, you will soon find your code to be spaghetti. To parse multiple files with pieces of "define", say you have a "index.html", and header source defined in "header.html", footer source in "footer.html", you will need this:
 
 ```go
 template.Must(template.ParseFiles("index.html", "header.html", "footer.html"))
