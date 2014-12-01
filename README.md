@@ -73,7 +73,7 @@ template.Must(template.ParseFiles("layout.html", "index.html", "header.html", "f
 template.Must(template.ParseFiles("layout.html", "contact.html", "header.html", "footer.html"))
 ```
 
-Web.*go* solution? Simple, in addtition to the standard tags, we introduce two "new" (not really if you have ever use Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, the code will then will be like:
+Web.*go* solution? Simple, in addtition to the standard tags, we introduce two "new" (not really if you have ever used Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, the code will then will be like:
 
 ```go
 import "github.com/goanywhere/web/template"
