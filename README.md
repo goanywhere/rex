@@ -79,7 +79,7 @@ Web.*go* solution? Simple, in addtition to the standard tags, we introduce two "
 import "github.com/goanywhere/web/template"
 
 loader := template.NewLoader("templates")
-template := loader.Load("index.html")
+template := loader.Parse("index.html")
 ```
 
 There you Go now, simple as that.
