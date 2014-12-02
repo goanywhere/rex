@@ -29,13 +29,15 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/env"
+	"github.com/goanywhere/web/template"
 )
+
+var loader *template.Loader
 
 // Shortcut to create map.
 type H map[string]interface{}
 
-func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+func setup() {
 	if cwd, err := os.Getwd(); err == nil {
 		if root, err := filepath.Abs(cwd); err == nil {
 			env.Set("root", root)
@@ -50,4 +52,17 @@ func init() {
 	env.Set("host", "localhost")
 	env.Set("port", "5000")
 	env.Set("templates", "templates")
+
+	loader = template.NewLoader(env.Get("templates"))
+	loader.Load()
+}
+
+func New() *Mux {
+	mux := newMux()
+	setup()
+	return mux
+}
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }

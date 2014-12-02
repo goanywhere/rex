@@ -46,8 +46,8 @@ type (
 	Middleware func(http.Handler) http.Handler
 )
 
-// New creates an application instance & setup its default settings..
-func New() *Mux {
+// newMux creates an application instance & setup its default settings..
+func newMux() *Mux {
 	return &Mux{mux.NewRouter(), nil}
 }
 

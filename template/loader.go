@@ -25,12 +25,11 @@ package template
 
 import (
 	"html/template"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
-
-	"github.com/goanywhere/web"
 )
 
 var mutex sync.RWMutex
@@ -44,7 +43,7 @@ type Loader struct {
 func NewLoader(path string) *Loader {
 	abspath, err := filepath.Abs(path)
 	if os.IsNotExist(err) {
-		web.Panic("web/template: %s does not exist", path)
+		log.Fatalf("web/template: %s does not exist", path)
 	}
 	loader := new(Loader)
 	loader.root = abspath
@@ -75,7 +74,7 @@ func (self *Loader) Files() (names []string) {
 	})
 
 	if err != nil {
-		web.Panic("web/template: files list cannot be listed: %v", err)
+		log.Fatalf("web/template: files list cannot be listed: %v", err)
 	}
 
 	return
@@ -107,6 +106,8 @@ func (self *Loader) page(name string) *page {
 func (self *Loader) Parse(name string) *template.Template {
 	if !self.loaded {
 		self.Load()
+	} else {
+		log.Printf("templates are all loaded already")
 	}
 	return self.templates[name]
 }
