@@ -33,7 +33,7 @@ import (
 	"github.com/goanywhere/web"
 )
 
-type Page struct {
+type page struct {
 	Name   string  // name of the page under laoder's root path.
 	loader *Loader // file loader.
 }
@@ -41,7 +41,7 @@ type Page struct {
 // Ancesters finds all ancestors absolute path using jinja's syntax
 // and combines them along with the page name iteself into correct order for parsing.
 // tag: {% extends "layout/base.html" %}
-func (self *Page) ancestors() (names []string) {
+func (self *page) ancestors() (names []string) {
 	var name = self.Name
 	names = append(names, name)
 
@@ -72,7 +72,7 @@ func (self *Page) ancestors() (names []string) {
 // Include finds all included external file sources recursively
 // & replace all the "include" tags with their actual sources.
 // tag: {% include "partials/header.html" %}
-func (self *Page) include() (source string) {
+func (self *page) include() (source string) {
 	bits, err := ioutil.ReadFile(self.path())
 	if err != nil {
 		web.Panic("web/template: template cannot be opened (%s)", self.Name)
@@ -90,7 +90,7 @@ func (self *Page) include() (source string) {
 			if name == self.Name {
 				web.Panic("web/template: template cannot include itself (%s)", name)
 			}
-			page := self.loader.Page(name)
+			page := self.loader.page(name)
 			// reconstructs source to recursively find all included sources.
 			source = strings.Replace(source, tag, page.source(), -1)
 		}
@@ -100,12 +100,12 @@ func (self *Page) include() (source string) {
 
 // Parse constructs `template.Template` object with additional
 // "extends" & "include" like Jinja.
-func (self *Page) parse() (output *template.Template) {
+func (self *page) parse() (output *template.Template) {
 	var err error
 	names := self.ancestors()
 
 	for _, name := range names {
-		page := self.loader.Page(name)
+		page := self.loader.page(name)
 		var tmpl *template.Template
 
 		if output == nil {
@@ -122,12 +122,12 @@ func (self *Page) parse() (output *template.Template) {
 }
 
 // Path returns the abolute path of the page.
-func (self *Page) path() string {
+func (self *page) path() string {
 	return path.Join(self.loader.root, self.Name)
 }
 
 // Source returns the plain raw source of the page.
-func (self *Page) source() (src string) {
+func (self *page) source() (src string) {
 	if bits, err := ioutil.ReadFile(self.path()); err == nil {
 		src = string(bits)
 	} else {

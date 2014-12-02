@@ -27,6 +27,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/goanywhere/web"
@@ -36,6 +37,7 @@ var mutex sync.RWMutex
 
 type Loader struct {
 	root      string
+	loaded    bool
 	templates map[string]*template.Template
 }
 
@@ -50,6 +52,65 @@ func NewLoader(path string) *Loader {
 	return loader
 }
 
+// Exists checks if the given filename exists under the root.
+func (self *Loader) Exists(name string) bool {
+	abspath := filepath.Join(self.root, name)
+	if _, err := os.Stat(abspath); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+// Files lists all HTML files under the root.
+func (self *Loader) Files() (names []string) {
+	err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
+			if name, e := filepath.Rel(self.root, path); e == nil {
+				names = append(names, name)
+			} else {
+				err = e
+			}
+		}
+		return err
+	})
+
+	if err != nil {
+		web.Panic("web/template: files list cannot be listed: %v", err)
+	}
+
+	return
+}
+
+// Load loads & parses all templates under the root.
+// This should be called ASAP since it will cache all
+// parsed templates & cause panic if there's any error occured.
+func (self *Loader) Load() {
+	if !self.loaded {
+		mutex.Lock()
+		defer mutex.Unlock()
+		for _, name := range self.Files() {
+			self.templates[name] = self.page(name).parse()
+		}
+	}
+}
+
+// internal page helper.
+func (self *Loader) page(name string) *page {
+	page := new(page)
+	page.Name = name
+	page.loader = self
+	return page
+}
+
+// Parse resolves all template inheriances & included sources
+// and constructs the final page template instance.
+func (self *Loader) Parse(name string) *template.Template {
+	if !self.loaded {
+		self.Load()
+	}
+	return self.templates[name]
+}
+
 // Reset clears the cached pages.
 func (self *Loader) Reset() {
 	mutex.Lock()
@@ -57,35 +118,4 @@ func (self *Loader) Reset() {
 	for k := range self.templates {
 		delete(self.templates, k)
 	}
-}
-
-// page creates a internal page helper.
-func (self *Loader) Page(name string) *Page {
-	// setup constructs a new Page object.
-	page := new(Page)
-	page.Name = name
-	page.loader = self
-	return page
-}
-
-// Parse loads & parses all templates under the root.
-func (self *Loader) parse() {
-
-}
-
-// Load returns cached page template.
-func (self *Loader) Load(name string) *template.Template {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	abspath := filepath.Join(self.root, name)
-	if _, err := os.Stat(abspath); os.IsNotExist(err) {
-		web.Panic("web/template: template does not exist (%s)", name)
-	}
-
-	if page, exists := self.templates[name]; exists {
-		return page
-	}
-	self.templates[name] = self.Page(name).parse()
-	return self.templates[name]
 }
