@@ -35,7 +35,7 @@ import (
 
 type Page struct {
 	Name   string  // name of the page under laoder's root path.
-	loader *loader // file loader.
+	loader *Loader // file loader.
 }
 
 // Ancesters finds all ancestors absolute path using jinja's syntax
@@ -98,11 +98,6 @@ func (self *Page) include() (source string) {
 	return
 }
 
-// Path returns the abolute path of the page.
-func (self *Page) path() string {
-	return path.Join(self.loader.root, self.Name)
-}
-
 // Parse constructs `template.Template` object with additional
 // "extends" & "include" like Jinja.
 func (self *Page) parse() (output *template.Template) {
@@ -124,6 +119,11 @@ func (self *Page) parse() (output *template.Template) {
 		_, err = tmpl.Parse(page.include())
 	}
 	return template.Must(output, err)
+}
+
+// Path returns the abolute path of the page.
+func (self *Page) path() string {
+	return path.Join(self.loader.root, self.Name)
 }
 
 // Source returns the plain raw source of the page.

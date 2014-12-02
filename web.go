@@ -29,17 +29,10 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/env"
-	"github.com/gorilla/mux"
 )
 
 // Shortcut to create map.
 type H map[string]interface{}
-
-// New creates an application instance & setup its default settings..
-func New() *Mux {
-	app := &Mux{mux.NewRouter(), nil}
-	return app
-}
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -47,14 +40,14 @@ func init() {
 		if root, err := filepath.Abs(cwd); err == nil {
 			env.Set("root", root)
 		} else {
-			panic(err)
+			Panic("[web.go] could not initialize project root: %v", err)
 		}
 	} else {
-		panic(err)
+		Panic("[web.go] could not retrieve current working directory: %v", err)
 	}
 	// Application Defaults
 	env.Set("debug", "true")
 	env.Set("host", "localhost")
 	env.Set("port", "5000")
-	env.Set("templates", filepath.Join(env.Get("root"), "templates"))
+	env.Set("templates", "templates")
 }

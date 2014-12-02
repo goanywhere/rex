@@ -46,6 +46,11 @@ type (
 	Middleware func(http.Handler) http.Handler
 )
 
+// New creates an application instance & setup its default settings..
+func New() *Mux {
+	return &Mux{mux.NewRouter(), nil}
+}
+
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self(NewContext(w, r))
@@ -135,7 +140,7 @@ func (self *Mux) Use(middlewares ...Middleware) {
 	self.middlewares = append(self.middlewares, middlewares...)
 }
 
-// ServeHTTP turn Mux into http.Handler by implementing the http.Handler interface.
+// ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	// Try load dotenv settings first.
 	if err := env.Load(); err != nil {
@@ -158,6 +163,6 @@ func (self *Mux) Serve() {
 	address := self.Address()
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {
-		panic(err)
+		Panic("[web.go] server can not be started: %v", err)
 	}
 }
