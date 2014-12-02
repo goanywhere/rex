@@ -35,11 +35,11 @@ import (
 
 type Page struct {
 	Name   string  // name of the page under laoder's root path.
-	loader *Loader // file loader.
+	loader *loader // file loader.
 }
 
 // Ancesters finds all ancestors absolute path using jinja's syntax
-// and combines them along with the page path iteself into correct order for parsing.
+// and combines them along with the page name iteself into correct order for parsing.
 // tag: {% extends "layout/base.html" %}
 func (self *Page) ancestors() (names []string) {
 	var name = self.Name

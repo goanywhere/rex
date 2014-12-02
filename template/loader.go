@@ -34,26 +34,24 @@ import (
 
 var mutex sync.RWMutex
 
-type Loader struct {
+type loader struct {
 	root      string
 	templates map[string]*template.Template
 }
 
-func NewLoader(path string) *Loader {
-	mutex.Lock()
-	defer mutex.Unlock()
+func Loader(path string) *loader {
 	abspath, err := filepath.Abs(path)
 	if os.IsNotExist(err) {
 		web.Panic("web/template: %s does not exist", path)
 	}
-	loader := new(Loader)
+	loader := new(loader)
 	loader.root = abspath
 	loader.templates = make(map[string]*template.Template)
 	return loader
 }
 
 // Reset clears the cached pages.
-func (self *Loader) Reset() {
+func (self *loader) Reset() {
 	mutex.Lock()
 	defer mutex.Unlock()
 	for k := range self.templates {
@@ -62,7 +60,7 @@ func (self *Loader) Reset() {
 }
 
 // page creates a internal page helper.
-func (self *Loader) Page(name string) *Page {
+func (self *loader) Page(name string) *Page {
 	// setup constructs a new Page object.
 	page := new(Page)
 	page.Name = name
@@ -71,7 +69,7 @@ func (self *Loader) Page(name string) *Page {
 }
 
 // Load returns cached page template.
-func (self *Loader) Load(name string) *template.Template {
+func (self *loader) Load(name string) *template.Template {
 	mutex.Lock()
 	defer mutex.Unlock()
 
