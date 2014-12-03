@@ -24,9 +24,11 @@
 package web
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/template"
@@ -54,7 +56,9 @@ func setup() {
 	env.Set("templates", "templates")
 
 	loader = template.NewLoader(env.Get("templates"))
+	now := time.Now()
 	loader.Load()
+	log.Printf("Loader took: %v", time.Since(now))
 }
 
 func New() *Mux {

@@ -80,6 +80,12 @@ func (self *Loader) Files() (names []string) {
 	return
 }
 
+// Get retrieves the parsed template from preloaded pool.
+func (self *Loader) Get(name string) *template.Template {
+	self.Load()
+	return self.templates[name]
+}
+
 // Load loads & parses all templates under the root.
 // This should be called ASAP since it will cache all
 // parsed templates & cause panic if there's any error occured.
@@ -90,6 +96,7 @@ func (self *Loader) Load() {
 		for _, name := range self.Files() {
 			self.templates[name] = self.page(name).parse()
 		}
+		self.loaded = true
 	}
 }
 
@@ -99,17 +106,6 @@ func (self *Loader) page(name string) *page {
 	page.Name = name
 	page.loader = self
 	return page
-}
-
-// Parse resolves all template inheriances & included sources
-// and constructs the final page template instance.
-func (self *Loader) Parse(name string) *template.Template {
-	if !self.loaded {
-		self.Load()
-	} else {
-		log.Printf("templates are all loaded already")
-	}
-	return self.templates[name]
 }
 
 // Reset clears the cached pages.

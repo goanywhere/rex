@@ -25,7 +25,6 @@ package web
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/hex"
@@ -220,10 +219,8 @@ func (self *Context) Query() url.Values {
 // HTML renders cached HTML templates to response.
 func (self *Context) HTML(filename string) {
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	buffer := new(bytes.Buffer)
-	page := loader.Parse(filename)
-	page.Execute(buffer, self.data)
-	buffer.WriteTo(self)
+	page := loader.Get(filename)
+	page.Execute(self, self.data)
 }
 
 // JSON renders JSON data to response.
