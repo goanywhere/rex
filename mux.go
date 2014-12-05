@@ -85,7 +85,7 @@ func (self *Mux) handle(method, pattern string, h interface{}) {
 // Address fetches the address predefined in `os.environ` by combineing
 // `os.Getenv("host")` & os.Getenv("port").
 func (self *Mux) Address() string {
-	return fmt.Sprintf("%s:%s", env.Get("host"), env.Get("port"))
+	return fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
 }
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),

@@ -23,42 +23,20 @@
 
 package web
 
-import (
-	"log"
-	"os"
-	"path/filepath"
-	"runtime"
-
-	"github.com/goanywhere/web/template"
-)
-
-var loader *template.Loader
-
-// Shortcut to create map.
-type H map[string]interface{}
-
-func setup() {
-	if cwd, err := os.Getwd(); err == nil {
-		if root, err := filepath.Abs(cwd); err == nil {
-			Settings.Root = root
-		} else {
-			Panic("[web.go] could not initialize project root: %v", err)
-		}
-	} else {
-		Panic("[web.go] could not retrieve current working directory: %v", err)
-	}
-	log.Printf("Application initializing...")
-	loader = template.NewLoader(Settings.Templates)
-	pages := loader.Load()
-	log.Printf("Application loaded (%d templates)", pages)
+type settings struct {
+	Debug     bool
+	Host      string
+	Port      int
+	Templates string
+	Root      string
 }
 
-func New() *Mux {
-	mux := newMux()
-	setup()
-	return mux
-}
+var Settings *settings
 
 func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	Settings = new(settings)
+	Settings.Debug = true
+	Settings.Host = "localhost"
+	Settings.Port = 5000
+	Settings.Templates = "templates"
 }

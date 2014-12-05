@@ -89,15 +89,17 @@ func (self *Loader) Get(name string) *template.Template {
 // Load loads & parses all templates under the root.
 // This should be called ASAP since it will cache all
 // parsed templates & cause panic if there's any error occured.
-func (self *Loader) Load() {
+func (self *Loader) Load() (pages int) {
 	if !self.loaded {
 		mutex.Lock()
 		defer mutex.Unlock()
 		for _, name := range self.Files() {
 			self.templates[name] = self.page(name).parse()
+			pages++
 		}
 		self.loaded = true
 	}
+	return
 }
 
 // internal page helper.
