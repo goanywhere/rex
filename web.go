@@ -38,13 +38,11 @@ var loader *template.Loader
 // Shortcut to create map.
 type H map[string]interface{}
 
-// FIXME .env not loaded.
 func New() *Mux {
 	log.Printf("Application initializing...")
 	loader = template.NewLoader(Settings.Templates)
 	pages := loader.Load()
 	log.Printf("Application loaded (%d templates)", pages)
-	// Load custom settings.
 	env.Load(Settings)
 	mux := newMux()
 	return mux
