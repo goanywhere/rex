@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/env"
 	"github.com/gorilla/mux"
 )
 
@@ -142,11 +141,6 @@ func (self *Mux) Use(middlewares ...Middleware) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	// Try load dotenv settings first.
-	if err := env.Load(); err != nil {
-		log.Printf(".env can't be loaded: %v", err)
-	}
-
 	var mux http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {

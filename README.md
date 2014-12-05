@@ -161,7 +161,7 @@ func main() {
     var spec Spec
 
     env.Set("app", "myapplication")
-    env.SetSpec(&spec)
+    env.Load(&spec)
 
     fmt.Printf("App: %s", spec.App)     // output: "App: myapplication"
 }
@@ -187,8 +187,7 @@ import (
 
 func main() {
     // This will load '.env' from current working directory (enabled by Web.go by default)
-    // Use env.Set("root", "<Other Dir. You Want>") to initiate different root path for .env.
-    env.Load()
+    env.Load(".env")
 
     fmt.Printf("<test: %s>", env.Get("test"))     // output: "value"
     fmt.Printf("<test2: %s>", env.Get("test2"))   // output: "value2"

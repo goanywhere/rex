@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/template"
 )
 
@@ -37,7 +38,20 @@ var loader *template.Loader
 // Shortcut to create map.
 type H map[string]interface{}
 
-func setup() {
+// FIXME .env not loaded.
+func New() *Mux {
+	log.Printf("Application initializing...")
+	loader = template.NewLoader(Settings.Templates)
+	pages := loader.Load()
+	log.Printf("Application loaded (%d templates)", pages)
+	// Load custom settings.
+	env.Load(Settings)
+	mux := newMux()
+	return mux
+}
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	if cwd, err := os.Getwd(); err == nil {
 		if root, err := filepath.Abs(cwd); err == nil {
 			Settings.Root = root
@@ -47,18 +61,4 @@ func setup() {
 	} else {
 		Panic("[web.go] could not retrieve current working directory: %v", err)
 	}
-	log.Printf("Application initializing...")
-	loader = template.NewLoader(Settings.Templates)
-	pages := loader.Load()
-	log.Printf("Application loaded (%d templates)", pages)
-}
-
-func New() *Mux {
-	mux := newMux()
-	setup()
-	return mux
-}
-
-func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
 }
