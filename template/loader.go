@@ -40,7 +40,6 @@ type Loader struct {
 	templates map[string]*template.Template
 }
 
-// FIXME Empty/None Templates Folder Handling
 func NewLoader(path string) *Loader {
 	abspath, err := filepath.Abs(path)
 	if os.IsNotExist(err) {

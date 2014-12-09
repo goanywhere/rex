@@ -30,6 +30,7 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/env"
+	"github.com/goanywhere/fs"
 	"github.com/goanywhere/web/template"
 )
 
@@ -40,9 +41,10 @@ type H map[string]interface{}
 
 func New() *Mux {
 	log.Printf("Application initializing...")
-	loader = template.NewLoader(Settings.Templates)
-	pages := loader.Load()
-	log.Printf("Application loaded (%d templates)", pages)
+	if fs.Exists(Settings.Templates) {
+		loader = template.NewLoader(Settings.Templates)
+		log.Printf("Application loaded (%d templates)", loader.Load())
+	}
 	env.Load(Settings)
 	mux := newMux()
 	return mux
