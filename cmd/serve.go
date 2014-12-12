@@ -25,16 +25,12 @@ package main
 
 import (
 	"os"
-	"path"
-	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/pilu/fresh/runner"
 )
 
-func Serve(context *cli.Context) {
-	_, filename, _, _ := runtime.Caller(1)
-	config := path.Join(path.Dir(filename), "webapp.conf")
-	os.Setenv("RUNNER_CONFIG_PATH", config)
-	runner.Start()
+func Serve(ctx *cli.Context) {
+	cwd, _ := os.Getwd()
+	app := New(cwd)
+	app.Start()
 }
