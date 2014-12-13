@@ -43,7 +43,7 @@ func New() *Mux {
 	log.Printf("Application initializing...")
 	if fs.Exists(Settings.Templates) {
 		loader = template.NewLoader(Settings.Templates)
-		log.Printf("Application loaded (%d templates)", loader.Load())
+		log.Printf("%d templates loaded", loader.Load())
 	}
 	env.Load(Settings)
 	mux := newMux()
@@ -53,12 +53,8 @@ func New() *Mux {
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	if cwd, err := os.Getwd(); err == nil {
-		if root, err := filepath.Abs(cwd); err == nil {
-			Settings.Root = root
-		} else {
-			Panic("[web.go] could not initialize project root: %v", err)
-		}
+		Settings.Root, _ = filepath.Abs(cwd)
 	} else {
-		Panic("[web.go] could not retrieve current working directory: %v", err)
+		Panic("Failed to retrieve current working directory: %v", err)
 	}
 }

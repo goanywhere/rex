@@ -157,6 +157,6 @@ func (self *Mux) Serve() {
 	address := self.Address()
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {
-		Panic("[web.go] server can not be started: %v", err)
+		Panic("Failed to start the server: %v", err)
 	}
 }
