@@ -221,8 +221,6 @@ app.Use(func(next http.Handler) http.Handler {
 
 ## Live Reload
 
-[Fresh](https://github.com/pilu/fresh) backs your Web.*go* application right out of the box.
-
 To get started with Live Reload, you need to install the command line application first.
 *NOTE* Please make sure you have $GOPATH & $GOBIN correctly set.
 
@@ -254,7 +252,7 @@ Positive! Web.*go* is an internal/fundamental project at GoAnywhere. We develope
 - [X] New Project Template
 - [X] CLI Apps Integrations 
 - [X] Improved Template Rendering
-- [ ] Live Reload Integration
+- [X] Live Reload Integration
 - [ ] Template Functions
 - [ ] i18n Supports
 - [ ] More Middlewares
