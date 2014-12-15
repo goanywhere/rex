@@ -27,6 +27,7 @@ type settings struct {
 	Debug     bool
 	Host      string
 	Port      int
+	Secret    string
 	Templates string
 	Root      string
 }

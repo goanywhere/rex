@@ -40,7 +40,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/web/crypto"
 )
 
@@ -73,15 +72,15 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 }
 
 // createSignature creates a signature for accessing securecookie.
+// FIXME whether to fail???
 func (self *Context) createSignature() {
 	if signature == nil {
-		secret := env.Get("secret")
-		if secret == "" {
+		if Settings.Secret == "" {
 			log.Print("Secret key missing, using a random string now, previous cookie will be invalidate")
 			pool := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-			secret = crypto.RandomString(64, pool)
+			Settings.Secret = crypto.RandomString(64, pool)
 		}
-		signature = crypto.NewSignature(secret)
+		signature = crypto.NewSignature(Settings.Secret)
 	}
 }
 

@@ -37,7 +37,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	"github.com/go-fsnotify/fsnotify"
+	"gopkg.in/fsnotify.v1"
 )
 
 var WatchList = []string{"*.go", "*.html"}
@@ -50,8 +50,6 @@ type binary struct {
 type app struct {
 	bin *binary
 	pkg *build.Package
-
-	installed bool
 
 	daemon *fsnotify.Watcher
 }
@@ -76,7 +74,7 @@ func newApp(path string) *app {
 
 // install compiled the application binary package into binary root path.
 func (self *app) install() (err error) {
-	log.Printf("Building binary package...")
+	log.Printf("Building application...")
 	cmd := exec.Command("go", "get", self.pkg.ImportPath)
 
 	buffer := bytes.NewBuffer([]byte{})
@@ -87,10 +85,7 @@ func (self *app) install() (err error) {
 
 	if buffer.Len() > 0 {
 		err = fmt.Errorf("Failed to compiled the application: %s", buffer.String())
-	} else {
-		self.installed = true
 	}
-
 	return
 }
 
@@ -153,18 +148,24 @@ func (self *app) watch() {
 // inWatchList checks if the event happened on the listed watched files.
 func (self *app) inWatchList(event fsnotify.Event) bool {
 	var basename = filepath.Base(event.Name)
-	for _, pattern := range WatchList {
-		matched, _ := filepath.Match(pattern, basename)
-		if matched {
-			return true
+
+	if event.Op&fsnotify.Write == fsnotify.Write ||
+		event.Op&fsnotify.Create == fsnotify.Create ||
+		event.Op&fsnotify.Remove == fsnotify.Remove {
+		// We only needs WatchList under write events.
+		for _, pattern := range WatchList {
+			matched, _ := filepath.Match(pattern, basename)
+			if matched {
+				return true
+			}
 		}
 	}
+
 	return false
 }
 
 // Starts activates the application server along with
 // a daemon watcher for monitoring the files's changes.
-// FIXME real multiple events handling instead of simple delay.
 func (self *app) start() (err error) {
 	// start listening to the ctrl-c interruption.
 	self.listen()
@@ -178,14 +179,15 @@ func (self *app) start() (err error) {
 	// start watching the changes.
 	self.watch()
 	// multiple events can be triggered on a successful write
-	// (e.g. Create followed by multiple CHMOD), just wait for
-	// seconds to let it calm before actual processing.
+	// (e.g. Create followed by multiple CHMOD), just postpone
+	// a bit to let it calm before actual processing.
+	var retries = 0
 	var delay <-chan time.Time
 	for {
 		select {
 		case event := <-self.daemon.Events:
 			if self.inWatchList(event) {
-				delay = time.After(3 * time.Second)
+				delay = time.After(500 * time.Millisecond)
 			}
 
 		case err := <-self.daemon.Errors:
@@ -195,9 +197,14 @@ func (self *app) start() (err error) {
 			// restart the daemon watcher.
 			self.watch()
 
-			err = self.install()
-			if !self.installed {
+			if err = self.install(); err != nil {
+				retries++
+				if retries >= 3 {
+					panic(fmt.Errorf("Failed to rebuild the application: %v", err))
+				}
 				continue
+			} else {
+				retries = 0
 			}
 			gorun <- true
 		}

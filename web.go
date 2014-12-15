@@ -43,7 +43,7 @@ func New() *Mux {
 	log.Printf("Application initializing...")
 	if fs.Exists(Settings.Templates) {
 		loader = template.NewLoader(Settings.Templates)
-		log.Printf("%d templates loaded", loader.Load())
+		log.Printf("Templates loaded (%d)", loader.Load())
 	}
 	env.Load(Settings)
 	mux := newMux()
