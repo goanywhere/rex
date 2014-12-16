@@ -48,9 +48,9 @@ var commands = []cli.Command{
 		},
 	},
 	{
-		Name:   "serve",
+		Name:   "run",
 		Usage:  "start serving HTTP request with live reload supports",
-		Action: Serve,
+		Action: Run,
 	},
 }
 
