@@ -27,7 +27,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/fs"
@@ -51,7 +50,7 @@ func New() *Mux {
 }
 
 func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	//runtime.GOMAXPROCS(runtime.NumCPU())
 	if cwd, err := os.Getwd(); err == nil {
 		Settings.Root, _ = filepath.Abs(cwd)
 	} else {
