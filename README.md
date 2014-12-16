@@ -188,6 +188,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] New Project Template
 - [X] CLI Apps Integrations 
 - [X] Improved Template Rendering
+- [X] Performance Boost
 - [X] Live Reload Integration
 - [ ] Better Logging
 - [ ] Template Functions
@@ -196,5 +197,4 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [ ] Form Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration
-- [ ] Performance Boost
 - [ ] Stable API
