@@ -64,7 +64,6 @@ func newApp(path string) *app {
 	// binary file settings
 	app.bin = new(binary)
 	app.bin.name = filepath.Base(pkg.ImportPath)
-	log.Printf("App Name: %s", app.bin.name)
 
 	if gobin := os.Getenv("GOBIN"); gobin != "" {
 		app.bin.path = filepath.Join(gobin, app.bin.name)
