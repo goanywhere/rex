@@ -36,7 +36,7 @@ func main() {
         ctx := rex.NewContext(w, r)
         ctx.String("Hello World")
     })
-    app.Get("/hello", func(ctx *web.Context) {
+    app.Get("/hello", func(ctx *rex.Context) {
         ctx.String("Hello Again")
     })
     app.Serve()
@@ -102,7 +102,7 @@ func index (ctx *rex.Context) {
 }
 
 func json (ctx *rex.Context) {
-    ctx.JSON(rex.H{"data": "Hello Web", "success": true})
+    ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
 func main() {

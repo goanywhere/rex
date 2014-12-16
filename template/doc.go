@@ -22,7 +22,7 @@
  * ----------------------------------------------------------------------*/
 
 /*
-Package template (web/template) brings shortcuts for using standard "html/template",
+Package template (rex/template) brings shortcuts for using standard "html/template",
 in addtions to the standard (& vanilla) way, it also add some helper tags like
 
 	{% extends "layouts/base.html" %}

@@ -43,7 +43,7 @@ type Loader struct {
 func NewLoader(path string) *Loader {
 	abspath, err := filepath.Abs(path)
 	if os.IsNotExist(err) {
-		log.Fatalf("web/template: %s does not exist", path)
+		log.Fatalf("rex/template: %s does not exist", path)
 	}
 	loader := new(Loader)
 	loader.root = abspath
@@ -74,7 +74,7 @@ func (self *Loader) Files() (names []string) {
 	})
 
 	if err != nil {
-		log.Fatalf("web/template: files list cannot be listed: %v", err)
+		log.Fatalf("rex/template: files list cannot be listed: %v", err)
 	}
 
 	return

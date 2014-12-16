@@ -61,7 +61,7 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Supported Handler Types
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
-//	* web.HandlerFunc	=> func(ctx *Context)
+//	* rex.HandlerFunc	=> func(ctx *Context)
 func (self *Mux) handle(method, pattern string, h interface{}) {
 	var handler http.Handler
 

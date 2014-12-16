@@ -47,7 +47,7 @@ func TestNewProject(t *testing.T) {
 	})
 
 	Convey("[CMD] Create Project with Invalid Paths", t, func() {
-		path := "github.com/goanywhere/web"
+		path := "github.com/goanywhere/rex"
 		project, err := createProject(path)
 		So(project, ShouldEqual, "")
 		So(err, ShouldEqual, os.ErrExist)

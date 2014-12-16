@@ -1,18 +1,18 @@
 package {{.package}}
 
 import (
-	"github.com/goanywhere/web"
-	"github.com/goanywhere/web/env"
+	"github.com/goanywhere/env"
+	"github.com/goanywhere/rex"
 )
 
-func index(ctx *web.Context) {
-	ctx.String("Thanks for using Web.go")
+func index(ctx *rex.Context) {
+	ctx.String("Thanks for using Rex")
 }
 
 func main() {
 	env.Set("debug", "true")
 
-	app := web.New()
+	app := rex.New()
 	app.Get("/", index)
 	app.Serve()
 }

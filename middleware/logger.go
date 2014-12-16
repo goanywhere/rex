@@ -29,7 +29,7 @@ import (
 	"os"
 )
 
-var logger = log.New(os.Stdout, "[web.go]", 0)
+var logger = log.New(os.Stdout, "[rex]", 0)
 
 // ---------------------------------------------------------------------------
 //  Logging Middleware Supports
