@@ -56,9 +56,10 @@ type app struct {
 
 func newApp(path string) *app {
 	pkg, err := build.ImportDir(path, build.AllowBinary)
-	if err != nil {
-		panic(err)
+	if err != nil || pkg.Name != "main" {
+		log.Fatalf("No runnable Go sources found.")
 	}
+
 	app := new(app)
 	app.pkg = pkg
 	// binary file settings
