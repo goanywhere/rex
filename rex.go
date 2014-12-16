@@ -44,7 +44,7 @@ func New() *Mux {
 		loader = template.NewLoader(Settings.Templates)
 		log.Printf("Application templates loaded (%d)", loader.Load())
 	}
-	env.Load(Settings)
+	env.Dump(Settings)
 	mux := newMux()
 	return mux
 }
