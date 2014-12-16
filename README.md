@@ -11,6 +11,12 @@ Install the package (**go 1.3** and greater is required):
 $ go get -v github.com/goanywhere/rex
 ```
 
+Command line tool (Optional but highly recommended)
+
+```shell
+$ go get -v github.com/goanywhere/rex/cmd/rex
+```
+
 
 ## Features
 * Flexible Env-based configurations.
@@ -18,6 +24,7 @@ $ go get -v github.com/goanywhere/rex
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
 * Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
+* Command line tools (incl. Live reload supports).
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
@@ -44,8 +51,8 @@ func main() {
 ```
 
 Then start your server:
-``` sh
-go run server.go
+``` shell
+rex run
 ```
 
 You will now have a HTTP server running on `localhost:5000`.
@@ -165,23 +172,6 @@ app.Use(func(next http.Handler) http.Handler {
     })
 })
 ```
-
-## Live Reload
-
-To get started with Live Reload, you'll need to install command line tool first.
-*NOTE* Please make sure you have $GOPATH & $GOBIN correctly set first.
-
-``` sh
-$ go get -v github.com/goanywhere/rex/cmd/rex
-```
-
-All set, you are good to Go now, simple as that:
-
-``` sh
-$ rex run
-```
-
-
 
 ## Frameworks comes & dies, will this be supported?
 
