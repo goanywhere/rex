@@ -221,12 +221,11 @@ app.Use(func(next http.Handler) http.Handler {
 
 ## Live Reload
 
-To get started with Live Reload, you need to install the command line application first.
-*NOTE* Please make sure you have $GOPATH & $GOBIN correctly set.
+To get started with Live Reload, you need to install command line tool first.
+*NOTE* Please make sure you have $GOPATH & $GOBIN correctly set first.
 
 ``` sh
-$ cd $GOPATH/src/github.com/goanywhere/web/cmd
-$ go build -o $GOPATH/bin/web
+$ go get -v github.com/goanywhere/web/cmd/web
 ```
 
 All set, you are good to Go now, simple as that:

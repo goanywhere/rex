@@ -84,7 +84,7 @@ func (self *app) install() (err error) {
 	err = cmd.Run()
 
 	if buffer.Len() > 0 {
-		err = fmt.Errorf("Failed to compiled the application: %s", buffer.String())
+		err = fmt.Errorf("Failed to compile the application: %s", buffer.String())
 	}
 	return
 }

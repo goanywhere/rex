@@ -25,11 +25,13 @@ package web
 
 type settings struct {
 	Debug     bool
-	Host      string
-	Port      int
-	Secret    string
-	Templates string
 	Root      string
+	SecretKey string
+
+	Host string
+	Port int
+
+	Templates string
 }
 
 var Settings *settings

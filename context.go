@@ -75,12 +75,12 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // FIXME whether to fail???
 func (self *Context) createSignature() {
 	if signature == nil {
-		if Settings.Secret == "" {
+		if Settings.SecretKey == "" {
 			log.Print("Secret key missing, using a random string now, previous cookie will be invalidate")
 			pool := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-			Settings.Secret = crypto.RandomString(64, pool)
+			Settings.SecretKey = crypto.RandomString(64, pool)
 		}
-		signature = crypto.NewSignature(Settings.Secret)
+		signature = crypto.NewSignature(Settings.SecretKey)
 	}
 }
 

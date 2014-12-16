@@ -42,7 +42,7 @@ func New() *Mux {
 	log.Printf("Application initializing...")
 	if fs.Exists(Settings.Templates) {
 		loader = template.NewLoader(Settings.Templates)
-		log.Printf("Templates loaded (%d)", loader.Load())
+		log.Printf("Application templates loaded (%d)", loader.Load())
 	}
 	env.Load(Settings)
 	mux := newMux()
@@ -50,10 +50,9 @@ func New() *Mux {
 }
 
 func init() {
-	//runtime.GOMAXPROCS(runtime.NumCPU())
 	if cwd, err := os.Getwd(); err == nil {
 		Settings.Root, _ = filepath.Abs(cwd)
 	} else {
-		Panic("Failed to retrieve current working directory: %v", err)
+		Panic("Failed to retrieve project root: %v", err)
 	}
 }
