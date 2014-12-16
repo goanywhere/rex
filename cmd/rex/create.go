@@ -35,7 +35,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/goanywhere/fs"
-	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/rex/crypto"
 )
 
 var (

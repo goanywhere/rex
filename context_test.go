@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package web
+package rex
 
 import (
 	"io/ioutil"
@@ -31,7 +31,7 @@ import (
 	"testing"
 
 	"github.com/goanywhere/env"
-	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/rex/crypto"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

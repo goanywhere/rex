@@ -37,7 +37,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
-	"gopkg.in/fsnotify.v1"
+	"github.com/go-fsnotify/fsnotify"
 )
 
 var WatchList = []string{"*.go", "*.html"}

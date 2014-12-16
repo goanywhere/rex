@@ -37,8 +37,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goanywhere/web"
-	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/rex"
+	"github.com/goanywhere/rex/crypto"
 )
 
 const (
@@ -59,7 +59,7 @@ var (
 )
 
 type xsrf struct {
-	*web.Context
+	*rex.Context
 	token string
 }
 
@@ -158,7 +158,7 @@ func (self *xsrf) generate() {
 func XSRF(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		x := new(xsrf)
-		x.Context = web.NewContext(w, r)
+		x.Context = rex.NewContext(w, r)
 		x.generate()
 
 		if unsafeMethods.MatchString(r.Method) {

@@ -21,54 +21,38 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package main
+package rex
 
 import (
+	"log"
 	"os"
-	"path"
 	"path/filepath"
-	"runtime"
 
-	"github.com/codegangsta/cli"
+	"github.com/goanywhere/env"
+	"github.com/goanywhere/fs"
+	"github.com/goanywhere/rex/template"
 )
 
-var here string
+var loader *template.Loader
 
-var commands = []cli.Command{
-	{
-		Name:   "new",
-		Usage:  "create a skeleton web application project",
-		Action: Create,
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "lang, l",
-				Value: "english",
-				Usage: "language for the greeting",
-			},
-		},
-	},
-	{
-		Name:   "serve",
-		Usage:  "start serving HTTP request with live reload supports",
-		Action: Serve,
-	},
-}
+// Shortcut to create map.
+type H map[string]interface{}
 
-func Execute() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	app := cli.NewApp()
-	app.Name = "web"
-	app.Usage = "manage Web.go application project"
-	app.Version = "0.1.1"
-	app.Commands = commands
-	app.Run(os.Args)
+func New() *Mux {
+	log.Printf("Application initializing...")
+	if fs.Exists(Settings.Templates) {
+		loader = template.NewLoader(Settings.Templates)
+		log.Printf("Application templates loaded (%d)", loader.Load())
+	}
+	env.Load(Settings)
+	mux := newMux()
+	return mux
 }
 
 func init() {
-	_, filename, _, _ := runtime.Caller(1)
-	here, _ = filepath.Abs(path.Dir(filename))
-}
-
-func main() {
-	Execute()
+	if cwd, err := os.Getwd(); err == nil {
+		Settings.Root, _ = filepath.Abs(cwd)
+	} else {
+		Panic("Failed to retrieve project root: %v", err)
+	}
 }

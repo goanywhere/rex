@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package web
+package rex
 
 type settings struct {
 	Debug     bool

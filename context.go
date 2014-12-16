@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package web
+package rex
 
 import (
 	"bufio"
@@ -40,7 +40,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/goanywhere/web/crypto"
+	"github.com/goanywhere/rex/crypto"
 )
 
 const ContentType = "Content-Type"
