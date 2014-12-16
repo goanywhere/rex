@@ -2,7 +2,7 @@
 <!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
 <html class="no-js">
 <head>
-  <title>Web.go</title>
+  <title>♔ rex</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +31,7 @@
 <body>
   <div class="github-fork-ribbon-wrapper right">
     <div class="github-fork-ribbon">
-      <a href="https://github.com/goanywhere/web/fork">Fork me on GitHub</a>
+      <a href="https://github.com/goanywhere/rex/fork">Fork me on GitHub</a>
     </div>
   </div>
 
@@ -39,10 +39,10 @@
     <div class="row vcenter">
       <div class="large-12 columns">
         <div class="column center">
-          <h1 class="logo">Web<span>.</span><em>go</em></h1>
+          <h1 class="logo">rex</h1>
           <h2>Pleasures for modular web development in Golang.</h2>
           <ul class="button-group radius round">
-            <li><a href="//github.com/goanywhere/web" class="large button alert">Code</a></li>
+            <li><a href="//github.com/goanywhere/rex" class="large button alert">Code</a></li>
             <li><a href="#demo" class="large button">Demo</a></li>
           </ul>
           <h3><strong>Star</strong> it, <strong>fork</strong> it, <strong>Contribute</strong> to it.</h3>
@@ -56,7 +56,7 @@
       <div class="large-4 columns">
         <div class="icon fontelico-emo-coffee" data-text="emo-coffee"></div>
         <h4>Reuse Existing Code</h4>
-        <p>Web.go is fully compatible with Go's http.Handler & http.HandlerFunc interface. </p>
+        <p>Rex is fully compatible with Go's http.Handler & http.HandlerFunc interface. </p>
       </div>
 
       <div class="large-4 columns">
@@ -68,7 +68,7 @@
       <div class="large-4 columns">
         <div class="icon fontelico-emo-devil" data-text="emo-devil"></div>
         <h4>Batteries Included</h4>
-        <p>Web.go ships with a great set of tools & middlewares - Logging, Recovery, Static file serving, and more!</p>
+        <p>Rex ships with a great set of tools & middlewares - Logging, Recovery, Static file serving, and more!</p>
       </div>
     </div>
   </section>
@@ -77,7 +77,7 @@
     <div class="row">
       <h1 class="large-4 columns left">Hello</h1>
       <div id="gopher" class="large-4 columns"></div>
-      <h1 class="large-4 columns right">World!</h1>
+      <h1 class="large-4 columns right">Rex!</h1>
     </div>
     <div class="row">
       <div class="large-12 columns">
@@ -87,14 +87,14 @@
 
 import (
     "net/http"
-    "github.com/goanywhere/web"
+    "github.com/goanywhere/rex"
 )
 
 func main() {
-    app := web.New()
+    app := rex.New()
     app.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        ctx := web.NewContext(w, r)
-        ctx.String("Hello World!")
+        ctx := rex.NewContext(w, r)
+        ctx.String("Hello ♔ Rex")
     })
     app.Serve()
 }</pre>
@@ -106,7 +106,7 @@ func main() {
   <footer>
     <div class="row vcenter">
       <div class="large-12 columns">
-        <p class="column">© Web<span class="dot">.</span><em>go</em> is developed and maintained by <a href="#">GoAnywhere.</a></p>
+        <p class="column">© Rex is developed and maintained by <a href="#">GoAnywhere.</a></p>
       </div>
     </div>
   </footer>
