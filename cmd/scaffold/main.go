@@ -1,17 +1,14 @@
-package {{.package}}
+package main
 
 import (
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex"
 )
 
 func index(ctx *rex.Context) {
-	ctx.String("Thanks for using Rex")
+    ctx.HTML("index.html")
 }
 
 func main() {
-	env.Set("debug", "true")
-
 	app := rex.New()
 	app.Get("/", index)
 	app.Serve()

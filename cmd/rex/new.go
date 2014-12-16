@@ -64,14 +64,12 @@ func createProject(path string) (project string, err error) {
 			return
 		}
 		if err = os.MkdirAll(project, os.ModePerm); err == nil {
-			log.Printf("Project created: %s", project)
 			filename := filepath.Join(project, ".env")
 			if dotenv, err := os.Create(filename); err == nil {
 				defer dotenv.Close()
 				buffer := bufio.NewWriter(dotenv)
 				buffer.WriteString(fmt.Sprintf("secret=\"%s\"\n", crypto.RandomString(64, pool)))
 				buffer.Flush()
-				log.Printf("dotenv created: %s", filename)
 			}
 		}
 	} else {
@@ -82,35 +80,29 @@ func createProject(path string) (project string, err error) {
 
 // setupProject copies fixes assets into newly create project,
 // generated project specific values for Go files.
-func setupProject(project string) (err error) {
+// TODO project specific values template parsing
+func setupProject(project string) {
 	_, me, _, _ := runtime.Caller(1)
-	scaffold := filepath.Join(filepath.Dir(me), "scaffold")
-	if err = fs.Copy(filepath.Join(scaffold, "assets"), project); err == nil {
-		if err = fs.Copy(filepath.Join(scaffold, "templates"), project); err == nil {
-			// Project Specific Values Go Here
-		}
-	}
-	return
+	scaffold := filepath.Join(filepath.Dir(me), "..", "scaffold")
+	fs.Copy(filepath.Join(scaffold, "main.go"), project)
+	fs.Copy(filepath.Join(scaffold, "templates"), project)
 }
 
 // 1. Fetch Golang Environment
 // 2. Create Workspace under Given Namespace
 // 3. Generate .env under created workspace.
-// 4. Copy Fixes Assets
+// 4. Copy Fixed Assets
 // 5. Render Text Template Go Files.
 func New(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 || !pattern.MatchString(args[0]) {
 		log.Printf("Please provide a valid project name/path")
 	} else {
-		var err error
 		if project, err := createProject(args[0]); err == nil {
-			if err = setupProject(project); err == nil {
-				log.Printf("Project all set: %s", project)
-				os.Exit(0)
-			}
+			setupProject(project)
+		} else {
+			log.Fatalf("Failed to create project: %s", err)
 		}
-		log.Fatalf("Failed to create project: %s", err)
 	}
 }
 
