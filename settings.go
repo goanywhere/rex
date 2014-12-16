@@ -34,10 +34,9 @@ type settings struct {
 	Templates string
 }
 
-var Settings *settings
+var Settings *settings = new(settings)
 
 func init() {
-	Settings = new(settings)
 	Settings.Debug = true
 	Settings.Host = "localhost"
 	Settings.Port = 5000
