@@ -33,12 +33,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCreateProject(t *testing.T) {
+func TestNewProject(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
 	workspace := filepath.Join(strings.Split(gopath, ";")[0], "src")
 
 	Convey("[CMD] Create Project", t, func() {
-		path := "github.com/goanywhere/CreateProjectTest"
+		path := "github.com/goanywhere/NewProjectTest"
 		project, err := createProject(path)
 		So(project, ShouldEqual, filepath.Join(workspace, path))
 		So(fs.Exists(project), ShouldBeTrue)

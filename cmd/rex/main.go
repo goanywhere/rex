@@ -38,7 +38,7 @@ var commands = []cli.Command{
 	{
 		Name:   "new",
 		Usage:  "create a skeleton web application project",
-		Action: Create,
+		Action: New,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "lang, l",

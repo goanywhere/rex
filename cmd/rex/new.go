@@ -98,7 +98,7 @@ func setupProject(project string) (err error) {
 // 3. Generate .env under created workspace.
 // 4. Copy Fixes Assets
 // 5. Render Text Template Go Files.
-func Create(context *cli.Context) {
+func New(context *cli.Context) {
 	args := context.Args()
 	if len(args) != 1 || !pattern.MatchString(args[0]) {
 		log.Printf("Please provide a valid project name/path")
