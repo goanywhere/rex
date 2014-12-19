@@ -117,8 +117,10 @@ func (self *app) run() (gorun chan bool) {
 	return
 }
 
-// listen removes binary package when application stopped.
-func (self *app) listen() {
+// Starts activates the application server along with
+// a daemon watcher for monitoring the files's changes.
+func (self *app) start() {
+	// ctrl-c: listen removes binary package when application stopped.
 	channel := make(chan os.Signal, 2)
 	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -126,13 +128,6 @@ func (self *app) listen() {
 		os.Remove(self.bin.path)
 		os.Exit(1)
 	}()
-}
-
-// Starts activates the application server along with
-// a daemon watcher for monitoring the files's changes.
-func (self *app) start() {
-	// start listening to the ctrl-c interruption.
-	self.listen()
 
 	// start waiting the signal to start running.
 	var gorun = self.run()
