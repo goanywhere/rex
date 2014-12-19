@@ -32,15 +32,13 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"strings"
+	"regexp"
 	"syscall"
-	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
+	"github.com/goanywhere/fs"
 )
-
-var WatchList = []string{"*.go", "*.html"}
 
 type binary struct {
 	name string
@@ -130,88 +128,27 @@ func (self *app) listen() {
 	}()
 }
 
-// watch recursively addes all folders under package directory into watch list.
-func (self *app) watch() {
-	if self.daemon != nil {
-		self.daemon.Close()
-	}
-	// ensure we have a new daemon watcher eachtime we start watching.
-	self.daemon, _ = fsnotify.NewWatcher()
-
-	// watch all folders under package directory.
-	filepath.Walk(self.pkg.Dir, func(path string, info os.FileInfo, e error) error {
-		if info.IsDir() && !strings.HasPrefix(info.Name(), ".") {
-			self.daemon.Add(path)
-		}
-		return e
-	})
-}
-
-// inWatchList checks if the event happened on the listed watched files.
-func (self *app) inWatchList(event fsnotify.Event) bool {
-	var basename = filepath.Base(event.Name)
-
-	if event.Op&fsnotify.Write == fsnotify.Write ||
-		event.Op&fsnotify.Create == fsnotify.Create ||
-		event.Op&fsnotify.Remove == fsnotify.Remove {
-		// We only needs WatchList under write events.
-		for _, pattern := range WatchList {
-			matched, _ := filepath.Match(pattern, basename)
-			if matched {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // Starts activates the application server along with
 // a daemon watcher for monitoring the files's changes.
-func (self *app) start() (err error) {
+func (self *app) start() {
 	// start listening to the ctrl-c interruption.
 	self.listen()
 
 	// start waiting the signal to start running.
 	var gorun = self.run()
-	if err = self.install(); err == nil {
+	if err := self.install(); err == nil {
 		gorun <- true
 	}
 
-	// start watching the changes.
-	self.watch()
-	// multiple events can be triggered on a successful write
-	// (e.g. Create followed by multiple CHMOD), just postpone
-	// a bit to let it calm before actual processing.
-	var retries = 0
-	var delay <-chan time.Time
-	for {
-		select {
-		case event := <-self.daemon.Events:
-			if self.inWatchList(event) {
-				delay = time.After(500 * time.Millisecond)
-			}
-
-		case err := <-self.daemon.Errors:
-			log.Fatalf("Failed to watch the application sources: %v", err)
-
-		case <-delay:
-			// restart the daemon watcher.
-			self.watch()
-
-			if err = self.install(); err != nil {
-				retries++
-				if retries >= 3 {
-					panic(fmt.Errorf("Failed to rebuild the application: %v", err))
-				}
-				continue
-			} else {
-				retries = 0
-			}
-			gorun <- true
+	wd := fs.NewWatchdog(self.pkg.Dir)
+	wd.Add(regexp.MustCompile(`\.(html|go)$`), func(event *fsnotify.Event) {
+		if err := self.install(); err != nil {
+			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
-	}
-	return
+		gorun <- true
+
+	})
+	wd.Start()
 }
 
 func Run(ctx *cli.Context) {

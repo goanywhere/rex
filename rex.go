@@ -24,7 +24,6 @@
 package rex
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 
@@ -39,10 +38,8 @@ var loader *template.Loader
 type H map[string]interface{}
 
 func New() *Mux {
-	log.Printf("Application initializing...")
 	if fs.Exists(Settings.Templates) {
 		loader = template.NewLoader(Settings.Templates)
-		log.Printf("Application templates loaded (%d)", loader.Load())
 	}
 	env.Dump(Settings)
 	mux := newMux()
