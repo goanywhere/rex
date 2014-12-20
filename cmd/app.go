@@ -39,6 +39,8 @@ import (
 	"github.com/goanywhere/fs"
 )
 
+//TODO livereload.js
+
 type app struct {
 	pkg *build.Package
 	// binary
@@ -46,8 +48,10 @@ type app struct {
 	path string
 }
 
-func NewApp(path string) *app {
-	pkg, err := build.ImportDir(path, build.AllowBinary)
+func New() *app {
+	cwd, _ := os.Getwd()
+
+	pkg, err := build.ImportDir(cwd, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {
 		log.Fatalf("No runnable Go sources found.")
 	}

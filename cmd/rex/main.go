@@ -60,8 +60,7 @@ func main() {
 	app.Flags = flags
 	app.Action = func(ctx *cli.Context) {
 		env.Set("port", ctx.String("port"))
-		cwd, _ := os.Getwd()
-		cmd.NewApp(cwd).Start()
+		cmd.New().Start()
 	}
 	app.Run(os.Args)
 }
