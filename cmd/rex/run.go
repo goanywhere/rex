@@ -48,8 +48,6 @@ type binary struct {
 type app struct {
 	bin *binary
 	pkg *build.Package
-
-	daemon *fsnotify.Watcher
 }
 
 func newApp(path string) *app {
@@ -125,6 +123,7 @@ func (self *app) start() {
 	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-channel
+		// remove the binary package on stop.
 		os.Remove(self.bin.path)
 		os.Exit(1)
 	}()
@@ -141,7 +140,6 @@ func (self *app) start() {
 			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
 		gorun <- true
-
 	})
 	wd.Start()
 }
