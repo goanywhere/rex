@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package main
+package cmd
 
 import (
 	"bytes"
@@ -39,17 +39,14 @@ import (
 	"github.com/goanywhere/fs"
 )
 
-type binary struct {
+type app struct {
+	pkg *build.Package
+	// binary
 	name string
 	path string
 }
 
-type app struct {
-	bin *binary
-	pkg *build.Package
-}
-
-func newApp(path string) *app {
+func NewApp(path string) *app {
 	pkg, err := build.ImportDir(path, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {
 		log.Fatalf("No runnable Go sources found.")
@@ -57,14 +54,12 @@ func newApp(path string) *app {
 
 	app := new(app)
 	app.pkg = pkg
-	// binary file settings
-	app.bin = new(binary)
-	app.bin.name = filepath.Base(pkg.ImportPath)
+	app.name = filepath.Base(pkg.ImportPath)
 
 	if gobin := os.Getenv("GOBIN"); gobin != "" {
-		app.bin.path = filepath.Join(gobin, app.bin.name)
+		app.path = filepath.Join(gobin, app.name)
 	} else {
-		app.bin.path = filepath.Join(app.pkg.BinDir, app.bin.name)
+		app.path = filepath.Join(app.pkg.BinDir, app.name)
 	}
 	return app
 }
@@ -102,7 +97,7 @@ func (self *app) run() (gorun chan bool) {
 			if !start {
 				continue
 			}
-			cmd := exec.Command(self.bin.path)
+			cmd := exec.Command(self.path)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			if err := cmd.Start(); err != nil {
@@ -116,14 +111,14 @@ func (self *app) run() (gorun chan bool) {
 
 // Starts activates the application server along with
 // a daemon watcher for monitoring the files's changes.
-func (self *app) start() {
+func (self *app) Start() {
 	// ctrl-c: listen removes binary package when application stopped.
 	channel := make(chan os.Signal, 2)
 	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-channel
 		// remove the binary package on stop.
-		os.Remove(self.bin.path)
+		os.Remove(self.path)
 		os.Exit(1)
 	}()
 
