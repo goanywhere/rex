@@ -52,7 +52,7 @@ func main() {
 
 Then start your server:
 ``` shell
-rex run
+rex
 ```
 
 You will now have a HTTP server running on `localhost:5000`.
