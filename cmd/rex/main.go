@@ -25,50 +25,43 @@ package main
 
 import (
 	"os"
-	"path"
-	"path/filepath"
 	"runtime"
 
 	"github.com/codegangsta/cli"
+	"github.com/goanywhere/env"
 )
-
-var here string
 
 var commands = []cli.Command{
 	{
 		Name:   "new",
 		Usage:  "create a skeleton web application project",
 		Action: New,
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "lang, l",
-				Value: "english",
-				Usage: "language for the greeting",
-			},
-		},
-	},
-	{
-		Name:   "run",
-		Usage:  "start serving HTTP request with live reload supports",
-		Action: Run,
 	},
 }
 
-func Execute() {
+var flags = []cli.Flag{
+	cli.IntFlag{
+		Name:  "port",
+		Value: 5000,
+		Usage: "port to run application server",
+	},
+}
+
+func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	app := cli.NewApp()
 	app.Name = "rex"
 	app.Usage = "manage Rex application project"
 	app.Version = "0.1.1"
+	app.Author = "GoAnywhere"
+	app.Email = "opensource@goanywhere.io"
 	app.Commands = commands
+	app.Flags = flags
+	app.Action = func(ctx *cli.Context) {
+		env.Set("port", ctx.String("port"))
+		cwd, _ := os.Getwd()
+		app := newApp(cwd)
+		app.start()
+	}
 	app.Run(os.Args)
-}
-
-func init() {
-	_, filename, _, _ := runtime.Caller(1)
-	here, _ = filepath.Abs(path.Dir(filename))
-}
-
-func main() {
-	Execute()
 }

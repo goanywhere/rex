@@ -35,7 +35,6 @@ import (
 	"regexp"
 	"syscall"
 
-	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/fs"
 )
@@ -142,10 +141,4 @@ func (self *app) start() {
 		gorun <- true
 	})
 	wd.Start()
-}
-
-func Run(ctx *cli.Context) {
-	cwd, _ := os.Getwd()
-	app := newApp(cwd)
-	app.start()
 }
