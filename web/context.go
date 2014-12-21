@@ -42,7 +42,6 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/rex/template"
 )
 
 const ContentType = "Content-Type"
@@ -51,8 +50,6 @@ var (
 	contextId uint64
 	prefix    string
 	signature *crypto.Signature
-
-	loader *template.Loader
 )
 
 type Context struct {

@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package template
+package web
 
 import (
 	"html/template"

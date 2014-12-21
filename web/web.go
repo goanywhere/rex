@@ -21,24 +21,13 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package template
+package web
 
 import (
-	"html/template"
+	"github.com/goanywhere/rex/config"
 )
 
-//http://www.tornadoweb.org/en/stable/guide/templates.html
-
-func escape(input string) (output string) {
-	return
-}
-
-//linkify: alias for tornado.escape.linkify
-func linkify(input string) (output string) {
-	return
-}
-
-var Funcs = template.FuncMap{
-	"escape":  escape,
-	"linkify": linkify,
-}
+var (
+	settings         = config.Settings()
+	loader   *Loader = NewLoader(settings.Templates)
+)

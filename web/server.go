@@ -30,11 +30,8 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/rex/config"
 	"github.com/gorilla/mux"
 )
-
-var settings = config.Settings()
 
 type (
 	Server struct {
