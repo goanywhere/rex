@@ -49,7 +49,7 @@ func (self *page) ancestors() (names []string) {
 		// find the very first "extends" tag.
 		bits, err := ioutil.ReadFile(path.Join(self.loader.root, name))
 		if err != nil {
-			log.Fatalf("rex/template: %v", err)
+			log.Fatalf("Failed to open template (%s): %v", name, err)
 		}
 
 		result := tags.Extends.FindSubmatch(bits)
@@ -59,7 +59,7 @@ func (self *page) ancestors() (names []string) {
 
 		base := string(result[1])
 		if base == name {
-			log.Fatalf("rex/template: template cannot extend itself (%s)", name)
+			log.Fatalf("Template cannot extend itself (%s)", name)
 		}
 
 		names = append([]string{base}, names...) // insert the ancester into the first place.
@@ -75,7 +75,7 @@ func (self *page) ancestors() (names []string) {
 func (self *page) include() (source string) {
 	bits, err := ioutil.ReadFile(self.path())
 	if err != nil {
-		log.Fatalf("rex/template: template cannot be opened (%s)", self.Name)
+		log.Fatalf("Failed to open template (%s): %v", self.Name, err)
 	}
 
 	source = string(bits)
@@ -88,7 +88,7 @@ func (self *page) include() (source string) {
 		for _, match := range result {
 			tag, name := match[0], match[1]
 			if name == self.Name {
-				log.Fatalf("rex/template: template cannot include itself (%s)", name)
+				log.Fatalf("Template cannot include itself (%s)", name)
 			}
 			page := self.loader.page(name)
 			// reconstructs source to recursively find all included sources.
@@ -131,7 +131,7 @@ func (self *page) source() (src string) {
 	if bits, err := ioutil.ReadFile(self.path()); err == nil {
 		src = string(bits)
 	} else {
-		log.Fatalf("rex/template: template cannot be opened (%s)", self.Name)
+		log.Fatalf("Failed to open template (%s): %v", self.Name, err)
 	}
 	return src
 }

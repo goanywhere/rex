@@ -32,18 +32,17 @@ import (
 	"sync"
 )
 
-var mutex sync.RWMutex
-
 type Loader struct {
 	root      string
 	loaded    bool
+	mutex     sync.RWMutex
 	templates map[string]*template.Template
 }
 
 func NewLoader(path string) *Loader {
 	abspath, err := filepath.Abs(path)
-	if os.IsNotExist(err) {
-		log.Fatalf("rex/template: %s does not exist", path)
+	if err != nil {
+		log.Fatalf("Failed to initialize templates path: %v", err)
 	}
 	loader := new(Loader)
 	loader.root = abspath
@@ -91,8 +90,8 @@ func (self *Loader) Get(name string) *template.Template {
 // parsed templates & cause panic if there's any error occured.
 func (self *Loader) Load() (pages int) {
 	if !self.loaded {
-		mutex.Lock()
-		defer mutex.Unlock()
+		self.mutex.Lock()
+		defer self.mutex.Unlock()
 		for _, name := range self.Files() {
 			self.templates[name] = self.page(name).parse()
 			pages++
@@ -112,8 +111,8 @@ func (self *Loader) page(name string) *page {
 
 // Reset clears the cached pages.
 func (self *Loader) Reset() {
-	mutex.Lock()
-	defer mutex.Unlock()
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
 	for k := range self.templates {
 		delete(self.templates, k)
 	}

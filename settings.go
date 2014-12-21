@@ -31,6 +31,7 @@ type settings struct {
 	Host string
 	Port int
 
+	Assets    string
 	Templates string
 }
 
@@ -38,7 +39,10 @@ var Settings *settings = new(settings)
 
 func init() {
 	Settings.Debug = true
+
 	Settings.Host = "localhost"
 	Settings.Port = 5000
+
+	Settings.Assets = "assets"
 	Settings.Templates = "templates"
 }

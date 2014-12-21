@@ -134,6 +134,15 @@ func (self *Mux) Group(path string) *Mux {
 	return &Mux{self.router.PathPrefix(path).Subrouter(), nil}
 }
 
+// Livereload provides websocket-based livereload supports for browser.
+// SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
+func (self *Mux) livereload() {
+	self.Get("/livereload", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(ContentType, "text/plain; charset=utf-8")
+		w.Write([]byte(livereload))
+	})
+}
+
 // Use append middleware into the serving list, middleware will be served in FIFO order.
 func (self *Mux) Use(middlewares ...Middleware) {
 	self.middlewares = append(self.middlewares, middlewares...)
@@ -141,6 +150,11 @@ func (self *Mux) Use(middlewares ...Middleware) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	// activate livereload supports.
+	if Settings.Debug {
+		self.livereload()
+	}
+
 	var mux http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {
