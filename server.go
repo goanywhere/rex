@@ -34,7 +34,7 @@ import (
 )
 
 type (
-	Mux struct {
+	Server struct {
 		router      *mux.Router
 		middlewares []Middleware
 	}
@@ -45,9 +45,9 @@ type (
 	Middleware func(http.Handler) http.Handler
 )
 
-// newMux creates an application instance & setup its default settings..
-func newMux() *Mux {
-	return &Mux{mux.NewRouter(), nil}
+// newServer creates an application instance & setup its default settings..
+func newServer() *Server {
+	return &Server{mux.NewRouter(), nil}
 }
 
 // Custom handler func provides Context Supports.
@@ -62,7 +62,7 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
 //	* rex.HandlerFunc	=> func(ctx *Context)
-func (self *Mux) handle(method, pattern string, h interface{}) {
+func (self *Server) handle(method, pattern string, h interface{}) {
 	var handler http.Handler
 
 	switch h.(type) {
@@ -83,73 +83,73 @@ func (self *Mux) handle(method, pattern string, h interface{}) {
 
 // Address fetches the address predefined in `os.environ` by combineing
 // `os.Getenv("host")` & os.Getenv("port").
-func (self *Mux) Address() string {
+func (self *Server) Address() string {
 	return fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
 }
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Get(pattern string, handler interface{}) {
+func (self *Server) Get(pattern string, handler interface{}) {
 	self.handle("GET", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Post(pattern string, handler interface{}) {
+func (self *Server) Post(pattern string, handler interface{}) {
 	self.handle("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Put(pattern string, handler interface{}) {
+func (self *Server) Put(pattern string, handler interface{}) {
 	self.handle("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Delete(pattern string, handler interface{}) {
+func (self *Server) Delete(pattern string, handler interface{}) {
 	self.handle("DELETE", pattern, handler)
 }
 
 // Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Patch(pattern string, handler http.HandlerFunc) {
+func (self *Server) Patch(pattern string, handler http.HandlerFunc) {
 	self.handle("PATCH", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Head(pattern string, handler http.HandlerFunc) {
+func (self *Server) Head(pattern string, handler http.HandlerFunc) {
 	self.handle("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Options(pattern string, handler http.HandlerFunc) {
+func (self *Server) Options(pattern string, handler http.HandlerFunc) {
 	self.handle("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
-func (self *Mux) Group(path string) *Mux {
-	return &Mux{self.router.PathPrefix(path).Subrouter(), nil}
+func (self *Server) Group(path string) *Server {
+	return &Server{self.router.PathPrefix(path).Subrouter(), nil}
 }
 
 // Livereload provides websocket-based livereload supports for browser.
 // SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
-func (self *Mux) livereload() {
-	self.Get("/livereload", func(w http.ResponseWriter, r *http.Request) {
+func (self *Server) livereload() {
+	self.Get("/livereload.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(ContentType, "text/plain; charset=utf-8")
 		w.Write([]byte(livereload))
 	})
 }
 
 // Use append middleware into the serving list, middleware will be served in FIFO order.
-func (self *Mux) Use(middlewares ...Middleware) {
+func (self *Server) Use(middlewares ...Middleware) {
 	self.middlewares = append(self.middlewares, middlewares...)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
-func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	// activate livereload supports.
 	if Settings.Debug {
 		self.livereload()
@@ -166,7 +166,7 @@ func (self *Mux) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
-func (self *Mux) Serve() {
+func (self *Server) Serve() {
 	address := self.Address()
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {

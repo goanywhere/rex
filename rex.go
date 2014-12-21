@@ -37,12 +37,12 @@ var loader *template.Loader
 // Shortcut to create map.
 type H map[string]interface{}
 
-func New() *Mux {
+func New() *Server {
 	if fs.Exists(Settings.Templates) {
 		loader = template.NewLoader(Settings.Templates)
 	}
 	env.Dump(Settings)
-	mux := newMux()
+	mux := newServer()
 	return mux
 }
 
