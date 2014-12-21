@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package rex
+package http
 
 import (
 	"fmt"
@@ -30,8 +30,12 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/context"
 	"github.com/gorilla/mux"
 )
+
+var settings = config.Settings()
 
 type (
 	Server struct {
@@ -39,20 +43,20 @@ type (
 		middlewares []Middleware
 	}
 
-	HandlerFunc func(*Context)
+	HandlerFunc func(*context.Context)
 
 	// Conventional method to implement custom middlewares.
 	Middleware func(http.Handler) http.Handler
 )
 
-// newServer creates an application instance & setup its default settings..
-func newServer() *Server {
+// New creates an application instance & setup its default settings..
+func New() *Server {
 	return &Server{mux.NewRouter(), nil}
 }
 
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(NewContext(w, r))
+	self(context.New(w, r))
 }
 
 // ---------------------------------------------------------------------------
@@ -71,20 +75,14 @@ func (self *Server) handle(method, pattern string, h interface{}) {
 		handler = h.(http.Handler)
 	case func(w http.ResponseWriter, r *http.Request):
 		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
-	case func(ctx *Context):
-		handler = HandlerFunc(h.(func(ctx *Context)))
+	case func(ctx *context.Context):
+		handler = HandlerFunc(h.(func(ctx *context.Context)))
 	default:
 		log.Fatalf("Unknown handler type (%v) passed in.", handler)
 	}
 	// finds the full function name (with package)
 	name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 	self.router.Handle(pattern, handler).Methods(method).Name(name)
-}
-
-// Address fetches the address predefined in `os.environ` by combineing
-// `os.Getenv("host")` & os.Getenv("port").
-func (self *Server) Address() string {
-	return fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
 }
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
@@ -136,9 +134,9 @@ func (self *Server) Group(path string) *Server {
 
 // Livereload provides websocket-based livereload supports for browser.
 // SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
-func (self *Server) livereload() {
+func (self *Server) Livereload() {
 	self.Get("/livereload.js", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(ContentType, "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Write([]byte(livereload))
 	})
 }
@@ -150,9 +148,8 @@ func (self *Server) Use(middlewares ...Middleware) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	// activate livereload supports.
-	if Settings.Debug {
-		self.livereload()
+	if settings.Debug {
+		self.Livereload()
 	}
 
 	var mux http.Handler = self.router
@@ -167,9 +164,9 @@ func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 
 // Serve starts serving the requests at the pre-defined address from settings.
 func (self *Server) Serve() {
-	address := self.Address()
+	address := fmt.Sprintf("%s:%d", settings.Host, settings.Port)
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {
-		Panic("Failed to start the server: %v", err)
+		log.Fatalf("Failed to start the server: %v", err)
 	}
 }

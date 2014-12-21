@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package rex
+package context
 
 import (
 	"bufio"
@@ -40,7 +40,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/template"
 )
 
 const ContentType = "Content-Type"
@@ -49,6 +51,8 @@ var (
 	contextId uint64
 	prefix    string
 	signature *crypto.Signature
+
+	loader *template.Loader
 )
 
 type Context struct {
@@ -60,7 +64,7 @@ type Context struct {
 	data   map[string]interface{}
 }
 
-func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+func New(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.size = -1
 	ctx.createSignature()
@@ -75,12 +79,12 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // FIXME whether to fail???
 func (self *Context) createSignature() {
 	if signature == nil {
-		if Settings.SecretKey == "" {
+		if env.Get("SecretKey") == "" {
 			log.Print("Secret key missing, using a random string now, previous cookie will be invalidate")
 			pool := []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-			Settings.SecretKey = crypto.RandomString(64, pool)
+			env.Set("SecretKey", crypto.RandomString(64, pool))
 		}
-		signature = crypto.NewSignature(Settings.SecretKey)
+		signature = crypto.NewSignature(env.Get("SecretKey"))
 	}
 }
 

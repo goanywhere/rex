@@ -24,32 +24,30 @@
 package rex
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/goanywhere/env"
-	"github.com/goanywhere/fs"
-	"github.com/goanywhere/rex/template"
+	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/http"
 )
 
-var loader *template.Loader
+var settings = config.Settings()
 
 // Shortcut to create map.
 type H map[string]interface{}
 
-func New() *Server {
-	if fs.Exists(Settings.Templates) {
-		loader = template.NewLoader(Settings.Templates)
-	}
-	env.Dump(Settings)
-	mux := newServer()
-	return mux
+func New() *http.Server {
+	env.Dump(settings)
+	return http.New()
 }
 
 func init() {
 	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
+		settings := config.Settings()
+		settings.Root, _ = filepath.Abs(cwd)
 	} else {
-		Panic("Failed to retrieve project root: %v", err)
+		log.Fatalf("Failed to retrieve project root: %v", err)
 	}
 }

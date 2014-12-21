@@ -21,28 +21,22 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package rex
+package utils
 
-type settings struct {
-	Debug     bool
-	Root      string
-	SecretKey string
+import (
+	"testing"
 
-	Host string
-	Port int
+	. "github.com/smartystreets/goconvey/convey"
+)
 
-	Assets    string
-	Templates string
-}
+func TestSerialization(t *testing.T) {
+	Convey("[utils#Serialization]", t, func() {
+		var input int = 1234567890
+		var output int
 
-var Settings *settings = new(settings)
+		v, _ := Serialize(input)
+		Deserialize(v, &output)
 
-func init() {
-	Settings.Debug = true
-
-	Settings.Host = "localhost"
-	Settings.Port = 5000
-
-	Settings.Assets = "assets"
-	Settings.Templates = "templates"
+		So(output, ShouldEqual, input)
+	})
 }

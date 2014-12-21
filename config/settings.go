@@ -20,35 +20,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package config
 
-package rex
+type config struct {
+	Debug     bool
+	Root      string
+	SecretKey string
 
-import (
-	"bytes"
-	"encoding/base64"
-	"encoding/gob"
-	"fmt"
-)
+	Host string
+	Port int
 
-// Deserialize converts base64-encoded string back to its original object.
-func Deserialize(value string, object interface{}) (err error) {
-	if bits, err := base64.URLEncoding.DecodeString(value); err == nil {
-		err = gob.NewDecoder(bytes.NewBuffer(bits)).Decode(object)
-	}
-	return
+	Assets    string
+	Templates string
 }
 
-// Serialize converts any given object into base64-encoded string using `encoding/gob`.
-// NOTE struct must be registered using gob.Register() first.
-func Serialize(object interface{}) (value string, err error) {
-	buffer := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buffer)
-	if err = encoder.Encode(object); err == nil {
-		value = base64.URLEncoding.EncodeToString(buffer.Bytes())
-	}
-	return
-}
+var settings *config
 
-func Panic(format string, values ...interface{}) {
-	panic(fmt.Errorf(format, values...))
+func Settings() *config {
+	if settings == nil {
+		settings = new(config)
+		settings.Debug = true
+		settings.Host = "localhost"
+		settings.Port = 5000
+
+		settings.Assets = "assets"
+		settings.Templates = "templates"
+	}
+	return settings
 }

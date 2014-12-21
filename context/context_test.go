@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package rex
+package context
 
 import (
 	"io/ioutil"
@@ -41,7 +41,7 @@ import (
 func TestContextStatus(t *testing.T) {
 	Convey("Response Status Code", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.String("200 Response")
 		}))
 		defer server.Close()
@@ -51,7 +51,7 @@ func TestContextStatus(t *testing.T) {
 		}
 
 		server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.WriteHeader(http.StatusNotFound)
 			ctx.String("404 Response")
 		}))
@@ -66,7 +66,7 @@ func TestContextSize(t *testing.T) {
 	Convey("Response Size", t, func() {
 		value := "Hello 中文測試"
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.String(value)
 		}))
 		defer server.Close()
@@ -84,7 +84,7 @@ func TestContextWritten(t *testing.T) {
 	Convey("Response's Written Flag", t, func() {
 		var flag bool
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			flag = ctx.Written()
 			ctx.String("Hello World")
 		}))
@@ -102,7 +102,7 @@ func TestContextWritten(t *testing.T) {
 func TestContextId(t *testing.T) {
 	Convey("Unique Context Id", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.String(ctx.Id())
 		}))
 		defer server.Close()
@@ -132,7 +132,7 @@ func TestContextGet(t *testing.T) {
 	Convey("Context Data Get", t, func() {
 		var contextId string
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			contextId = ctx.Id()
 			ctx.data = make(map[string]interface{})
 			ctx.data["id"] = contextId
@@ -152,7 +152,7 @@ func TestContextSet(t *testing.T) {
 	Convey("Context Data Set", t, func() {
 		var contextId string
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			contextId = ctx.Id()
 			ctx.Set("id", contextId)
 			ctx.String(ctx.Get("id").(string))
@@ -171,7 +171,7 @@ func TestContextClear(t *testing.T) {
 	Convey("Context Data Clear", t, func() {
 		var a, b int
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			contextId := ctx.Id()
 			ctx.Set("id", contextId)
 			ctx.Set("cid", contextId)
@@ -198,7 +198,7 @@ func TestContextDelete(t *testing.T) {
 	Convey("Context Data Delete", t, func() {
 		var a, b int
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			contextId := ctx.Id()
 			ctx.Set("id", contextId)
 			a = len(ctx.data)
@@ -228,7 +228,7 @@ func TestCookie(t *testing.T) {
 		cookie := &http.Cookie{Name: "number", Value: "123", Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.String(ctx.Cookie(cookie.Name))
 		}))
 		defer server.Close()
@@ -248,7 +248,7 @@ func TestCookie(t *testing.T) {
 func TestSetCookie(t *testing.T) {
 	Convey("context#SetCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.SetCookie(&http.Cookie{Name: "number", Value: "123", Path: "/"})
 			ctx.String("Hello Cookie")
 			return
@@ -278,7 +278,7 @@ func TestSecureCookie(t *testing.T) {
 		}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.String(ctx.SecureCookie(name))
 		}))
 		defer server.Close()
@@ -304,7 +304,7 @@ func TestSetSecureCookie(t *testing.T) {
 		name, value := "number", "123"
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
+			ctx := New(w, r)
 			ctx.SetSecureCookie(&http.Cookie{Name: name, Value: value, Path: "/"})
 			ctx.String("Hello Cookie")
 		}))
