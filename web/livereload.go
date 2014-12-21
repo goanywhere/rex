@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package http
+package web
 
 // SEE https://github.com/livereload/livereload-js
 // 2014-05-03 e6b5ac4

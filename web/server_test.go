@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package http
+package web
 
 import (
 	"net/http"
@@ -35,7 +35,7 @@ func TestGet(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
 
-	app := New()
+	app := NewServer()
 	app.Get("/", func(ctx *Context) {
 		ctx.String("hello")
 	})

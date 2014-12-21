@@ -30,7 +30,7 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/http"
+	"github.com/goanywhere/rex/web"
 )
 
 var settings = config.Settings()
@@ -38,14 +38,13 @@ var settings = config.Settings()
 // Shortcut to create map.
 type H map[string]interface{}
 
-func New() *http.Server {
+func New() *web.Server {
 	env.Dump(settings)
-	return http.New()
+	return web.NewServer()
 }
 
 func init() {
 	if cwd, err := os.Getwd(); err == nil {
-		settings := config.Settings()
 		settings.Root, _ = filepath.Abs(cwd)
 	} else {
 		log.Fatalf("Failed to retrieve project root: %v", err)

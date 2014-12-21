@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package context
+package web
 
 import (
 	"bufio"
@@ -64,7 +64,7 @@ type Context struct {
 	data   map[string]interface{}
 }
 
-func New(w http.ResponseWriter, r *http.Request) *Context {
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.size = -1
 	ctx.createSignature()

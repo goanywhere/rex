@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package http
+package web
 
 import (
 	"fmt"
@@ -31,7 +31,6 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/context"
 	"github.com/gorilla/mux"
 )
 
@@ -43,20 +42,20 @@ type (
 		middlewares []Middleware
 	}
 
-	HandlerFunc func(*context.Context)
+	HandlerFunc func(*Context)
 
 	// Conventional method to implement custom middlewares.
 	Middleware func(http.Handler) http.Handler
 )
 
 // New creates an application instance & setup its default settings..
-func New() *Server {
+func NewServer() *Server {
 	return &Server{mux.NewRouter(), nil}
 }
 
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(context.New(w, r))
+	self(NewContext(w, r))
 }
 
 // ---------------------------------------------------------------------------
@@ -75,8 +74,8 @@ func (self *Server) handle(method, pattern string, h interface{}) {
 		handler = h.(http.Handler)
 	case func(w http.ResponseWriter, r *http.Request):
 		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
-	case func(ctx *context.Context):
-		handler = HandlerFunc(h.(func(ctx *context.Context)))
+	case func(ctx *Context):
+		handler = HandlerFunc(h.(func(ctx *Context)))
 	default:
 		log.Fatalf("Unknown handler type (%v) passed in.", handler)
 	}
