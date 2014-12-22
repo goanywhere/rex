@@ -37,6 +37,7 @@ import (
 
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/fs"
+	"github.com/goanywhere/rex/web/livereload"
 )
 
 //TODO livereload.js
@@ -108,6 +109,7 @@ func (self *app) run() (gorun chan bool) {
 				log.Fatalf("Failed to start the process: %v\n", err)
 			}
 			proc = cmd.Process
+			livereload.Alert("UPDATE")
 		}
 	}()
 	return

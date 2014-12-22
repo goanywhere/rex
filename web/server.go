@@ -30,6 +30,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/goanywhere/rex/web/livereload"
 	"github.com/gorilla/mux"
 )
 
@@ -131,10 +132,13 @@ func (self *Server) Group(path string) *Server {
 // Livereload provides websocket-based livereload supports for browser.
 // SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
 func (self *Server) Livereload() {
-	self.Get("/livereload.js", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Write([]byte(livereload))
-	})
+	/*
+		self.Get("/livereload.js", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/javascript")
+			w.Write(livereloadjs)
+		})
+		self.Get("/livereload", Livereload)
+	*/
 }
 
 // Use append middleware into the serving list, middleware will be served in FIFO order.
@@ -145,7 +149,9 @@ func (self *Server) Use(middlewares ...Middleware) {
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if settings.Debug {
-		self.Livereload()
+		livereload.Start()
+		self.Get("/livereload", livereload.Serve)
+		self.Get("/livereload.js", livereload.ServeJS)
 	}
 
 	var mux http.Handler = self.router
@@ -159,7 +165,7 @@ func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
-func (self *Server) Serve() {
+func (self *Server) Run() {
 	address := fmt.Sprintf("%s:%d", settings.Host, settings.Port)
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {

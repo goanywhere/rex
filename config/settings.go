@@ -23,8 +23,8 @@
 package config
 
 type config struct {
-	Debug     bool
 	Root      string
+	Debug     bool
 	SecretKey string
 
 	Host string

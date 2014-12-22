@@ -20,33 +20,52 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package rex
+package livereload
 
 import (
+	"bytes"
 	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/goanywhere/env"
-	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/web"
+	"github.com/gorilla/websocket"
 )
 
-var Settings = config.Settings()
-
-// Shortcut to create map.
-type H map[string]interface{}
-
-func New() *web.Server {
-	env.Dump(Settings)
-	return web.NewServer()
+type tunnel struct {
+	ws      *websocket.Conn
+	message chan []byte
 }
 
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
+func (self *tunnel) connect() {
+	go func() {
+		for message := range self.message {
+			if err := self.ws.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Printf("Failed to write message to peer: %v", err)
+				break
+			} else {
+				log.Printf("Write: %s", message)
+				if bytes.Contains(message, []byte(`"command": "hello"`)) {
+					log.Printf("Connection Successfully Established")
+				}
+			}
+		}
+		self.ws.Close()
+	}()
+
+	for {
+		_, message, err := self.ws.ReadMessage()
+		if err != nil {
+			break
+		}
+		log.Printf("READ: %s", message)
+		switch true {
+		case bytes.Contains(message, []byte(`"command":"hello"`)):
+			//data, _ := json.Marshal(hello)
+			//self.message <- data
+			self.message <- []byte(`{
+				"command": "hello",
+				"protocols": [ "http://livereload.com/protocols/official-7" ],
+				"serverName": "Rex#Livereload"
+			}`)
+		}
 	}
+	self.ws.Close()
 }
