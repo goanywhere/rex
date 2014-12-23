@@ -25,6 +25,7 @@ package web
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"encoding/hex"
@@ -37,6 +38,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -216,11 +218,28 @@ func (self *Context) Query() url.Values {
 	return self.Request.URL.Query()
 }
 
-// HTML renders cached HTML templates to response.
+// Error raises a HTTP error response according to the given status code.
+func (self *Context) Error(status int) {
+	http.Error(self, http.StatusText(status), status)
+}
+
+// HTML renders cached HTML templates via `bytes.Buffer` to response.
+// The livereload.js will be added to the end of <head> to provide
+// browser-based livereload capability.
 func (self *Context) HTML(filename string) {
+	var buffer bytes.Buffer
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
-	page := loader.Get(filename)
-	page.Execute(self, self.data)
+	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
+		self.Error(http.StatusInternalServerError)
+	}
+	if !settings.Debug {
+		self.Write(buffer.Bytes())
+	}
+	// append livereload.js script tag <head>
+	var livereload = fmt.Sprintf(
+		`  <script src="//%s:%d/livereload.js"></script>
+</head>`, settings.Host, settings.Port)
+	self.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(livereload)))
 }
 
 // JSON renders JSON data to response.

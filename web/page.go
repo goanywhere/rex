@@ -24,13 +24,10 @@
 package web
 
 import (
-	"bytes"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/goanywhere/regex/tags"
@@ -101,17 +98,6 @@ func (self *page) include() (source string) {
 	return
 }
 
-func (self *page) livereload(output *template.Template) (*template.Template, error) {
-	// add livereload script under debug mode.
-	var buffer bytes.Buffer
-	var livereload = fmt.Sprintf(
-		`  <script src="//%s:%d/livereload.js"></script>
-</head>`, settings.Host, settings.Port)
-	output.Execute(&buffer, nil)
-	var html = regexp.MustCompile(`</head>`).ReplaceAllString(buffer.String(), livereload)
-	return template.New(output.Name()).Parse(html)
-}
-
 // Parse constructs `template.Template` object with additional // "extends" & "include" like Jinja.
 func (self *page) parse() *template.Template {
 	var (
@@ -135,9 +121,6 @@ func (self *page) parse() *template.Template {
 		_, err = tmpl.Parse(page.include())
 	}
 
-	if settings.Debug {
-		return template.Must(self.livereload(output))
-	}
 	return template.Must(output, err)
 }
 
