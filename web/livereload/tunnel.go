@@ -41,9 +41,9 @@ func (self *tunnel) connect() {
 				log.Printf("Failed to write message to peer: %v", err)
 				break
 			} else {
-				log.Printf("Write: %s", message)
+				log.Printf("[WebSocket][Write] %s", message)
 				if bytes.Contains(message, []byte(`"command": "hello"`)) {
-					log.Printf("Connection Successfully Established")
+					log.Printf("[WebSocket] connection established")
 				}
 			}
 		}
@@ -55,7 +55,6 @@ func (self *tunnel) connect() {
 		if err != nil {
 			break
 		}
-		log.Printf("READ: %s", message)
 		switch true {
 		case bytes.Contains(message, []byte(`"command":"hello"`)):
 			//data, _ := json.Marshal(hello)
