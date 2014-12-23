@@ -20,34 +20,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package middleware
 
-package rex
+import "net/http"
 
-import (
-	"log"
-	"os"
-	"path/filepath"
-
-	"github.com/goanywhere/env"
-	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/web"
-)
-
-var Settings = config.Settings()
-
-// Shortcut to create map.
-type H map[string]interface{}
-
-func New() *web.Server {
-	env.Dump(Settings)
-	var server = web.NewServer()
-	return server
-}
-
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
+func LiveReload(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
 	}
+	return http.HandlerFunc(fn)
 }

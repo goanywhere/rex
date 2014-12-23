@@ -27,60 +27,63 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
+// Livereload provides websocket-based livereload supports for browser.
+// SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
+
 type (
-	lrserver struct {
-		tunnels    map[*tunnel]bool
-		broadcast  chan []byte
+	lrServer struct {
+		broadcast chan []byte
+		tunnels   map[*lrTunnel]bool
+
+		in  chan *lrTunnel
+		out chan *lrTunnel
+
+		mutex      sync.RWMutex
 		javascript []byte
-
-		in  chan *tunnel
-		out chan *tunnel
-
-		mutex sync.RWMutex
 	}
 
-	tunnel struct {
-		ws      *websocket.Conn
+	lrTunnel struct {
+		socket  *websocket.Conn
 		message chan []byte
+		path    string
 	}
 
-	hello struct {
+	lrHello struct {
 		Command    string   `json:"command"`
 		Protocols  []string `json:"protocols"`
 		ServerName string   `json:"serverName"`
 	}
 
-	alert struct {
+	lrAlert struct {
 		Command string `json:"command"`
 		Message string `json:"message"`
 	}
 
-	reload struct {
+	lrReload struct {
 		Command string `json:"command"`
 		Path    string `json:"path"`    // as full as possible/known, absolute path preferred, file name only is OK
 		LiveCSS bool   `json:"liveCSS"` // false to disable live CSS refresh
 	}
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-)
+var lrUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 /* ----------------------------------------------------------------------
  * WebSocket Server
  * ----------------------------------------------------------------------*/
 // Alert sends a notice message to browser's livereload.js.
-func (self *lrserver) Alert(message string) {
+func (self *lrServer) Alert(message string) {
 	go func() {
-		var bytes, _ = json.Marshal(&alert{
+		var bytes, _ = json.Marshal(&lrAlert{
 			Command: "alert",
 			Message: message,
 		})
@@ -89,11 +92,11 @@ func (self *lrserver) Alert(message string) {
 }
 
 // Reload sends a reload message to browser's livereload.js.
-func (self *lrserver) Reload(path string) {
+func (self *lrServer) Reload() {
 	go func() {
-		var bytes, _ = json.Marshal(&reload{
+		var bytes, _ = json.Marshal(&lrReload{
 			Command: "reload",
-			Path:    path,
+			Path:    "/livereload",
 			LiveCSS: true,
 		})
 		self.broadcast <- bytes
@@ -101,27 +104,28 @@ func (self *lrserver) Reload(path string) {
 }
 
 // Serve serves as a livereload server for accepting I/O tunnel messages.
-func (self *lrserver) Serve(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+func (self *lrServer) Serve(w http.ResponseWriter, r *http.Request) {
+	var socket, err = lrUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
-	tn := new(tunnel)
-	tn.ws = ws
-	tn.message = make(chan []byte, 256)
-	self.in <- tn
-	defer func() { self.out <- tn }()
-	tn.connect()
+	tunnel := new(lrTunnel)
+	tunnel.socket = socket
+	tunnel.message = make(chan []byte, 256)
+	tunnel.path = r.URL.Path
+	self.in <- tunnel
+	defer func() { self.out <- tunnel }()
+	tunnel.connect()
 }
 
 // ServeJS serves livereload.js for browser.
-func (self *lrserver) ServeJS(w http.ResponseWriter, r *http.Request) {
+func (self *lrServer) ServeJS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Write(self.javascript)
 }
 
 // Start activates livereload server for accepting tunnel messages.
-func (self *lrserver) Start() {
+func (self *lrServer) Start() {
 	go func() {
 		for {
 			select {
@@ -156,35 +160,35 @@ func (self *lrserver) Start() {
  * WebSocket Server Tunnel
  * ----------------------------------------------------------------------*/
 // connect reads/writes message for livereload.js.
-func (self *tunnel) connect() {
+func (self *lrTunnel) connect() {
 	// ***********************
 	// WebSocket Tunnel#Write
 	// ***********************
 	go func() {
 		for message := range self.message {
-			if err := self.ws.WriteMessage(websocket.TextMessage, message); err != nil {
+			if err := self.socket.WriteMessage(websocket.TextMessage, message); err != nil {
 				break
 			} else {
 				log.Printf("[WebSocket][Write] %s", message)
-				if bytes.Contains(message, []byte(`"command":"hello"`)) {
+				if regexp.MustCompile(`"command"\s*:\s*"hello"`).Find(message) != nil {
 					log.Printf("[WebSocket] connection established")
-					Livereload.Alert("Connected")
+					LiveReload.Reload()
 				}
 			}
 		}
-		self.ws.Close()
+		self.socket.Close()
 	}()
 	// ***********************
 	// WebSocket Tunnel#Read
 	// ***********************
 	for {
-		_, message, err := self.ws.ReadMessage()
+		_, message, err := self.socket.ReadMessage()
 		if err != nil {
 			break
 		}
 		switch true {
 		case bytes.Contains(message, []byte(`"command":"hello"`)):
-			var bytes, _ = json.Marshal(&hello{
+			var bytes, _ = json.Marshal(&lrHello{
 				Command:    "hello",
 				Protocols:  []string{"http://livereload.com/protocols/official-7"},
 				ServerName: "Rex#Livereload",
@@ -192,17 +196,18 @@ func (self *tunnel) connect() {
 			self.message <- bytes
 		}
 	}
-	self.ws.Close()
+	self.socket.Close()
 }
 
 /* ----------------------------------------------------------------------
  * WebSocket Livereload
  * ----------------------------------------------------------------------*/
-var Livereload = lrserver{
+var LiveReload = &lrServer{
 	broadcast: make(chan []byte),
-	in:        make(chan *tunnel),
-	out:       make(chan *tunnel),
-	tunnels:   make(map[*tunnel]bool),
+	tunnels:   make(map[*lrTunnel]bool),
+
+	in:  make(chan *lrTunnel),
+	out: make(chan *lrTunnel),
 	// SEE https://github.com/livereload/livereload-js
 	//     http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
 	// 2014-05-03 e6b5ac4@jscompress.com

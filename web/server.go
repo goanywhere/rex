@@ -128,18 +128,6 @@ func (self *Server) Group(path string) *Server {
 	return &Server{self.router.PathPrefix(path).Subrouter(), nil}
 }
 
-// Livereload provides websocket-based livereload supports for browser.
-// SEE http://feedback.livereload.com/knowledgebase/articles/86174-livereload-protocol
-func (self *Server) Livereload() {
-	/*
-		self.Get("/livereload.js", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/javascript")
-			w.Write(livereloadjs)
-		})
-		self.Get("/livereload", Livereload)
-	*/
-}
-
 // Use append middleware into the serving list, middleware will be served in FIFO order.
 func (self *Server) Use(middlewares ...Middleware) {
 	self.middlewares = append(self.middlewares, middlewares...)
@@ -148,9 +136,15 @@ func (self *Server) Use(middlewares ...Middleware) {
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if settings.Debug {
-		Livereload.Start()
-		self.Get("/livereload", Livereload.Serve)
-		self.Get("/livereload.js", Livereload.ServeJS)
+		LiveReload.Start()
+		self.Get("/livereload", LiveReload.Serve)
+		self.Get("/livereload.js", LiveReload.ServeJS)
+	}
+
+	if settings.Assets != "" {
+		self.Get(settings.Assets, func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, r.URL.Path[1:])
+		})
 	}
 
 	var mux http.Handler = self.router

@@ -232,14 +232,15 @@ func (self *Context) HTML(filename string) {
 	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
 	}
-	if !settings.Debug {
+	if settings.Debug {
+		self.Write(regexp.MustCompile(`</head>`).ReplaceAll(
+			buffer.Bytes(),
+			[]byte(fmt.Sprintf(`  <script src="//%s/livereload.js"></script>
+</head>`, self.Request.Host))))
+
+	} else {
 		self.Write(buffer.Bytes())
 	}
-	// append livereload.js script tag <head>
-	var script = fmt.Sprintf(
-		`  <script src="//%s:%d/livereload.js"></script>
-</head>`, settings.Host, settings.Port)
-	self.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(script)))
 }
 
 // JSON renders JSON data to response.
@@ -248,14 +249,12 @@ func (self *Context) JSON(values map[string]interface{}) {
 		data []byte
 		err  error
 	)
-
 	data, err = json.Marshal(values)
-
 	if err != nil {
-		http.Error(self, err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to render JSON: %v", err)
+		self.Error(http.StatusInternalServerError)
 		return
 	}
-
 	self.Header().Set(ContentType, "application/json; charset=utf-8")
 	self.Write(data)
 }

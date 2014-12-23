@@ -133,12 +133,12 @@ func (self *app) Start() {
 		gorun <- true
 	}
 
-	wd := fs.NewWatchdog(self.pkg.Dir)
+	wd := fs.Watchdog(self.pkg.Dir)
 	wd.Add(regexp.MustCompile(`\.(html|go)$`), func(event *fsnotify.Event) {
 		if err := self.install(); err != nil {
 			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
-		web.Livereload.Alert("DONE")
+		web.LiveReload.Reload()
 		gorun <- true
 	})
 	wd.Start()
