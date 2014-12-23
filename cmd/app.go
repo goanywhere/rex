@@ -37,7 +37,7 @@ import (
 
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/fs"
-	"github.com/goanywhere/rex/web/livereload"
+	"github.com/goanywhere/rex/web"
 )
 
 //TODO livereload.js
@@ -108,7 +108,6 @@ func (self *app) run() (gorun chan bool) {
 			if err := cmd.Start(); err != nil {
 				log.Fatalf("Failed to start the process: %v\n", err)
 			}
-			go livereload.Alert("UPDATE")
 			proc = cmd.Process
 		}
 	}()
@@ -139,6 +138,7 @@ func (self *app) Start() {
 		if err := self.install(); err != nil {
 			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
+		web.Livereload.Alert("DONE")
 		gorun <- true
 	})
 	wd.Start()
