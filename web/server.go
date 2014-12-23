@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/rex/web/livereload"
 	"github.com/gorilla/mux"
 )
 
@@ -149,7 +148,7 @@ func (self *Server) Use(middlewares ...Middleware) {
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if settings.Debug {
-		livereload.Start()
+		go livereload.Start()
 		self.Get("/livereload", livereload.Serve)
 		self.Get("/livereload.js", livereload.ServeJS)
 	}

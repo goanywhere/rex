@@ -236,10 +236,10 @@ func (self *Context) HTML(filename string) {
 		self.Write(buffer.Bytes())
 	}
 	// append livereload.js script tag <head>
-	var livereload = fmt.Sprintf(
+	var script = fmt.Sprintf(
 		`  <script src="//%s:%d/livereload.js"></script>
 </head>`, settings.Host, settings.Port)
-	self.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(livereload)))
+	self.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(script)))
 }
 
 // JSON renders JSON data to response.

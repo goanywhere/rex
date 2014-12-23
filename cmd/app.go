@@ -108,8 +108,8 @@ func (self *app) run() (gorun chan bool) {
 			if err := cmd.Start(); err != nil {
 				log.Fatalf("Failed to start the process: %v\n", err)
 			}
+			go livereload.Alert("UPDATE")
 			proc = cmd.Process
-			livereload.Alert("UPDATE")
 		}
 	}()
 	return
