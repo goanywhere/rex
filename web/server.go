@@ -136,16 +136,11 @@ func (self *Server) Use(middlewares ...Middleware) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	// TODO move to middleware
 	if settings.Debug {
 		livereload.Start()
 		self.Get("/livereload", livereload.Serve)
 		self.Get("/livereload.js", livereload.ServeJS)
-	}
-
-	if settings.Assets != "" {
-		self.Get(settings.Assets, func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, r.URL.Path[1:])
-		})
 	}
 
 	var mux http.Handler = self.router

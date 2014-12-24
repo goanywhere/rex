@@ -20,52 +20,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package config
+package middleware
 
-import "sync"
-
-type (
-	dir struct {
-		Assets    string
-		Templates string
-	}
-
-	url struct {
-		Assets string
-	}
-
-	config struct {
-		Root      string
-		Debug     bool
-		SecretKey string
-
-		Host string
-		Port int
-
-		Dir *dir
-		URL *url
-	}
+import (
+	"net/http"
+	"strings"
 )
 
-var (
-	once     sync.Once
-	settings *config
-)
+// ---------------------------------------------------------------------------
+//  Static Resource Middleware Supports
+// ---------------------------------------------------------------------------
+func isStatic(request *http.Request) bool {
+	if (request.Method == "GET" ||
+		request.Method == "HEAD") &&
+		strings.HasPrefix(request.URL.Path, settings.Assets) {
+		return true
+	}
+	return false
+}
 
-// Settings returns a singleton settings access point.
-func Settings() *config {
-	once.Do(func() {
-		settings = new(config)
-		settings.Debug = true
-		settings.Host = "localhost"
-		settings.Port = 5000
-
-		settings.Dir = new(dir)
-		settings.Dir.Assets = "assets"
-		settings.Dir.Templates = "templates"
-
-		settings.URL = new(url)
-		settings.URL.Assets = "/assets/"
-	})
-	return settings
+func static(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" || r.Method == "HEAD" {
+		}
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
 }

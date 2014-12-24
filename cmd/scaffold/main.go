@@ -2,14 +2,15 @@ package main
 
 import (
 	"github.com/goanywhere/rex"
+	"github.com/goanywhere/rex/web"
 )
 
-func index(ctx *rex.Context) {
-    ctx.HTML("index.html")
+func index(ctx *web.Context) {
+	ctx.HTML("index.html")
 }
 
 func main() {
-	app := rex.New()
-	app.Get("/", index)
-	app.Serve()
+	server := rex.New()
+	server.Get("/", index)
+	server.Run()
 }

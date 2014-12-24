@@ -29,5 +29,5 @@ import (
 
 var (
 	settings         = config.Settings()
-	loader   *Loader = NewLoader(settings.Templates)
+	loader   *Loader = NewLoader(settings.Dir.Templates)
 )

@@ -27,10 +27,9 @@ package cache
 // The storage may be persistent (e.g., a database) or volatile (e.g., cache).
 // All Storage implementations must be thread safe.
 type Storage interface {
-	// Get retrieves a single value from the storage.
-	Get(key interface{}) (interface{}, error)
+	// Get retrieves value(s) from the storage.
+	Get(key interface{}, otherKeys ...interface{}) (interface{}, error)
 
-	// GetMulti retrieves multiple values from the storage.
 	// The items are returned in the same order as the input keys.
 	GetMulti(keys ...interface{}) ([]interface{}, error)
 
