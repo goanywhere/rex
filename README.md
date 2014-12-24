@@ -35,18 +35,19 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
 func main() {
-    app := rex.New()
-    app.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        ctx := rex.NewContext(w, r)
+    server := rex.New()
+    server.Get("/", func(w http.ResponseWriter, r *http.Request) {
+        ctx := web.NewContext(w, r)
         ctx.String("Hello World")
     })
-    app.Get("/hello", func(ctx *rex.Context) {
+    server.Get("/hello", func(ctx *web.Context) {
         ctx.String("Hello Again")
     })
-    app.Serve()
+    server.Run()
 }
 ```
 
@@ -102,21 +103,22 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *rex.Context) {
+func json (ctx *web.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
 func main() {
-    app := rex.New()
-    app.Get("/", index)
-    app.Get("/api", json)
-    app.Serve()
+    server := rex.New()
+    server.Get("/", index)
+    server.Get("/api", json)
+    server.Run()
 }
 ```
 
@@ -131,9 +133,10 @@ package main
 import (
     "github.com/goanywhere/env"
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")
 }
 
@@ -141,9 +144,9 @@ func main() {
     // Override default 5000 port here.
     env.Set("port", "9394")
 
-    app := rex.New()
-    app.Get("/", index)
-    app.Serve()
+    server := rex.New()
+    server.Get("/", index)
+    server.Run()
 }
 ```
 
@@ -189,7 +192,8 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] CLI Apps Integrations 
 - [X] Improved Template Rendering
 - [X] Performance Boost
-- [X] Live Reload Integration
+- [X] Hot-Compile Runner
+- [ ] Live Reload Integration
 - [ ] Better Logging
 - [ ] Template Functions
 - [ ] i18n Supports
