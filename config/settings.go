@@ -22,6 +22,8 @@
  * ----------------------------------------------------------------------*/
 package config
 
+import "sync"
+
 type config struct {
 	Root      string
 	Debug     bool
@@ -34,10 +36,14 @@ type config struct {
 	Templates string
 }
 
-var settings *config
+var (
+	once     sync.Once
+	settings *config
+)
 
+// Settings returns a singleton settings access point.
 func Settings() *config {
-	if settings == nil {
+	once.Do(func() {
 		settings = new(config)
 		settings.Debug = true
 		settings.Host = "localhost"
@@ -45,6 +51,6 @@ func Settings() *config {
 
 		settings.Assets = "assets"
 		settings.Templates = "templates"
-	}
+	})
 	return settings
 }
