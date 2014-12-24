@@ -98,7 +98,7 @@ func (self *Context) Size() int {
 }
 
 func (self *Context) Written() bool {
-	return self.status != 0
+	return self.status != 0 || self.size > 0
 }
 
 // WriteHeader: Implementation of http.ResponseWriter#WriteHeader
@@ -231,6 +231,7 @@ func (self *Context) HTML(filename string) {
 	self.Header().Set(ContentType, "text/html; charset=utf-8")
 	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
+		return
 	}
 	if settings.Debug {
 		self.Write(regexp.MustCompile(`</head>`).ReplaceAll(

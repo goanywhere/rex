@@ -65,7 +65,7 @@ func Settings() *config {
 		settings.Dir.Templates = "templates"
 
 		settings.URL = new(url)
-		settings.URL.Assets = "/assets/"
+		settings.URL.Assets = "/assets"
 	})
 	return settings
 }

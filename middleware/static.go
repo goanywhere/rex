@@ -23,26 +23,68 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
 // ---------------------------------------------------------------------------
 //  Static Resource Middleware Supports
 // ---------------------------------------------------------------------------
-func isStatic(request *http.Request) bool {
-	if (request.Method == "GET" ||
-		request.Method == "HEAD") &&
-		strings.HasPrefix(request.URL.Path, settings.Assets) {
-		return true
+func serveStatic(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasPrefix(r.URL.Path, settings.URL.Assets) {
+		return
 	}
-	return false
+	var dir = http.Dir(filepath.Join(settings.Root, settings.Dir.Assets))
+
+	var file = r.URL.Path
+	// if we have a prefix, filter requests by stripping the prefix
+	log.Printf("static: %s", file)
+	file = file[len(settings.URL.Assets):]
+	if file != "" && file[0] != '/' {
+		return
+	}
+
+	f, err := dir.Open(file)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return
+	}
+
+	// try to serve index file
+	if fi.IsDir() {
+		// redirect if missing trailing slash
+		if !strings.HasSuffix(r.URL.Path, "/") {
+			http.Redirect(w, r, r.URL.Path+"/", http.StatusFound)
+			return
+		}
+
+		file = path.Join(file, "index.html")
+		f, err = dir.Open(file)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+
+		fi, err = f.Stat()
+		if err != nil || fi.IsDir() {
+			return
+		}
+	}
+
+	http.ServeContent(w, r, file, fi.ModTime(), f)
 }
 
-func static(next http.Handler) http.Handler {
+func Static(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" || r.Method == "HEAD" {
-		}
+		serveStatic(w, r)
 		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
