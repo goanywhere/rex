@@ -24,7 +24,6 @@ package livereload
 
 import (
 	"encoding/json"
-	"log"
 	"regexp"
 
 	"github.com/gorilla/websocket"
@@ -49,10 +48,8 @@ func (self *tunnel) connect() {
 			if err := self.socket.WriteMessage(websocket.TextMessage, message); err != nil {
 				break
 			} else {
-				log.Printf("[WebSocket][Write] %s", message)
 				if self.handshake.Find(message) != nil {
-					log.Printf("[WebSocket] connection established")
-					//WHY???
+					// Keep the tunnel opened after handshake(hello command).
 					Reload()
 				}
 			}
