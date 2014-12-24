@@ -193,7 +193,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Improved Template Rendering
 - [X] Performance Boost
 - [X] Hot-Compile Runner
-- [ ] Live Reload Integration
+- [X] Live Reload Integration
 - [ ] Better Logging
 - [ ] Template Functions
 - [ ] i18n Supports
