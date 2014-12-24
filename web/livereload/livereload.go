@@ -74,6 +74,36 @@ func Reload() {
 	}()
 }
 
+// run watches/dispatches all tunnel & tunnel messages.
+func run() {
+	for {
+		select {
+		case tunnel := <-in:
+			mutex.Lock()
+			defer mutex.Unlock()
+			tunnels[tunnel] = true
+
+		case tunnel := <-out:
+			mutex.Lock()
+			defer mutex.Unlock()
+			delete(tunnels, tunnel)
+			close(tunnel.message)
+
+		case m := <-broadcast:
+			for tunnel := range tunnels {
+				select {
+				case tunnel.message <- m:
+				default:
+					mutex.Lock()
+					defer mutex.Unlock()
+					delete(tunnels, tunnel)
+					close(tunnel.message)
+				}
+			}
+		}
+	}
+}
+
 // Serve serves as a livereload server for accepting I/O tunnel messages.
 func Serve(w http.ResponseWriter, r *http.Request) {
 	var socket, err = upgrader.Upgrade(w, r, nil)
@@ -99,38 +129,13 @@ func ServeJS(w http.ResponseWriter, r *http.Request) {
 
 // Start activates livereload server for accepting tunnel messages.
 func Start() {
-	broadcast = make(chan []byte)
-	tunnels = make(map[*tunnel]bool)
+	once.Do(func() {
+		broadcast = make(chan []byte)
+		tunnels = make(map[*tunnel]bool)
 
-	in = make(chan *tunnel)
-	out = make(chan *tunnel)
+		in = make(chan *tunnel)
+		out = make(chan *tunnel)
 
-	go func() {
-		for {
-			select {
-			case tunnel := <-in:
-				mutex.Lock()
-				defer mutex.Unlock()
-				tunnels[tunnel] = true
-
-			case tunnel := <-out:
-				mutex.Lock()
-				defer mutex.Unlock()
-				delete(tunnels, tunnel)
-				close(tunnel.message)
-
-			case m := <-broadcast:
-				for tunnel := range tunnels {
-					select {
-					case tunnel.message <- m:
-					default:
-						mutex.Lock()
-						defer mutex.Unlock()
-						delete(tunnels, tunnel)
-						close(tunnel.message)
-					}
-				}
-			}
-		}
-	}()
+		go run()
+	})
 }

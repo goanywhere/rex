@@ -40,8 +40,6 @@ import (
 	"github.com/goanywhere/rex/web/livereload"
 )
 
-//TODO livereload.js
-
 type app struct {
 	pkg *build.Package
 	// binary
