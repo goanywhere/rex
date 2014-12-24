@@ -37,7 +37,7 @@ import (
 
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/fs"
-	"github.com/goanywhere/rex/web"
+	"github.com/goanywhere/rex/web/livereload"
 )
 
 //TODO livereload.js
@@ -138,7 +138,7 @@ func (self *app) Start() {
 		if err := self.install(); err != nil {
 			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
-		web.LiveReload.Reload()
+		livereload.Reload()
 		gorun <- true
 	})
 	wd.Start()
