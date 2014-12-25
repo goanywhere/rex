@@ -34,6 +34,11 @@ import (
 /* ----------------------------------------------------------------------
  * WebSocket Server
  * ----------------------------------------------------------------------*/
+const (
+	WebSocket  string = "/livereload"
+	JavaScript string = "/livereload.js"
+)
+
 var (
 	once sync.Once
 
@@ -67,7 +72,7 @@ func Reload() {
 	go func() {
 		var bytes, _ = json.Marshal(&reload{
 			Command: "reload",
-			Path:    "/livereload",
+			Path:    WebSocket,
 			LiveCSS: true,
 		})
 		broadcast <- bytes

@@ -44,6 +44,7 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/web/livereload"
 )
 
 const ContentType = "Content-Type"
@@ -234,11 +235,8 @@ func (self *Context) HTML(filename string) {
 		return
 	}
 	if settings.Debug {
-		self.Write(regexp.MustCompile(`</head>`).ReplaceAll(
-			buffer.Bytes(),
-			[]byte(fmt.Sprintf(`  <script src="//%s/livereload.js"></script>
-</head>`, self.Request.Host))))
-
+		javascript := fmt.Sprintf(`<script src="//%s%s"></script></head>`, self.Request.Host, livereload.JavaScript)
+		self.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(javascript)))
 	} else {
 		self.Write(buffer.Bytes())
 	}

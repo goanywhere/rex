@@ -22,11 +22,22 @@
  * ----------------------------------------------------------------------*/
 package middleware
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/goanywhere/rex/web/livereload"
+)
 
 func LiveReload(next http.Handler) http.Handler {
+	livereload.Start()
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
+		if r.URL.Path == livereload.WebSocket {
+			livereload.Serve(w, r)
+		} else if r.URL.Path == livereload.JavaScript {
+			livereload.ServeJS(w, r)
+		} else {
+			next.ServeHTTP(w, r)
+		}
 	}
 	return http.HandlerFunc(fn)
 }

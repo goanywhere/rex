@@ -30,7 +30,6 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/rex/web/livereload"
 	"github.com/gorilla/mux"
 )
 
@@ -136,13 +135,6 @@ func (self *Server) Use(middlewares ...Middleware) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	// TODO move to middleware
-	if settings.Debug {
-		livereload.Start()
-		self.Get("/livereload", livereload.Serve)
-		self.Get("/livereload.js", livereload.ServeJS)
-	}
-
 	var mux http.Handler = self.router
 	// Activate middlewares in FIFO order.
 	if len(self.middlewares) > 0 {

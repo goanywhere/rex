@@ -30,6 +30,7 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/middleware"
 	"github.com/goanywhere/rex/web"
 )
 
@@ -38,10 +39,17 @@ var Settings = config.Settings()
 // Shortcut to create map.
 type H map[string]interface{}
 
+// Defaults creates a web.Server with common middlewares enabled.
+func Defaults() *web.Server {
+	server := New()
+	server.Use(middleware.LiveReload)
+	return server
+}
+
+// New creates a plain web.Server.
 func New() *web.Server {
 	env.Dump(Settings)
-	var server = web.NewServer()
-	return server
+	return web.NewServer()
 }
 
 func init() {

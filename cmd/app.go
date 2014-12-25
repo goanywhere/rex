@@ -40,6 +40,8 @@ import (
 	"github.com/goanywhere/rex/web/livereload"
 )
 
+var watchList = regexp.MustCompile(`\.(css|js|html|go)$`)
+
 type app struct {
 	pkg *build.Package
 	// binary
@@ -132,7 +134,7 @@ func (self *app) Start() {
 	}
 
 	wd := fs.Watchdog(self.pkg.Dir)
-	wd.Add(regexp.MustCompile(`\.(html|go)$`), func(event *fsnotify.Event) {
+	wd.Add(watchList, func(event *fsnotify.Event) {
 		if err := self.install(); err != nil {
 			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
 		}
