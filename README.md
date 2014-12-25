@@ -142,7 +142,7 @@ func index (ctx *web.Context) {
 
 func main() {
     // Override default 5000 port here.
-    env.Set("port", "9394")
+    env.Set("Port", "9394")
 
     server := rex.New()
     server.Get("/", index)
