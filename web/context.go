@@ -225,8 +225,8 @@ func (self *Context) Error(status int) {
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
-// The livereload.js will be added to the end of <head> to provide
-// browser-based livereload capability.
+// Under Debug mode, livereload.js will be added to the end of <head>
+// to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
 	var buffer bytes.Buffer
 	self.Header().Set(ContentType, "text/html; charset=utf-8")

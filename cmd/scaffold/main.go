@@ -10,7 +10,7 @@ func index(ctx *web.Context) {
 }
 
 func main() {
-	server := rex.New()
+	server := rex.Defaults()
 	server.Get("/", index)
 	server.Run()
 }

@@ -49,6 +49,7 @@ func Defaults() *web.Server {
 
 // New creates a plain web.Server.
 func New() *web.Server {
+	env.Load(filepath.Join(Settings.Root, ".env"))
 	env.Dump(Settings)
 	return web.NewServer()
 }

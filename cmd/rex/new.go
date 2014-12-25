@@ -68,7 +68,7 @@ func createProject(path string) (project string, err error) {
 			if dotenv, err := os.Create(filename); err == nil {
 				defer dotenv.Close()
 				buffer := bufio.NewWriter(dotenv)
-				buffer.WriteString(fmt.Sprintf("secret=\"%s\"\n", crypto.RandomString(64, pool)))
+				buffer.WriteString(fmt.Sprintf("SecretKey=\"%s\"\n", crypto.RandomString(64, pool)))
 				buffer.Flush()
 			}
 		}
@@ -85,6 +85,7 @@ func setupProject(project string) {
 	_, me, _, _ := runtime.Caller(1)
 	scaffold := filepath.Join(filepath.Dir(me), "..", "scaffold")
 	fs.Copy(filepath.Join(scaffold, "main.go"), project)
+	fs.Copy(filepath.Join(scaffold, "assets"), project)
 	fs.Copy(filepath.Join(scaffold, "templates"), project)
 }
 
