@@ -22,6 +22,15 @@
  * ----------------------------------------------------------------------*/
 package template
 
+import (
+	"html/template"
+	"strings"
+)
+
 func static(path string) string {
-	return ""
+	return strings.Join([]string{settings.URLStatic, path}, "/")
+}
+
+var functions = template.FuncMap{
+	"static": static,
 }

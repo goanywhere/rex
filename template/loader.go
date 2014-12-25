@@ -93,7 +93,7 @@ func (self *Loader) Load() (pages int) {
 		self.mutex.Lock()
 		defer self.mutex.Unlock()
 		for _, name := range self.Files() {
-			self.templates[name] = self.page(name).parse()
+			self.templates[name] = self.page(name).parse().Funcs(functions)
 			pages++
 		}
 		self.loaded = true
