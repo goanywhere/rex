@@ -25,7 +25,6 @@ package livereload
 import (
 	"encoding/json"
 	"net/http"
-	"regexp"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -118,7 +117,6 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 	tunnel := new(tunnel)
 	tunnel.socket = socket
 	tunnel.message = make(chan []byte, 256)
-	tunnel.handshake = regexp.MustCompile(`"command"\s*:\s*"hello"`)
 
 	in <- tunnel
 	defer func() { out <- tunnel }()

@@ -29,13 +29,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var handshake = regexp.MustCompile(`"command"\s*:\s*"hello"`)
+
 /* ----------------------------------------------------------------------
  * WebSocket Server Tunnel
  * ----------------------------------------------------------------------*/
 type tunnel struct {
-	socket    *websocket.Conn
-	message   chan []byte
-	handshake *regexp.Regexp
+	socket  *websocket.Conn
+	message chan []byte
 }
 
 // connect reads/writes message for livereload.js.
@@ -48,7 +49,7 @@ func (self *tunnel) connect() {
 			if err := self.socket.WriteMessage(websocket.TextMessage, message); err != nil {
 				break
 			} else {
-				if self.handshake.Find(message) != nil {
+				if handshake.Find(message) != nil {
 					// Keep the tunnel opened after handshake(hello command).
 					Reload()
 				}
@@ -65,7 +66,7 @@ func (self *tunnel) connect() {
 			break
 		}
 		switch true {
-		case self.handshake.Find(message) != nil:
+		case handshake.Find(message) != nil:
 			var bytes, _ = json.Marshal(&hello{
 				Command:    "hello",
 				Protocols:  []string{"http://livereload.com/protocols/official-7"},

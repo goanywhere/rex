@@ -43,6 +43,7 @@ type H map[string]interface{}
 func Defaults() *web.Server {
 	server := New()
 	server.Use(middleware.LiveReload)
+	server.Use(middleware.Static)
 	return server
 }
 

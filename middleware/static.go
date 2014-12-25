@@ -23,7 +23,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -34,15 +33,9 @@ import (
 //  Static Resource Middleware Supports
 // ---------------------------------------------------------------------------
 func serveStatic(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasPrefix(r.URL.Path, settings.URL.Assets) {
-		return
-	}
 	var dir = http.Dir(filepath.Join(settings.Root, settings.Dir.Assets))
 
-	var file = r.URL.Path
-	// if we have a prefix, filter requests by stripping the prefix
-	log.Printf("static: %s", file)
-	file = file[len(settings.URL.Assets):]
+	var file = r.URL.Path[len(settings.URL.Assets):]
 	if file != "" && file[0] != '/' {
 		return
 	}
@@ -84,8 +77,11 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 
 func Static(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		serveStatic(w, r)
-		next.ServeHTTP(w, r)
+		if strings.HasPrefix(r.URL.Path, settings.URL.Assets) {
+			serveStatic(w, r)
+		} else {
+			next.ServeHTTP(w, r)
+		}
 	}
 	return http.HandlerFunc(fn)
 }

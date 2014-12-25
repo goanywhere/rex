@@ -114,6 +114,15 @@ func (self *app) run() (gorun chan bool) {
 	return
 }
 
+func (self *app) rerun(gorun chan bool) {
+	if err := self.install(); err != nil {
+		panic(fmt.Errorf("Failed to rebuild the application: %v", err))
+	}
+	livereload.Reload()
+	gorun <- true
+
+}
+
 // Starts activates the application server along with
 // a daemon watcher for monitoring the files's changes.
 func (self *app) Start() {
@@ -135,11 +144,7 @@ func (self *app) Start() {
 
 	wd := fs.Watchdog(self.pkg.Dir)
 	wd.Add(watchList, func(event *fsnotify.Event) {
-		if err := self.install(); err != nil {
-			panic(fmt.Errorf("Failed to rebuild the application: %v", err))
-		}
-		livereload.Reload()
-		gorun <- true
+		self.rerun(gorun)
 	})
 	wd.Start()
 }
