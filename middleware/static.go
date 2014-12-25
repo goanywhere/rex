@@ -35,6 +35,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	var static = http.Dir(filepath.Join(settings.Root, settings.DirStatic))
 
 	var path = r.URL.Path[len(settings.URLStatic):]
+	// FIXME slash issue.
 	if path != "" && path[0] != '/' {
 		return
 	}
