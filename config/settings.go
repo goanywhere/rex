@@ -25,15 +25,6 @@ package config
 import "sync"
 
 type (
-	dir struct {
-		Assets    string
-		Templates string
-	}
-
-	url struct {
-		Assets string
-	}
-
 	config struct {
 		Root      string
 		Debug     bool
@@ -42,8 +33,10 @@ type (
 		Host string
 		Port int
 
-		Dir *dir
-		URL *url
+		DirStatic    string
+		DirTemplates string
+
+		URLStatic string
 	}
 )
 
@@ -60,12 +53,9 @@ func Settings() *config {
 		settings.Host = "localhost"
 		settings.Port = 5000
 
-		settings.Dir = new(dir)
-		settings.Dir.Assets = "assets"
-		settings.Dir.Templates = "templates"
-
-		settings.URL = new(url)
-		settings.URL.Assets = "/assets"
+		settings.DirStatic = "static"
+		settings.DirTemplates = "templates"
+		settings.URLStatic = "/static/"
 	})
 	return settings
 }

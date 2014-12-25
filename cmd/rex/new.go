@@ -85,7 +85,7 @@ func setupProject(project string) {
 	_, me, _, _ := runtime.Caller(1)
 	scaffold := filepath.Join(filepath.Dir(me), "..", "scaffold")
 	fs.Copy(filepath.Join(scaffold, "main.go"), project)
-	fs.Copy(filepath.Join(scaffold, "assets"), project)
+	fs.Copy(filepath.Join(scaffold, "static"), project)
 	fs.Copy(filepath.Join(scaffold, "templates"), project)
 }
 

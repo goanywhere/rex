@@ -32,9 +32,9 @@ import (
 //  Static Resource Middleware Supports
 // ---------------------------------------------------------------------------
 func serveStatic(w http.ResponseWriter, r *http.Request) {
-	var static = http.Dir(filepath.Join(settings.Root, settings.Dir.Assets))
+	var static = http.Dir(filepath.Join(settings.Root, settings.DirStatic))
 
-	var path = r.URL.Path[len(settings.URL.Assets):]
+	var path = r.URL.Path[len(settings.URLStatic):]
 	if path != "" && path[0] != '/' {
 		return
 	}
@@ -75,7 +75,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 
 func Static(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URL.Assets) {
+		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URLStatic) {
 			serveStatic(w, r)
 		} else {
 			next.ServeHTTP(w, r)

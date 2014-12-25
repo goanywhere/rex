@@ -20,15 +20,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package template
 
-package web
+import "github.com/goanywhere/rex/config"
 
-import (
-	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/template"
-)
-
-var (
-	settings = config.Settings()
-	loader   = template.NewLoader(settings.DirTemplates)
-)
+var settings = config.Settings()
