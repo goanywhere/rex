@@ -55,7 +55,7 @@ func Settings() *config {
 
 		settings.DirStatic = "static"
 		settings.DirTemplates = "templates"
-		settings.URLStatic = "/static/"
+		settings.URLStatic = "/static"
 	})
 	return settings
 }
