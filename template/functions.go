@@ -28,7 +28,10 @@ import (
 )
 
 func static(path string) string {
-	return strings.Join([]string{settings.URLStatic, path}, "/")
+	return strings.Join([]string{
+		strings.TrimRight(settings.URLStatic, "/"),
+		strings.TrimLeft(path, "/")},
+		"/")
 }
 
 var functions = template.FuncMap{

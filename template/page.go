@@ -107,11 +107,11 @@ func (self *page) parse() *template.Template {
 	names := self.ancestors()
 
 	for _, name := range names {
-		page := self.loader.page(name)
 		var tmpl *template.Template
+		var page = self.loader.page(name)
 
 		if output == nil {
-			output = template.New(name)
+			output = template.New(name).Funcs(functions)
 		}
 		if name == output.Name() {
 			tmpl = output
