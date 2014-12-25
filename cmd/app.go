@@ -71,7 +71,6 @@ func New() *app {
 
 // install compiled the application binary package into binary root path.
 func (self *app) install() (err error) {
-	log.Printf("Building application...")
 	cmd := exec.Command("go", "get", self.pkg.ImportPath)
 
 	buffer := bytes.NewBuffer([]byte{})
