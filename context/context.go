@@ -44,8 +44,8 @@ import (
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/http/livereload"
 	"github.com/goanywhere/rex/template"
-	"github.com/goanywhere/rex/web/livereload"
 )
 
 const ContentType = "Content-Type"

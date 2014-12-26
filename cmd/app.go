@@ -37,7 +37,7 @@ import (
 
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/fs"
-	"github.com/goanywhere/rex/web/livereload"
+	"github.com/goanywhere/rex/http/livereload"
 )
 
 var watchList = regexp.MustCompile(`\.(css|js|html|go)$`)
