@@ -20,8 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package web
+package context
 
 import (
 	"bufio"
@@ -43,7 +42,9 @@ import (
 	"time"
 
 	"github.com/goanywhere/env"
+	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/template"
 	"github.com/goanywhere/rex/web/livereload"
 )
 
@@ -53,6 +54,9 @@ var (
 	contextId uint64
 	prefix    string
 	signature *crypto.Signature
+
+	settings = config.Settings()
+	loader   = template.NewLoader(settings.DirTemplates)
 )
 
 type Context struct {
@@ -64,7 +68,7 @@ type Context struct {
 	data   map[string]interface{}
 }
 
-func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+func New(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.size = -1
 	ctx.createSignature()

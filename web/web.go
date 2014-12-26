@@ -25,10 +25,6 @@ package web
 
 import (
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/template"
 )
 
-var (
-	settings = config.Settings()
-	loader   = template.NewLoader(settings.DirTemplates)
-)
+var settings = config.Settings()

@@ -30,6 +30,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/goanywhere/rex/context"
 	"github.com/gorilla/mux"
 )
 
@@ -39,7 +40,7 @@ type (
 		middlewares []Middleware
 	}
 
-	HandlerFunc func(*Context)
+	HandlerFunc func(*context.Context)
 
 	// Conventional method to implement custom middlewares.
 	Middleware func(http.Handler) http.Handler
@@ -52,7 +53,7 @@ func NewServer() *Server {
 
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(NewContext(w, r))
+	self(context.New(w, r))
 }
 
 // ---------------------------------------------------------------------------
@@ -71,8 +72,8 @@ func (self *Server) process(method, pattern string, h interface{}) {
 		handler = h.(http.Handler)
 	case func(w http.ResponseWriter, r *http.Request):
 		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
-	case func(ctx *Context):
-		handler = HandlerFunc(h.(func(ctx *Context)))
+	case func(ctx *context.Context):
+		handler = HandlerFunc(h.(func(ctx *context.Context)))
 	default:
 		log.Fatalf("Unknown handler type (%v) passed in.", handler)
 	}

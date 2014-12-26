@@ -28,6 +28,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/goanywhere/rex/context"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -36,10 +37,10 @@ func TestGet(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	app := NewServer()
-	app.Get("/", func(ctx *Context) {
+	app.Get("/", func(ctx *context.Context) {
 		ctx.String("hello")
 	})
-	app.Get("/404", func(ctx *Context) {
+	app.Get("/404", func(ctx *context.Context) {
 		ctx.WriteHeader(http.StatusNotFound)
 		ctx.String("NotFound")
 	})
@@ -52,7 +53,7 @@ func TestGet(t *testing.T) {
 		So(status, ShouldEqual, http.StatusOK)
 	})
 
-	app.Get("/404", func(ctx *Context) {
+	app.Get("/404", func(ctx *context.Context) {
 		ctx.WriteHeader(http.StatusNotFound)
 		ctx.String("NotFound")
 	})

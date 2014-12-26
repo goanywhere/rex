@@ -32,15 +32,10 @@ import (
 //  Static Resource Middleware Supports
 // ---------------------------------------------------------------------------
 func serveStatic(w http.ResponseWriter, r *http.Request) {
-	var static = http.Dir(filepath.Join(settings.Root, settings.DirStatic))
-
+	var dir = http.Dir(filepath.Join(settings.Root, settings.DirStatic))
 	var path = r.URL.Path[len(settings.URLStatic):]
-	// FIXME slash issue.
-	if path != "" && path[0] != '/' {
-		return
-	}
 
-	var file, err = static.Open(path)
+	var file, err = dir.Open(path)
 	if err != nil {
 		return
 	}
@@ -59,7 +54,7 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 		}
 
 		path = filepath.Join(path, "index.html")
-		file, err = static.Open(path)
+		file, err = dir.Open(path)
 		if err != nil {
 			return
 		}
