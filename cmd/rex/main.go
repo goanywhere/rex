@@ -29,7 +29,6 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/goanywhere/env"
-	"github.com/goanywhere/rex/cmd"
 )
 
 var commands = []cli.Command{
@@ -59,8 +58,8 @@ func main() {
 	app.Commands = commands
 	app.Flags = flags
 	app.Action = func(ctx *cli.Context) {
-		env.Set("port", ctx.String("port"))
-		cmd.New().Start()
+		env.Set("Port", ctx.String("port"))
+		NewApp().Start()
 	}
 	app.Run(os.Args)
 }
