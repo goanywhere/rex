@@ -25,7 +25,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/goanywhere/rex/web/livereload"
+	"github.com/goanywhere/rex/http/livereload"
 )
 
 func LiveReload(next http.Handler) http.Handler {

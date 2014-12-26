@@ -30,8 +30,8 @@ import (
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/http"
 	"github.com/goanywhere/rex/middleware"
-	"github.com/goanywhere/rex/web"
 )
 
 var Settings = config.Settings()
@@ -40,7 +40,7 @@ var Settings = config.Settings()
 type H map[string]interface{}
 
 // Defaults creates a web.Server with common middlewares enabled.
-func Defaults() *web.Server {
+func Defaults() *http.Server {
 	server := New()
 	server.Use(middleware.LiveReload)
 	server.Use(middleware.Static)
@@ -48,10 +48,10 @@ func Defaults() *web.Server {
 }
 
 // New creates a plain web.Server.
-func New() *web.Server {
+func New() *http.Server {
 	env.Load(filepath.Join(Settings.Root, ".env"))
 	env.Dump(Settings)
-	return web.NewServer()
+	return http.NewServer()
 }
 
 func init() {
