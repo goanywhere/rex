@@ -103,14 +103,14 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/context"
+    . "github.com/goanywhere/rex/context"
 )
 
-func index (ctx *context.Context) {
+func index (ctx *Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *context.Context) {
+func json (ctx *Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
@@ -133,10 +133,10 @@ package main
 import (
     "github.com/goanywhere/env"
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/context"
+    . "github.com/goanywhere/rex/context"
 )
 
-func index (ctx *context.Context) {
+func index (ctx *Context) {
     ctx.HTML("index.html")
 }
 
