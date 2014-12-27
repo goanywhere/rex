@@ -85,14 +85,15 @@ func setupProject(project string) {
 	_, me, _, _ := runtime.Caller(1)
 	scaffold := filepath.Join(filepath.Dir(me), "..", "scaffold")
 
-	fs.Copy(filepath.Join(scaffold, "main.go"), project)
-	fmt.Println(filepath.Join(project, "main.go"))
-
 	fs.Copy(filepath.Join(scaffold, "assets"), project)
 	fmt.Println(filepath.Join(project, "assets"))
 
 	fs.Copy(filepath.Join(scaffold, "templates"), project)
 	fmt.Println(filepath.Join(project, "templates"))
+
+	fs.Copy(filepath.Join(scaffold, ".bowerrc"), project)
+	fs.Copy(filepath.Join(scaffold, "main.go"), project)
+	fmt.Println(filepath.Join(project, "main.go"))
 }
 
 // 1. Fetch Golang Environment
