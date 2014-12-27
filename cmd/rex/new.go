@@ -88,8 +88,8 @@ func setupProject(project string) {
 	fs.Copy(filepath.Join(scaffold, "main.go"), project)
 	fmt.Println(filepath.Join(project, "main.go"))
 
-	fs.Copy(filepath.Join(scaffold, "static"), project)
-	fmt.Println(filepath.Join(project, "static"))
+	fs.Copy(filepath.Join(scaffold, "assets"), project)
+	fmt.Println(filepath.Join(project, "assets"))
 
 	fs.Copy(filepath.Join(scaffold, "templates"), project)
 	fmt.Println(filepath.Join(project, "templates"))

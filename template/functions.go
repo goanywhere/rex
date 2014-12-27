@@ -29,7 +29,7 @@ import (
 
 func static(path string) string {
 	return strings.Join([]string{
-		strings.TrimRight(settings.URLStatic, "/"),
+		strings.TrimRight(settings.URLAssets, "/"),
 		strings.TrimLeft(path, "/")},
 		"/")
 }

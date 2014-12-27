@@ -33,10 +33,10 @@ type (
 		Host string
 		Port int
 
-		DirStatic    string
+		DirAssets    string
 		DirTemplates string
 
-		URLStatic string
+		URLAssets string
 	}
 )
 
@@ -53,9 +53,9 @@ func Settings() *config {
 		settings.Host = "localhost"
 		settings.Port = 5000
 
-		settings.DirStatic = "static"
+		settings.DirAssets = "assets"
 		settings.DirTemplates = "templates"
-		settings.URLStatic = "/static"
+		settings.URLAssets = "/s/"
 	})
 	return settings
 }
