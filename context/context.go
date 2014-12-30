@@ -56,7 +56,7 @@ var (
 	signature *crypto.Signature
 
 	settings = config.Settings()
-	loader   = template.NewLoader(settings.DirTemplates)
+	loader   = template.NewLoader(settings.Templates)
 )
 
 type Context struct {

@@ -31,8 +31,8 @@ import (
 // ---------------------------------------------------------------------------
 //  Static Resource Middleware Supports
 // ---------------------------------------------------------------------------
-func serveStatic(w http.ResponseWriter, r *http.Request) {
-	var dir = http.Dir(filepath.Join(settings.Root, settings.DirAssets))
+func serveStatic(folder string, w http.ResponseWriter, r *http.Request) {
+	var dir = http.Dir(filepath.Join(settings.Root, folder))
 	var path = r.URL.Path[len(settings.URLAssets):]
 
 	var file, err = dir.Open(path)
@@ -69,13 +69,15 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, stat.ModTime(), file)
 }
 
-func Static(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URLAssets) {
-			serveStatic(w, r)
-		} else {
-			next.ServeHTTP(w, r)
+func Static(folder string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URLAssets) {
+				serveStatic(folder, w, r)
+			} else {
+				next.ServeHTTP(w, r)
+			}
 		}
+		return http.HandlerFunc(fn)
 	}
-	return http.HandlerFunc(fn)
 }
