@@ -23,8 +23,6 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
 	"go/build"
 	"log"
 	"os"
@@ -32,6 +30,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"syscall"
 
 	"github.com/go-fsnotify/fsnotify"
@@ -40,10 +39,9 @@ import (
 )
 
 type app struct {
-	pkg *build.Package
-	// binary
-	name string
-	path string
+	dir    string
+	binary string
+	args   []string
 }
 
 func NewApp() *app {
@@ -55,31 +53,36 @@ func NewApp() *app {
 	}
 
 	app := new(app)
-	app.pkg = pkg
-	app.name = filepath.Base(pkg.ImportPath)
-
-	if gobin := os.Getenv("GOBIN"); gobin != "" {
-		app.path = filepath.Join(gobin, app.name)
-	} else {
-		app.path = filepath.Join(app.pkg.BinDir, app.name)
+	app.dir = cwd
+	app.binary = "rex-bin"
+	if runtime.GOOS == "windows" {
+		app.binary += ".exe"
 	}
 	return app
 }
 
-// install compiled the application binary package into binary root path.
-func (self *app) install() (err error) {
-	cmd := exec.Command("go", "get", self.pkg.ImportPath)
-
-	buffer := bytes.NewBuffer([]byte{})
-	cmd.Stdout = buffer
-	cmd.Stderr = buffer
-
-	err = cmd.Run()
-
-	if buffer.Len() > 0 {
-		err = fmt.Errorf("Failed to compile the application: %s", buffer.String())
+// build compiles the application into rex-bin executable
+// to run & optionally compiles static assets using gulp.
+// TODO speicify gulp tasks.
+func (self *app) build() {
+	// try build the application into rex-bin(.exe)
+	cmd := exec.Command("go", "build", "-o", self.binary)
+	cmd.Dir = self.dir
+	if e := cmd.Run(); e != nil {
+		log.Fatalf("Failed to compile the application: %v", e)
 	}
-	return
+
+	// try compile static assets using gulp.
+	if e := exec.Command("gulp", "-v").Run(); e == nil {
+		if fs.Exists(filepath.Join(self.dir, "gulpfile.js")) {
+			cmd := exec.Command("gulp")
+			cmd.Dir = self.dir
+			log.Printf("Compiling static assets...")
+			if err := cmd.Run(); err != nil {
+				log.Fatalf("Failed to compile assets via gulp: %v", err)
+			}
+		}
+	}
 }
 
 // run executes the runnerable executable under package binary root.
@@ -98,7 +101,8 @@ func (self *app) run() (gorun chan bool) {
 			if !start {
 				continue
 			}
-			cmd := exec.Command(self.path)
+			cmd := exec.Command(filepath.Join(self.dir, self.binary))
+			cmd.Dir = self.dir
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			if err := cmd.Start(); err != nil {
@@ -111,9 +115,7 @@ func (self *app) run() (gorun chan bool) {
 }
 
 func (self *app) rerun(gorun chan bool) {
-	if err := self.install(); err != nil {
-		panic(fmt.Errorf("Failed to rebuild the application: %v", err))
-	}
+	self.build()
 	livereload.Reload()
 	gorun <- true
 
@@ -128,18 +130,17 @@ func (self *app) Start() {
 	go func() {
 		<-channel
 		// remove the binary package on stop.
-		os.Remove(self.path)
+		os.Remove(filepath.Join(self.dir, self.binary))
 		os.Exit(1)
 	}()
 
 	// start waiting the signal to start running.
 	var gorun = self.run()
-	if err := self.install(); err == nil {
-		gorun <- true
-	}
+	self.build()
+	gorun <- true
 
-	wd := fs.Watchdog(self.pkg.Dir)
-	wd.Add(regexp.MustCompile(`\.(css|js|html|go)$`), func(event *fsnotify.Event) {
+	wd := fs.Watchdog(self.dir)
+	wd.Add(regexp.MustCompile(`\.(css|js|jsx|html|go|sass|scss)$`), func(event *fsnotify.Event) {
 		self.rerun(gorun)
 	})
 	wd.Start()
