@@ -22,6 +22,7 @@
         "build-js": "browserify -e assets/scripts/app.js -t reactify -t uglifyify -o build/scripts/app.js -d",
 
         "prebuild": "rm -rf build",
-        "build": "npm run build-css && npm run build-js"
+        "build": "npm run build-css && npm run build-js",
+        "postbuild": "cp assets/*.* build"
     }
 }

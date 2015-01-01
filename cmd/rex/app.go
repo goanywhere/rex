@@ -98,15 +98,15 @@ func (self *app) build() {
 		cmd.Dir = self.dir
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		cmd.Run()
+		if e := cmd.Run(); e == nil {
+			self.npm.installed = true
+		}
 	}
 	// * run specify script using npm.
 	if self.npm.exist && self.npm.installed {
 		cmd := exec.Command("npm", "run-script", self.Script)
 		cmd.Dir = self.dir
-		cmd.Dir = self.dir
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		log.Printf("Building static assets...")
 		cmd.Run()
 	}
 }
