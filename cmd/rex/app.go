@@ -106,8 +106,10 @@ func (self *app) build() {
 	if self.npm.exist && self.npm.installed {
 		cmd := exec.Command("npm", "run-script", self.Script)
 		cmd.Dir = self.dir
-		log.Printf("Building static assets...")
-		cmd.Run()
+		out, e := cmd.CombinedOutput()
+		if e != nil {
+			log.Fatalf("Failed to run npm script\n%s", string(out))
+		}
 	}
 }
 

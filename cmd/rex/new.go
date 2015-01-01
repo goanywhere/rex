@@ -91,9 +91,9 @@ func setupProject(project string) {
 	fs.Copy(filepath.Join(scaffold, "templates"), project)
 	fmt.Println(filepath.Join(project, "templates"))
 
-	fs.Copy(filepath.Join(scaffold, ".bowerrc"), project)
-	fs.Copy(filepath.Join(scaffold, "main.go"), project)
-	fmt.Println(filepath.Join(project, "main.go"))
+	fs.Copy(filepath.Join(scaffold, "package.json"), project)
+	fs.Copy(filepath.Join(scaffold, "app.go"), project)
+	fmt.Println(filepath.Join(project, "app.go"))
 }
 
 // 1. Fetch Golang Environment

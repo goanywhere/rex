@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/goanywhere/rex"
 	. "github.com/goanywhere/rex/context"
+	"github.com/goanywhere/rex/middleware"
 )
 
 func index(ctx *Context) {
@@ -10,7 +11,8 @@ func index(ctx *Context) {
 }
 
 func main() {
-	server := rex.Defaults()
-	server.Get("/", index)
-	server.Run()
+	app := rex.Defaults()
+	app.Use(middleware.Static("build"))
+	app.Get("/", index)
+	app.Run()
 }
