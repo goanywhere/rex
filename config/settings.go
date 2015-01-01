@@ -24,20 +24,18 @@ package config
 
 import "sync"
 
-type (
-	config struct {
-		Root      string
-		Debug     bool
-		SecretKey string
+type config struct {
+	Root      string
+	Debug     bool
+	SecretKey string
 
-		Host string
-		Port int
+	Host string
+	Port int
 
-		Templates string
+	Templates string
 
-		URLAssets string
-	}
-)
+	URLAssets string
+}
 
 var (
 	once     sync.Once
