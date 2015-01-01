@@ -38,18 +38,31 @@ import (
 	"github.com/goanywhere/rex/http/livereload"
 )
 
-type app struct {
-	dir    string
-	binary string
-	args   []string
-}
+var watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)
+
+type (
+	app struct {
+		dir    string
+		binary string
+		args   []string
+
+		Script string // script for npm.
+		npm    *npm
+	}
+
+	npm struct {
+		exist     bool
+		installed bool
+		script    string
+	}
+)
 
 func NewApp() *app {
 	cwd, _ := os.Getwd()
 
 	pkg, err := build.ImportDir(cwd, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {
-		log.Fatalf("No runnable Go sources found.")
+		log.Fatalf("No buildable Go source files found")
 	}
 
 	app := new(app)
@@ -62,26 +75,39 @@ func NewApp() *app {
 }
 
 // build compiles the application into rex-bin executable
-// to run & optionally compiles static assets using gulp.
-// TODO speicify gulp tasks.
+// to run & optionally compiles static assets using npm.
 func (self *app) build() {
-	// try build the application into rex-bin(.exe)
+	// * try build the application into rex-bin(.exe)
 	cmd := exec.Command("go", "build", "-o", self.binary)
 	cmd.Dir = self.dir
 	if e := cmd.Run(); e != nil {
 		log.Fatalf("Failed to compile the application: %v", e)
 	}
 
-	// try compile static assets using gulp.
-	if e := exec.Command("gulp", "-v").Run(); e == nil {
-		if fs.Exists(filepath.Join(self.dir, "gulpfile.js")) {
-			cmd := exec.Command("gulp")
-			cmd.Dir = self.dir
-			log.Printf("Compiling static assets...")
-			if err := cmd.Run(); err != nil {
-				log.Fatalf("Failed to compile assets via gulp: %v", err)
-			}
+	// initialize nodejs's status.
+	if self.npm == nil {
+		self.npm = new(npm)
+		if e := exec.Command("npm", "-v").Run(); e == nil {
+			self.npm.exist = true
+			self.npm.installed = false
 		}
+	}
+	// * initialize npm packages.
+	if self.npm.exist && !self.npm.installed {
+		cmd := exec.Command("npm", "install")
+		cmd.Dir = self.dir
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Run()
+	}
+	// * run specify script using npm.
+	if self.npm.exist && self.npm.installed {
+		cmd := exec.Command("npm", "run-script", self.Script)
+		cmd.Dir = self.dir
+		cmd.Dir = self.dir
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Run()
 	}
 }
 
@@ -118,7 +144,6 @@ func (self *app) rerun(gorun chan bool) {
 	self.build()
 	livereload.Reload()
 	gorun <- true
-
 }
 
 // Starts activates the application server along with
@@ -140,7 +165,7 @@ func (self *app) Start() {
 	gorun <- true
 
 	wd := fs.Watchdog(self.dir)
-	wd.Add(regexp.MustCompile(`\.(css|js|jsx|html|go|sass|scss)$`), func(event *fsnotify.Event) {
+	wd.Add(watchList, func(event *fsnotify.Event) {
 		self.rerun(gorun)
 	})
 	wd.Start()

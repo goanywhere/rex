@@ -45,21 +45,28 @@ var flags = []cli.Flag{
 		Value: 5000,
 		Usage: "port to run application server",
 	},
+	cli.StringFlag{
+		Name:  "npm",
+		Value: "build",
+		Usage: "script for npm (http://npmjs.com/)",
+	},
 }
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	app := cli.NewApp()
-	app.Name = "rex"
-	app.Usage = "manage Rex application project"
-	app.Version = "0.1.1"
-	app.Author = "GoAnywhere"
-	app.Email = "opensource@goanywhere.io"
-	app.Commands = commands
-	app.Flags = flags
-	app.Action = func(ctx *cli.Context) {
+	cmd := cli.NewApp()
+	cmd.Name = "rex"
+	cmd.Usage = "manage Rex application project"
+	cmd.Version = "0.1.1"
+	cmd.Author = "GoAnywhere"
+	cmd.Email = "opensource@goanywhere.io"
+	cmd.Commands = commands
+	cmd.Flags = flags
+	cmd.Action = func(ctx *cli.Context) {
 		env.Set("Port", ctx.String("port"))
-		NewApp().Start()
+		app := NewApp()
+		app.Script = ctx.String("npm")
+		app.Start()
 	}
-	app.Run(os.Args)
+	cmd.Run(os.Args)
 }
