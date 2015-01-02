@@ -28,27 +28,34 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/env"
 )
 
+var cwd string
+
 var commands = []cli.Command{
+	// rex project template supports
 	{
 		Name:   "new",
 		Usage:  "create a skeleton web application project",
 		Action: New,
 	},
-}
-
-var flags = []cli.Flag{
-	cli.IntFlag{
-		Name:  "port",
-		Value: 5000,
-		Usage: "port to run application server",
-	},
-	cli.StringFlag{
-		Name:  "npm",
-		Value: "build",
-		Usage: "script for npm (http://npmjs.com/)",
+	// rex server (with livereload supports)
+	{
+		Name:   "run",
+		Usage:  "start application server with livereload supports",
+		Action: Run,
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "port",
+				Value: 5000,
+				Usage: "port to run application server",
+			},
+			cli.StringFlag{
+				Name:  "task",
+				Value: "build",
+				Usage: "task script for npm (http://npmjs.com/)",
+			},
+		},
 	},
 }
 
@@ -61,12 +68,9 @@ func main() {
 	cmd.Author = "GoAnywhere"
 	cmd.Email = "opensource@goanywhere.io"
 	cmd.Commands = commands
-	cmd.Flags = flags
-	cmd.Action = func(ctx *cli.Context) {
-		env.Set("Port", ctx.String("port"))
-		app := NewApp()
-		app.Script = ctx.String("npm")
-		app.Start()
-	}
 	cmd.Run(os.Args)
+}
+
+func init() {
+	cwd, _ = os.Getwd()
 }

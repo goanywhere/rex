@@ -33,45 +33,21 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/http/livereload"
 )
 
 var watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)
 
-type (
-	app struct {
-		dir    string
-		binary string
-		args   []string
+type app struct {
+	dir    string
+	binary string
+	args   []string
 
-		Script string // script for npm.
-		npm    *npm
-	}
-
-	npm struct {
-		exist     bool
-		installed bool
-		script    string
-	}
-)
-
-func NewApp() *app {
-	cwd, _ := os.Getwd()
-
-	pkg, err := build.ImportDir(cwd, build.AllowBinary)
-	if err != nil || pkg.Name != "main" {
-		log.Fatalf("No buildable Go source files found")
-	}
-
-	app := new(app)
-	app.dir = cwd
-	app.binary = "rex-bin"
-	if runtime.GOOS == "windows" {
-		app.binary += ".exe"
-	}
-	return app
+	task string // script for npm.
 }
 
 // build compiles the application into rex-bin executable
@@ -84,27 +60,9 @@ func (self *app) build() {
 		log.Fatalf("Failed to compile the application: %v", e)
 	}
 
-	// initialize nodejs's status.
-	if self.npm == nil {
-		self.npm = new(npm)
-		if e := exec.Command("npm", "-v").Run(); e == nil {
-			self.npm.exist = true
-			self.npm.installed = false
-		}
-	}
-	// * initialize npm packages.
-	if self.npm.exist && !self.npm.installed {
-		cmd := exec.Command("npm", "install")
-		cmd.Dir = self.dir
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if e := cmd.Run(); e == nil {
-			self.npm.installed = true
-		}
-	}
 	// * run specify script using npm.
-	if self.npm.exist && self.npm.installed {
-		cmd := exec.Command("npm", "run-script", self.Script)
+	if e := exec.Command("npm", "-v").Run(); e == nil {
+		cmd := exec.Command("npm", "run-script", self.task)
 		cmd.Dir = self.dir
 		out, e := cmd.CombinedOutput()
 		if e != nil {
@@ -171,4 +129,22 @@ func (self *app) Start() {
 		self.rerun(gorun)
 	})
 	wd.Start()
+}
+
+// Run creates an executable application package with livereload supports.
+func Run(ctx *cli.Context) {
+	env.Set("Port", ctx.String("port"))
+
+	pkg, err := build.ImportDir(cwd, build.AllowBinary)
+	if err != nil || pkg.Name != "main" {
+		log.Fatalf("No buildable Go source files found")
+	}
+	app := new(app)
+	app.dir = cwd
+	app.binary = "rex-bin"
+	if runtime.GOOS == "windows" {
+		app.binary += ".exe"
+	}
+	app.task = ctx.String("task")
+	app.Start()
 }

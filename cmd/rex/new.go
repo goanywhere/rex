@@ -6,7 +6,7 @@
  *    \____/\____/_/  |_/_/ /_/\__. / |__/|__/_/ /_/\___/_/   \___/
  *                            /____/
  *
- * (C) Copyright 2014 GoAnywhere (http://goanywhere.io).
+ * (C) Copyright 2015 GoAnywhere (http://goanywhere.io).
  * ----------------------------------------------------------------------
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
 package main
 
 import (
@@ -28,96 +27,71 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/crypto"
 )
 
-var (
-	pattern *regexp.Regexp
-	pool    = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-)
+const endpoint = "https://github.com/goanywhere/rex-scaffolds"
 
-// getWorkspace finds the very first workspace as project base under $GOPATH.
-func getWorkspace() (workspace string, err error) {
-	if gopath := os.Getenv("GOPATH"); gopath != "" {
-		workspace = strings.Split(gopath, ";")[0]
-	} else {
-		err = os.ErrNotExist
-	}
-	return
+var secrets = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
+
+type project struct {
+	name string
+	root string
 }
 
-// createProject creates the given path under $GOPATH/src along with
-// a dotenv file contains the generated secret key for your web app.
-func createProject(path string) (project string, err error) {
-	if gopath := os.Getenv("GOPATH"); gopath != "" {
-		workspace := strings.Split(gopath, ";")[0]
-		project = filepath.Join(workspace, "src", path)
-		if fs.Exists(project) {
-			project, err = "", os.ErrExist
-			return
+func (self *project) create() {
+	cmd := exec.Command("git", "clone", endpoint, self.name)
+	cmd.Dir = cwd
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if e := cmd.Run(); e == nil {
+		self.root = filepath.Join(cwd, self.name)
+		// create dotenv under project's root.
+		filename := filepath.Join(self.root, ".env")
+		if dotenv, err := os.Create(filename); err == nil {
+			defer dotenv.Close()
+			buffer := bufio.NewWriter(dotenv)
+			buffer.WriteString(fmt.Sprintf("SecretKey=\"%s\"\n", crypto.RandomString(64, secrets)))
+			buffer.Flush()
+			// initialize project packages via nodejs.
+			self.setup()
 		}
-		if err = os.MkdirAll(project, os.ModePerm); err == nil {
-			filename := filepath.Join(project, ".env")
-			if dotenv, err := os.Create(filename); err == nil {
-				defer dotenv.Close()
-				buffer := bufio.NewWriter(dotenv)
-				buffer.WriteString(fmt.Sprintf("SecretKey=\"%s\"\n", crypto.RandomString(64, pool)))
-				buffer.Flush()
-			}
-		}
-	} else {
-		err = os.ErrNotExist
 	}
-	return
 }
 
-// setupProject copies fixes assets into newly create project,
-// generated project specific values for Go files.
-// TODO project specific values template parsing
-func setupProject(project string) {
-	_, me, _, _ := runtime.Caller(1)
-	scaffold := filepath.Join(filepath.Dir(me), "..", "scaffold")
-
-	fs.Copy(filepath.Join(scaffold, "assets"), project)
-	fmt.Println(filepath.Join(project, "assets"))
-
-	fs.Copy(filepath.Join(scaffold, "templates"), project)
-	fmt.Println(filepath.Join(project, "templates"))
-
-	fs.Copy(filepath.Join(scaffold, "package.json"), project)
-	fs.Copy(filepath.Join(scaffold, "app.go"), project)
-	fmt.Println(filepath.Join(project, "app.go"))
+func (self *project) setup() {
+	if e := exec.Command("npm", "-v").Run(); e == nil {
+		fmt.Printf("Setting up project dependencies...")
+		cmd := exec.Command("npm", "install")
+		cmd.Dir = self.root
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Run()
+	} else {
+		log.Fatalf("Failed to setup project dependecies: nodejs is missing.")
+	}
 }
 
-// 1. Fetch Golang Environment
-// 2. Create Workspace under Given Namespace
-// 3. Generate .env under created workspace.
-// 4. Copy Fixed Assets
-// 5. Render Text Template Go Files.
 func New(context *cli.Context) {
-	args := context.Args()
-	if len(args) != 1 || !pattern.MatchString(args[0]) {
-		log.Printf("Please provide a valid project name/path")
-	} else {
-		if project, err := createProject(args[0]); err == nil {
-			setupProject(project)
-		} else {
-			log.Fatalf("Failed to create project: %s", err)
-		}
-	}
-}
-
-func init() {
+	var pattern *regexp.Regexp
 	if runtime.GOOS == "windows" {
 		pattern = regexp.MustCompile(`\A(?:[0-9a-zA-Z\.\_\-]+\\?)+\z`)
 	} else {
 		pattern = regexp.MustCompile(`\A(?:[0-9a-zA-Z\.\_\-]+\/?)+\z`)
+	}
+
+	args := context.Args()
+	if len(args) != 1 || !pattern.MatchString(args[0]) {
+		log.Printf("Please provide a valid project name/path")
+	} else {
+		project := new(project)
+		project.name = args[0]
+		project.create()
 	}
 }
