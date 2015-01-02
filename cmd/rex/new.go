@@ -62,12 +62,15 @@ func (self *project) create() {
 			// initialize project packages via nodejs.
 			self.setup()
 		}
+		os.RemoveAll(filepath.Join(self.root, ".git"))
+		os.RemoveAll(filepath.Join(self.root, "README.md"))
+		os.RemoveAll(filepath.Join(self.root, "LICENSE"))
 	}
 }
 
 func (self *project) setup() {
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		fmt.Printf("Setting up project dependencies...")
+		fmt.Println("Setting up project dependencies...")
 		cmd := exec.Command("npm", "install")
 		cmd.Dir = self.root
 		cmd.Stdout = os.Stdout
