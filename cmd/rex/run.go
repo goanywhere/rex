@@ -87,7 +87,7 @@ func (self *app) run() (gorun chan bool) {
 			if !start {
 				continue
 			}
-			cmd := exec.Command(filepath.Join(self.dir, self.binary))
+			cmd := exec.Command(self.binary)
 			cmd.Dir = self.dir
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -115,7 +115,7 @@ func (self *app) Start() {
 	go func() {
 		<-channel
 		// remove the binary package on stop.
-		os.Remove(filepath.Join(self.dir, self.binary))
+		os.Remove(self.binary)
 		os.Exit(1)
 	}()
 
@@ -141,7 +141,7 @@ func Run(ctx *cli.Context) {
 	}
 	app := new(app)
 	app.dir = cwd
-	app.binary = "rex-bin"
+	app.binary = filepath.Join(os.TempDir(), "rex-bin")
 	if runtime.GOOS == "windows" {
 		app.binary += ".exe"
 	}
