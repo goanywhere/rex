@@ -46,7 +46,7 @@ type project struct {
 }
 
 func (self *project) create() {
-	prompt("Fetching project template")
+	prompt("Fetching project template\n")
 	var done = make(chan bool)
 	loading(done)
 
@@ -75,7 +75,7 @@ func (self *project) create() {
 
 func (self *project) setup() {
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		prompt("Fetching project dependencies")
+		prompt("Fetching project dependencies\n")
 		cmd := exec.Command("npm", "install")
 		cmd.Dir = self.root
 		cmd.Stdout = os.Stdout

@@ -33,21 +33,30 @@ const prefix = "*"
 // processing task. NOTE that task needs to manually notify
 // the prompt once the task is done.
 func loading(done chan bool) {
+	var (
+		index      = 0
+		indicators = []string{"-", "\\", "|", "/"}
+	)
 	go func() {
 		for {
 			select {
 			case <-done:
-				fmt.Println(".")
+				fmt.Print(" \b")
 				close(done)
 				return
 			default:
-				fmt.Print(".")
-				time.Sleep(time.Second)
+				fmt.Printf("%s\b", indicators[index])
+				if index < (len(indicators) - 1) {
+					index++
+				} else {
+					index = 0
+				}
+				time.Sleep(50 * time.Millisecond)
 			}
 		}
 	}()
 }
 
 func prompt(message string) {
-	fmt.Printf("%s %s\n", prefix, message)
+	fmt.Printf("%s %s", prefix, message)
 }
