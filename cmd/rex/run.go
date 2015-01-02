@@ -53,6 +53,9 @@ type app struct {
 // build compiles the application into rex-bin executable
 // to run & optionally compiles static assets using npm.
 func (self *app) build() {
+	var done = make(chan bool)
+	loading(done)
+
 	// * try build the application into rex-bin(.exe)
 	cmd := exec.Command("go", "build", "-o", self.binary)
 	cmd.Dir = self.dir
@@ -71,6 +74,7 @@ func (self *app) build() {
 			}
 		}
 	}
+	done <- true
 }
 
 // run executes the runnerable executable under package binary root.
@@ -127,6 +131,7 @@ func (self *app) Start() {
 	gorun <- true
 
 	wd := fs.Watchdog(self.dir)
+	wd.Ignore("build", "dist")
 	wd.Add(watchList, func(event *fsnotify.Event) {
 		self.rerun(gorun)
 	})
