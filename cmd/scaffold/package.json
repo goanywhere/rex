@@ -16,14 +16,14 @@
     },
     "scripts": {
         "prebuild-css": "mkdir -p build/styles",
-        "build-css": "node-sass --include-path=node_modules/foundation-scss --include-path=assets/styles --output-style=expanded assets/styles/app.scss build/styles/app.min.css",
+        "build-css": "node-sass --include-path=assets/styles --include-path=node_modules --include-path=node_modules/foundation-scss --output-style=expanded assets/styles/app.scss build/styles/app.min.css",
         "postbuild-css": "autoprefixer -b 'last 2 version, ff 20, safari 5, ie 8, ie 9, opera 12.1' build/styles/app.min.css",
 
         "prebuild-js": "mkdir -p build/scripts",
-        "build-js": "browserify -e assets/scripts/app.js -t reactify -t uglifyify -o build/scripts/app.js -d",
+        "build-js": "browserify -e assets/scripts/app.js -t reactify -t uglifyify -o build/scripts/app.min.js -d",
 
         "prebuild": "rm -rf build",
-        "build": "npm run build-css && npm run build-js",
+        "build": "npm run build-css & npm run build-js",
         "postbuild": "cp assets/*.* build"
     }
 }
