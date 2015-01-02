@@ -46,10 +46,12 @@ type project struct {
 }
 
 func (self *project) create() {
+	prompt("Fetching project template")
+	var done = make(chan bool)
+	loading(done)
+
 	cmd := exec.Command("git", "clone", endpoint, self.name)
 	cmd.Dir = cwd
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if e := cmd.Run(); e == nil {
 		self.root = filepath.Join(cwd, self.name)
 		// create dotenv under project's root.
@@ -59,18 +61,21 @@ func (self *project) create() {
 			buffer := bufio.NewWriter(dotenv)
 			buffer.WriteString(fmt.Sprintf("SecretKey=\"%s\"\n", crypto.RandomString(64, secrets)))
 			buffer.Flush()
+			// close loading here as nodejs will take over prompt.
+			done <- true
 			// initialize project packages via nodejs.
 			self.setup()
 		}
 		os.RemoveAll(filepath.Join(self.root, ".git"))
-		os.RemoveAll(filepath.Join(self.root, "README.md"))
-		os.RemoveAll(filepath.Join(self.root, "LICENSE"))
+	} else {
+		// loading prompt should be closed in anyway.
+		done <- true
 	}
 }
 
 func (self *project) setup() {
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		fmt.Println("Setting up project dependencies...")
+		prompt("Fetching project dependencies")
 		cmd := exec.Command("npm", "install")
 		cmd.Dir = self.root
 		cmd.Stdout = os.Stdout
@@ -91,7 +96,7 @@ func New(context *cli.Context) {
 
 	args := context.Args()
 	if len(args) != 1 || !pattern.MatchString(args[0]) {
-		log.Printf("Please provide a valid project name/path")
+		log.Fatal("Please provide a valid project name/path")
 	} else {
 		project := new(project)
 		project.name = args[0]

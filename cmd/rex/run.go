@@ -60,13 +60,15 @@ func (self *app) build() {
 		log.Fatalf("Failed to compile the application: %v", e)
 	}
 
-	// * run specify script using npm.
+	// * run (build) script if we have npm & package.json.
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		cmd := exec.Command("npm", "run-script", self.task)
-		cmd.Dir = self.dir
-		out, e := cmd.CombinedOutput()
-		if e != nil {
-			log.Fatalf("Failed to run npm script\n%s", string(out))
+		if fs.Exists(filepath.Join(self.dir, "package.json")) {
+			cmd := exec.Command("npm", "run-script", self.task)
+			cmd.Dir = self.dir
+			out, e := cmd.CombinedOutput()
+			if e != nil {
+				log.Fatalf("Failed to run npm script\n%s", string(out))
+			}
 		}
 	}
 }
