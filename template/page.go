@@ -28,9 +28,13 @@ import (
 	"io/ioutil"
 	"log"
 	"path"
+	"regexp"
 	"strings"
+)
 
-	"github.com/goanywhere/regex/tags"
+var (
+	extends = regexp.MustCompile(`{%\s+extends\s+["]([^"]*\.html)["]\s+%}`)
+	include = regexp.MustCompile(`{%\s+include\s+["]([^"]*\.html)["]\s+%}`)
 )
 
 type page struct {
@@ -52,7 +56,7 @@ func (self *page) ancestors() (names []string) {
 			log.Fatalf("Failed to open template (%s): %v", name, err)
 		}
 
-		var result = tags.Extends.FindSubmatch(bits)
+		var result = extends.FindSubmatch(bits)
 		if result == nil {
 			break
 		}
@@ -80,7 +84,7 @@ func (self *page) include() (source string) {
 
 	source = string(bits)
 	for {
-		result := tags.Include.FindAllStringSubmatch(source, -1)
+		result := include.FindAllStringSubmatch(source, -1)
 		if result == nil {
 			break
 		}
