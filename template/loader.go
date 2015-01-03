@@ -28,9 +28,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 )
+
+var ignores = regexp.MustCompile(`(component|include|layout|module)s?`)
 
 type Loader struct {
 	root      string
@@ -62,6 +65,11 @@ func (self *Loader) Exists(name string) bool {
 // Files lists all HTML files under the root.
 func (self *Loader) Files() (names []string) {
 	err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
+		// ignore partial HTMLs by passing its parent folders.
+		if info.IsDir() && ignores.MatchString(info.Name()) {
+			return filepath.SkipDir
+		}
+
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
 			if name, e := filepath.Rel(self.root, path); e == nil {
 				names = append(names, name)
