@@ -33,7 +33,7 @@ import (
 	"sync"
 )
 
-var ignores = regexp.MustCompile(`(component|include|layout|module)s?`)
+var ignores = regexp.MustCompile(`(include|layout)s?`)
 
 type Loader struct {
 	root      string
@@ -62,14 +62,13 @@ func (self *Loader) Exists(name string) bool {
 	return true
 }
 
-// Files lists all HTML files under the root.
-func (self *Loader) Files() (names []string) {
+// files lists all HTML files under the root.
+func (self *Loader) files() (names []string) {
 	err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
-		// ignore partial HTMLs by passing its parent folders.
+		// NOTE ignore folders for partial HTMLs: layout(s) & include(s).
 		if info.IsDir() && ignores.MatchString(info.Name()) {
 			return filepath.SkipDir
 		}
-
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
 			if name, e := filepath.Rel(self.root, path); e == nil {
 				names = append(names, name)
@@ -79,11 +78,9 @@ func (self *Loader) Files() (names []string) {
 		}
 		return err
 	})
-
 	if err != nil {
-		log.Fatalf("rex/template: files list cannot be listed: %v", err)
+		log.Fatalf("Failed to list HTML templates: %v", err)
 	}
-
 	return
 }
 
@@ -100,7 +97,7 @@ func (self *Loader) Load() (pages int) {
 	if !self.loaded {
 		self.mutex.Lock()
 		defer self.mutex.Unlock()
-		for _, name := range self.Files() {
+		for _, name := range self.files() {
 			self.templates[name] = self.page(name).parse()
 			pages++
 		}
