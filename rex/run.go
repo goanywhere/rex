@@ -35,9 +35,9 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
-	"github.com/goanywhere/env"
-	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/http/livereload"
+	"github.com/goanywhere/x/env"
+	"github.com/goanywhere/x/fs"
 )
 
 var watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)

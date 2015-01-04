@@ -28,9 +28,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/http"
+	"github.com/goanywhere/x/env"
 )
 
 var Settings = config.Settings()

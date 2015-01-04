@@ -41,11 +41,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/http/livereload"
 	"github.com/goanywhere/rex/template"
+	"github.com/goanywhere/x/env"
 )
 
 const ContentType = "Content-Type"

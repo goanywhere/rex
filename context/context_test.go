@@ -29,8 +29,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/x/env"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

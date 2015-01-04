@@ -25,8 +25,8 @@ package rex
 
 import (
 	_ "github.com/codegangsta/cli"
-	_ "github.com/goanywhere/env"
-	_ "github.com/goanywhere/fs"
+	_ "github.com/goanywhere/x/env"
+	_ "github.com/goanywhere/x/fs"
 	_ "github.com/gorilla/mux"
 	_ "github.com/smartystreets/goconvey/convey"
 )
