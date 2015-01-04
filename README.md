@@ -17,7 +17,10 @@ $ go get -v github.com/goanywhere/rex/...
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
 * Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
-* Command line tools (incl. Live reload supports).
+* Command line tools 
+    * Auto compile for .go & .html
+    * Support npm-based package.json
+    * Browser-based Live reload supports
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
