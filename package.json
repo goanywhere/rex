@@ -1,0 +1,40 @@
+{
+    "name": "rex-scaffolds",
+    "version": "0.9.0",
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/goanywhere/rex"
+    },
+    "config": {
+        "a": "assets",
+        "b": "build"
+    },
+    "devDependencies": {
+        "autoprefixer": "latest",
+        "browserify": "latest",
+        "foundation-scss": "latest",
+        "node-sass": "latest",
+        "reactify": "latest",
+        "uglifyify": "latest"
+    },
+    "peerDependencies": {
+        "bn.js": "^0.15.0"
+    },
+    "scripts": {
+
+        "prebuild-css": "mkdir -p $npm_package_config_b/styles",
+        "build-css": "node-sass --include-path=$npm_package_config_a/styles --include-path=node_modules --include-path=node_modules/foundation-scss --output-style=expanded $npm_package_config_a/styles/app.scss $npm_package_config_b/styles/app.min.css",
+        "postbuild-css": "autoprefixer -b 'last 2 version, ff 20, safari 5, ie 8, ie 9, opera 12.1' $npm_package_config_b/styles/app.min.css",
+
+        "prebuild-js": "mkdir -p $npm_package_config_b/scripts",
+        "build-js": "browserify -e $npm_package_config_a/scripts/app.js -t reactify -t uglifyify -o $npm_package_config_b/scripts/app.min.js -d",
+
+        "prebuild-img": "mkdir -p $npm_package_config_b/images",
+        "build-img": "cp -r $npm_package_config_a/images/* $npm_package_config_b/images/",
+
+        "prebuild": "rm -rf $npm_package_config_b",
+        "build": "npm run build-css & npm run build-js & npm run build-img",
+        "postbuild": "cp $npm_package_config_a/*.* $npm_package_config_b"
+    }
+}
