@@ -5,18 +5,11 @@ Rex is a powerful framework for modular web applications/services in Golang.
 
 ## Getting Started
 
-Install the package (**go 1.4** and greater is required):
+Install the package, along with executable binary helper (**go 1.4** and greater is required):
 
 ```shell
-$ go get -v github.com/goanywhere/rex
+$ go get -v github.com/goanywhere/rex/...
 ```
-
-Command line tool (Optional but highly recommended)
-
-```shell
-$ go get -v github.com/goanywhere/rex/rex
-```
-
 
 ## Features
 * Flexible Env-based configurations.
