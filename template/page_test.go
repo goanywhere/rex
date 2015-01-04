@@ -29,7 +29,7 @@ import (
 )
 
 func TestExtends(t *testing.T) {
-	Convey("Regex. Tag:Extends", t, func() {
+	Convey("extends", t, func() {
 		So(extends.MatchString("{% extends \"layouts/base.html\" %}"), ShouldBeTrue)
 		So(extends.MatchString("{% extends \"c://Users/someone/templates/layouts/base.html\" %}"), ShouldBeTrue)
 		So(len(extends.FindStringSubmatch("{% extends \"layouts/base.html\" %}")), ShouldEqual, 2)
@@ -38,7 +38,7 @@ func TestExtends(t *testing.T) {
 }
 
 func TestInclude(t *testing.T) {
-	Convey("Regex. Tag:Include", t, func() {
+	Convey("include", t, func() {
 		So(include.MatchString("{% include \"partials/header.html\" %}"), ShouldBeTrue)
 		So(include.MatchString("{% include \"c://Users/someone/templates/partials/nav.html\" %}"), ShouldBeTrue)
 		So(len(include.FindStringSubmatch("{% include \"partials/nav.html\" %}")), ShouldEqual, 2)

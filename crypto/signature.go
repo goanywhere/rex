@@ -39,7 +39,7 @@ import (
 var (
 	errSignatureInvalid = errors.New("The signature is invalid")
 	errSignatureExpired = errors.New("The signature is already expired")
-	regexSignature      = regexp.MustCompile(`((\d{19})\|(\w+)\|(\w{40}))`)
+	signature           = regexp.MustCompile(`((\d{19})\|(\w+)\|(\w{40}))`)
 )
 
 type Signature struct {
@@ -92,7 +92,7 @@ func (self *Signature) Encode(key string, src []byte) (value string, err error) 
 //	3) verify nano timestamp
 func (self *Signature) Decode(key, value string) (src []byte, err error) {
 	if bits, err := base64.URLEncoding.DecodeString(value); err == nil {
-		if regexSignature.Match(bits) {
+		if signature.Match(bits) {
 			// values: nano|src(hex)|crc
 			values := strings.Split(string(bits), "|")
 			if nano, err := strconv.ParseInt(values[0], 0, 64); err == nil {

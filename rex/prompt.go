@@ -27,8 +27,6 @@ import (
 	"time"
 )
 
-const prefix = "*"
-
 // Loading provides a simple dotted loading prompt while
 // processing task. NOTE that task needs to manually notify
 // the prompt once the task is done.
@@ -57,6 +55,6 @@ func loading(done chan bool) {
 	}()
 }
 
-func prompt(message string) {
-	fmt.Printf("%s %s", prefix, message)
+func prompt(message string, values ...interface{}) {
+	fmt.Printf(fmt.Sprintf("* %s", message), values...)
 }
