@@ -1,7 +1,7 @@
 Rex
 ======
 
-Rex is a powerful starter kit for modular web applications/services in Golang.
+Rex is a powerful framework for modular web applications/services in Golang.
 
 ## Getting Started
 
@@ -14,7 +14,7 @@ $ go get -v github.com/goanywhere/rex
 Command line tool (Optional but highly recommended)
 
 ```shell
-$ go get -v github.com/goanywhere/rex/cmd/rex
+$ go get -v github.com/goanywhere/rex/rex
 ```
 
 
@@ -35,7 +35,7 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/context"
+    . "github.com/goanywhere/rex/context"
 )
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
         ctx := context.New(w, r)
         ctx.String("Hello World")
     })
-    server.Get("/hello", func(ctx *context.Context) {
+    server.Get("/hello", func(ctx *Context) {
         ctx.String("Hello Again")
     })
     server.Run()
@@ -53,7 +53,7 @@ func main() {
 
 Then start your server:
 ``` shell
-rex
+rex run
 ```
 
 You will now have a HTTP server running on `localhost:5000`.
@@ -90,7 +90,7 @@ loader := template.NewLoader("templates")
 template := loader.Parse("index.html")
 ```
 
-There you Go now, simple as that.
+There you Go now, rex will parse all *extends* and *include* tags in your HTML files, simple as that.
 
 
 ## Context
@@ -131,7 +131,6 @@ All settings on Rex can be accessed via `rex.Settings`, which essentially stored
 package main
 
 import (
-    "github.com/goanywhere/env"
     "github.com/goanywhere/rex"
     . "github.com/goanywhere/rex/context"
 )
@@ -142,7 +141,7 @@ func index (ctx *Context) {
 
 func main() {
     // Override default 5000 port here.
-    env.Set("Port", "9394")
+    rex.Settings.Port = 9394
 
     server := rex.New()
     server.Get("/", index)
