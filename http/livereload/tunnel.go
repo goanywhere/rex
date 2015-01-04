@@ -6,7 +6,7 @@
  *    \____/\____/_/  |_/_/ /_/\__. / |__/|__/_/ /_/\___/_/   \___/
  *                            /____/
  *
- * (C) Copyright 2014 GoAnywhere (http://goanywhere.io).
+ * (C) Copyright 2015 GoAnywhere (http://goanywhere.io).
  * ----------------------------------------------------------------------
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
