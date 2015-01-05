@@ -36,7 +36,7 @@ import (
 	"github.com/goanywhere/rex/crypto"
 )
 
-const endpoint = "https://github.com/goanywhere/rex-scaffolds"
+const endpoint = "https://github.com/goanywhere/rex"
 
 var secrets = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
 
@@ -50,7 +50,7 @@ func (self *project) create() {
 	var done = make(chan bool)
 	loading(done)
 
-	cmd := exec.Command("git", "clone", endpoint, self.name)
+	cmd := exec.Command("git", "clone", "-b", "scaffolds", endpoint, self.name)
 	cmd.Dir = cwd
 	if e := cmd.Run(); e == nil {
 		self.root = filepath.Join(cwd, self.name)
@@ -67,6 +67,7 @@ func (self *project) create() {
 			self.setup()
 		}
 		os.RemoveAll(filepath.Join(self.root, ".git"))
+		os.Remove(filepath.Join(self.root, "README.md"))
 	} else {
 		// loading prompt should be closed in anyway.
 		done <- true
