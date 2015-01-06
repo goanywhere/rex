@@ -119,6 +119,9 @@ func (self *Context) Write(data []byte) (size int, err error) {
 	if !self.Written() {
 		self.WriteHeader(http.StatusOK)
 	}
+	if v := self.Header().Get(ContentType); v == "" {
+		self.Header().Set(ContentType, "application/octet-stream")
+	}
 	size, err = self.ResponseWriter.Write(data)
 	self.size += size
 	return
@@ -273,12 +276,6 @@ func (self *Context) XML(values interface{}) {
 func (self *Context) String(format string, values ...interface{}) {
 	self.Header().Set(ContentType, "text/plain; charset=utf-8")
 	self.Write([]byte(fmt.Sprintf(format, values...)))
-}
-
-// Data writes binary data back into the HTTP response.
-func (self *Context) Data(data []byte) {
-	self.Header().Set(ContentType, "application/octet-stream")
-	self.Write(data)
 }
 
 func init() {

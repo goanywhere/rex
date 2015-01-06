@@ -1,7 +1,7 @@
 Rex
 ======
 
-Rex is a powerful framework for modular web applications/services in Golang.
+Rex is a powerful framework for modular web development in Golang.
 
 ## Getting Started
 
@@ -19,8 +19,8 @@ $ go get -v github.com/goanywhere/rex/...
 * Works nicely with other Golang packages.
 * Command line tools 
     * Auto compile for .go & .html
-    * Support npm-based package.json
     * Browser-based Live reload supports
+    * Support Node scripts (defined in package.json)
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
