@@ -26,14 +26,34 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"github.com/goanywhere/rex/template"
 )
 
-// ---------------------------------------------------------------------------
-//  Static Resource Middleware Supports
-// ---------------------------------------------------------------------------
-func serveStatic(prefix string, folder string, w http.ResponseWriter, r *http.Request) {
-	var dir = http.Dir(filepath.Join(settings.Root, folder))
-	var path = r.URL.Path[len(prefix):]
+type static struct {
+	Dir  string
+	URL  string
+	once sync.Once
+}
+
+func (self *static) init(options Options) {
+	self.Dir = options.Get("Dir", "build").(string)
+	self.URL = options.Get("URL", "/static/").(string)
+
+	self.once.Do(func() {
+		template.Functions["static"] = func(path string) string {
+			return strings.Join([]string{
+				strings.TrimRight(self.URL, "/"),
+				strings.TrimLeft(path, "/")},
+				"/")
+		}
+	})
+}
+
+func (self *static) serve(w http.ResponseWriter, r *http.Request) {
+	var dir = http.Dir(filepath.Join(settings.Root, self.Dir))
+	var path = r.URL.Path[len(self.URL):]
 
 	var file, err = dir.Open(path)
 	if err != nil {
@@ -70,12 +90,13 @@ func serveStatic(prefix string, folder string, w http.ResponseWriter, r *http.Re
 }
 
 func Static(options Options) func(http.Handler) http.Handler {
+	s := new(static)
+	s.init(options)
+
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URLAssets) {
-				var url = options.Get("URL", settings.URLAssets).(string)
-				var dir = options.Get("Dir", "build").(string)
-				serveStatic(url, dir, w, r)
+			if r.Method == "GET" && strings.HasPrefix(r.URL.Path, s.URL) {
+				s.serve(w, r)
 			} else {
 				next.ServeHTTP(w, r)
 			}

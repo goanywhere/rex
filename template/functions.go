@@ -22,19 +22,6 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import (
-	"html/template"
-	"strings"
-)
+import "html/template"
 
-// TODO URLAssets
-func static(path string) string {
-	return strings.Join([]string{
-		strings.TrimRight("/static/", "/"),
-		strings.TrimLeft(path, "/")},
-		"/")
-}
-
-var functions = template.FuncMap{
-	"static": static,
-}
+var Functions = template.FuncMap{}

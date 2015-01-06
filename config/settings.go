@@ -33,7 +33,6 @@ type config struct {
 	Port int
 
 	Templates string
-	URLAssets string
 
 	XFrameOptions       string
 	XContentTypeOptions string
@@ -55,7 +54,6 @@ func Settings() *config {
 		settings.Port = 5000
 
 		settings.Templates = "templates"
-		settings.URLAssets = "/static/"
 
 		settings.XFrameOptions = "deny"
 		settings.XContentTypeOptions = "nosniff"
