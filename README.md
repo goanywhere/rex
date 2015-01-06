@@ -150,16 +150,16 @@ You will now have the HTTP server running on `0.0.0.0:9394`.
 Hey, dude, why not just use those popular approaches, like file-based config? We know you'll be asking & we have the answer as well, [here](//12factor.net/config).
 
 
-## Middleware
+## Modules
 
-Middlewares work between http requests and the router, they are no different than the standard http.Handler. Existing middlewares from other frameworks like logging, authorization, session, gzipping are very easy to integrate into Rex. As long as the middleware comply the `rex.Middleware` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
+Modules work between http requests and the router, they are no different than the standard http.Handler. Existing modules (aka. middleware) from other frameworks like logging, authorization, session, gzipping are very easy to integrate into Rex. As long as it complies the `rex.Module` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
 
 ``` go
-app.Use(middleware.XSRF)
+app.Use(modules.XSRF)
 ```
 
 
-Since the middleware is just the standard http.Handler, writing a custom middleware is also pretty straightforward:
+Since a module is just the standard http.Handler, writing a custom module is also pretty straightforward:
 
 ``` go
 app.Use(func(next http.Handler) http.Handler {
@@ -192,7 +192,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Template Functions
 - [ ] Better Logging
 - [ ] i18n Supports
-- [ ] More Middlewares
+- [ ] More Modules
 - [ ] Form Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration

@@ -33,8 +33,12 @@ type config struct {
 	Port int
 
 	Templates string
-
 	URLAssets string
+
+	XFrameOptions       string
+	XContentTypeOptions string
+	XXSSProtection      string
+	XUACompatible       string
 }
 
 var (
@@ -52,6 +56,11 @@ func Settings() *config {
 
 		settings.Templates = "templates"
 		settings.URLAssets = "/static/"
+
+		settings.XFrameOptions = "deny"
+		settings.XContentTypeOptions = "nosniff"
+		settings.XXSSProtection = "1; mode=block"
+		settings.XUACompatible = "IE=Edge,chrome=1"
 	})
 	return settings
 }

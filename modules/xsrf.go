@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
-package middleware
+package modules
 
 import (
 	"bytes"

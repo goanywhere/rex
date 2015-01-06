@@ -35,14 +35,14 @@ import (
 
 type (
 	Server struct {
-		router      *mux.Router
-		middlewares []Middleware
+		router  *mux.Router
+		modules []Module
 	}
 
 	HandlerFunc func(*context.Context)
 
-	// Conventional method to implement custom middlewares.
-	Middleware func(http.Handler) http.Handler
+	// Conventional method to implement custom modules.
+	Module func(http.Handler) http.Handler
 )
 
 // New creates an application instance & setup its default settings..
@@ -62,7 +62,7 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
 //	* rex.HandlerFunc	=> func(ctx *Context)
-func (self *Server) process(method, pattern string, h interface{}) {
+func (self *Server) register(method, pattern string, h interface{}) {
 	var handler http.Handler
 
 	switch h.(type) {
@@ -84,43 +84,43 @@ func (self *Server) process(method, pattern string, h interface{}) {
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Get(pattern string, handler interface{}) {
-	self.process("GET", pattern, handler)
+	self.register("GET", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Post(pattern string, handler interface{}) {
-	self.process("POST", pattern, handler)
+	self.register("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Put(pattern string, handler interface{}) {
-	self.process("PUT", pattern, handler)
+	self.register("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Delete(pattern string, handler interface{}) {
-	self.process("DELETE", pattern, handler)
+	self.register("DELETE", pattern, handler)
 }
 
 // Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Patch(pattern string, handler http.HandlerFunc) {
-	self.process("PATCH", pattern, handler)
+	self.register("PATCH", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Head(pattern string, handler http.HandlerFunc) {
-	self.process("HEAD", pattern, handler)
+	self.register("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Options(pattern string, handler http.HandlerFunc) {
-	self.process("OPTIONS", pattern, handler)
+	self.register("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
@@ -129,17 +129,17 @@ func (self *Server) Group(path string) *Server {
 }
 
 // Use append middleware into the serving list, middleware will be served in FIFO order.
-func (self *Server) Use(middlewares ...Middleware) {
-	self.middlewares = append(self.middlewares, middlewares...)
+func (self *Server) Use(modules ...Module) {
+	self.modules = append(self.modules, modules...)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var mux http.Handler = self.router
-	// Activate middlewares in FIFO order.
-	if len(self.middlewares) > 0 {
-		for index := len(self.middlewares) - 1; index >= 0; index-- {
-			mux = self.middlewares[index](mux)
+	// Activate modules in FIFO order.
+	if len(self.modules) > 0 {
+		for index := len(self.modules) - 1; index >= 0; index-- {
+			mux = self.modules[index](mux)
 		}
 	}
 	mux.ServeHTTP(writer, request)

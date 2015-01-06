@@ -20,38 +20,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package rex
+package modules
 
 import (
-	"log"
-	"os"
-	"path/filepath"
-
-	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/http"
-	"github.com/goanywhere/rex/modules"
-	"github.com/goanywhere/x/env"
+	"net/http"
+	"strings"
 )
 
-var Settings = config.Settings()
-
-// Shortcut to create map.
-type H map[string]interface{}
-
-// New creates a plain web.Server.
-func New() *http.Server {
-	env.Load(filepath.Join(Settings.Root, ".env"))
-	env.Dump(Settings)
-	server := http.NewServer()
-	server.Use(modules.Security(modules.Options{}))
-	return server
-}
-
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
+// NoCache simply disables browser-base cache.
+func NoCache(path string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, path) {
+				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+				w.Header().Set("Pragma", "no-cache")
+				w.Header().Set("Expires", "0")
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
 }

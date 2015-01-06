@@ -20,23 +20,36 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package middleware
+package modules
 
-import (
-	"net/http"
-	"strings"
+import "net/http"
+
+const (
+	xFrameOptions       = "X-Frame-Options"
+	xContentTypeOptions = "X-Content-Type-Options"
+	xXSSProtection      = "X-XSS-Protection"
+	xUACompatible       = "X-UA-Compatible"
 )
 
-// NoCache simply disables browser-base cache.
-func NoCache(prefix string) func(http.Handler) http.Handler {
+func securelySetHeader(w http.ResponseWriter, key string, value interface{}) {
+	if v := w.Header().Get(key); v == "" {
+		if value != nil {
+			w.Header().Set(key, value.(string))
+		}
+	}
+}
+
+// Security provides basic security supports by rendering common response headers.
+func Security(options Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, prefix) {
-				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-				w.Header().Set("Pragma", "no-cache")
-				w.Header().Set("Expires", "0")
-			}
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			securelySetHeader(w, xFrameOptions, options.Get("X-Frame-Options", settings.XFrameOptions))
+			securelySetHeader(w, xContentTypeOptions, options.Get("X-Content-Type-Options", settings.XContentTypeOptions))
+			securelySetHeader(w, xXSSProtection, options.Get("X-XSS-Protection", settings.XXSSProtection))
+			securelySetHeader(w, xUACompatible, options.Get("X-UA-Compatible", settings.XUACompatible))
+
 			next.ServeHTTP(w, r)
-		})
+		}
+		return http.HandlerFunc(fn)
 	}
 }

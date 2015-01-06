@@ -20,10 +20,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package middleware
+
+package modules
 
 import (
-	"github.com/goanywhere/rex/config"
+	"log"
+	"net/http"
+	"os"
 )
 
-var settings = config.Settings()
+var logger = log.New(os.Stdout, "[rex]", 0)
+
+// ---------------------------------------------------------------------------
+//  Logging Middleware Supports
+// ---------------------------------------------------------------------------
+func Logger(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
+}

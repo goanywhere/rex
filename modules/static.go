@@ -20,23 +20,66 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package middleware
+package modules
 
 import (
-	"log"
 	"net/http"
-	"os"
+	"path/filepath"
+	"strings"
 )
 
-var logger = log.New(os.Stdout, "[rex]", 0)
+// ---------------------------------------------------------------------------
+//  Static Resource Middleware Supports
+// ---------------------------------------------------------------------------
+func serveStatic(prefix string, folder string, w http.ResponseWriter, r *http.Request) {
+	var dir = http.Dir(filepath.Join(settings.Root, folder))
+	var path = r.URL.Path[len(prefix):]
 
-// ---------------------------------------------------------------------------
-//  Logging Middleware Supports
-// ---------------------------------------------------------------------------
-func Logger(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
+	var file, err = dir.Open(path)
+	if err != nil {
+		return
 	}
-	return http.HandlerFunc(fn)
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return
+	}
+	// try serving index.html
+	if stat.IsDir() {
+		// redirect if missing trailing slash
+		if !strings.HasSuffix(r.URL.Path, "/") {
+			http.Redirect(w, r, r.URL.Path+"/", http.StatusFound)
+			return
+		}
+
+		path = filepath.Join(path, "index.html")
+		file, err = dir.Open(path)
+		if err != nil {
+			return
+		}
+		defer file.Close()
+
+		stat, err = file.Stat()
+		if err != nil || stat.IsDir() {
+			return
+		}
+	}
+
+	http.ServeContent(w, r, path, stat.ModTime(), file)
+}
+
+func Static(options Options) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == "GET" && strings.HasPrefix(r.URL.Path, settings.URLAssets) {
+				var url = options.Get("URL", settings.URLAssets).(string)
+				var dir = options.Get("Dir", "build").(string)
+				serveStatic(url, dir, w, r)
+			} else {
+				next.ServeHTTP(w, r)
+			}
+		}
+		return http.HandlerFunc(fn)
+	}
 }

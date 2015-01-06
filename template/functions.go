@@ -27,9 +27,10 @@ import (
 	"strings"
 )
 
+// TODO URLAssets
 func static(path string) string {
 	return strings.Join([]string{
-		strings.TrimRight(settings.URLAssets, "/"),
+		strings.TrimRight("/static/", "/"),
 		strings.TrimLeft(path, "/")},
 		"/")
 }

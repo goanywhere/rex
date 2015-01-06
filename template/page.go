@@ -103,11 +103,8 @@ func (self *page) include() (source string) {
 }
 
 // Parse constructs `template.Template` object with additional // "extends" & "include" like Jinja.
-func (self *page) parse() *template.Template {
-	var (
-		err    error
-		output *template.Template
-	)
+func (self *page) parse() (output *template.Template) {
+	var e error
 	names := self.ancestors()
 
 	for _, name := range names {
@@ -122,10 +119,10 @@ func (self *page) parse() *template.Template {
 		} else {
 			tmpl = output.New(name)
 		}
-		_, err = tmpl.Parse(page.include())
+		_, e = tmpl.Parse(page.include())
 	}
 
-	return template.Must(output, err)
+	return template.Must(output, e)
 }
 
 // Path returns the abolute path of the page.

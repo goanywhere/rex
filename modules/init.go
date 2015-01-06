@@ -20,38 +20,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package rex
+package modules
 
 import (
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/http"
-	"github.com/goanywhere/rex/modules"
-	"github.com/goanywhere/x/env"
 )
 
-var Settings = config.Settings()
+var settings = config.Settings()
 
-// Shortcut to create map.
-type H map[string]interface{}
+type Options map[string]interface{}
 
-// New creates a plain web.Server.
-func New() *http.Server {
-	env.Load(filepath.Join(Settings.Root, ".env"))
-	env.Dump(Settings)
-	server := http.NewServer()
-	server.Use(modules.Security(modules.Options{}))
-	return server
-}
-
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
+// Get provides shortcut access to map with default value as fallback.
+func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
+	if len(fallback) > 1 {
+		log.Fatalf("Options <%s> can has only one default value", key)
 	}
+	if v, exists := self[key]; exists {
+		value = v
+	} else if len(fallback) == 1 {
+		value = fallback[0]
+	}
+	return
 }
