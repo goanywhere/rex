@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/goanywhere/rex"
-	. "github.com/goanywhere/rex/context"
-	"github.com/goanywhere/rex/middleware"
+	"github.com/goanywhere/rex/modules"
+	. "github.com/goanywhere/rex/context"	
 )
 
 func index(ctx *Context) {
@@ -12,8 +12,11 @@ func index(ctx *Context) {
 
 func main() {
 	app := rex.New()
-	app.Use(middleware.LiveReload)
-	app.Use(middleware.Static("build"))
+	app.Use(modules.LiveReload)
+	app.Use(modules.Static(modules.Options{
+		"URL": "/static",
+		"Dir": "assets",
+	}))
 	app.Get("/", index)
 	app.Run()
 }
