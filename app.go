@@ -15,7 +15,6 @@ func main() {
 	app.Use(modules.LiveReload)
 	app.Use(modules.Static(modules.Options{
 		"URL": "/static",
-		"Dir": "assets",
 	}))
 	app.Get("/", index)
 	app.Run()
