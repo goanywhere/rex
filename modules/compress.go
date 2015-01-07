@@ -20,40 +20,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package modules
 
-package crypto
+import "net/http"
 
-import (
-	"math/rand"
-	"time"
-)
-
-var (
-	all      = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	random   *rand.Rand
-)
-
-// RandomString creates a securely generated random string.
-//
-//	Args:
-//		length: length of the generated random string.
-func RandomString(length int, chars []rune) string {
-	bytes := make([]rune, length)
-
-	var pool []rune
-	if chars == nil {
-		pool = alphanum
-	} else {
-		pool = chars
-	}
-
-	for index := range bytes {
-		bytes[index] = pool[random.Intn(len(pool))]
-	}
-	return string(bytes)
+type compress struct {
+	method string
 }
 
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
+// detect check the accepted encodings from HTTP request.
+// init the method to compress + q value.
+func (self *compress) detect(request *http.Request) {
+
+}
+
+// compress the content
+func (self *compress) process(w http.ResponseWriter) {
+
+}
+
+func Compress(options Options) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
 }

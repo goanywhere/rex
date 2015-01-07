@@ -30,8 +30,6 @@ import (
 
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/http"
-	"github.com/goanywhere/rex/modules"
-	"github.com/goanywhere/x/env"
 )
 
 var Settings = config.Settings()
@@ -41,16 +39,14 @@ type H map[string]interface{}
 
 // New creates a plain web.Server.
 func New() *http.Server {
-	env.Load(filepath.Join(Settings.Root, ".env"))
-	env.Dump(Settings)
 	server := http.NewServer()
-	server.Use(modules.Security(modules.Options{}))
 	return server
 }
 
 func init() {
 	if cwd, err := os.Getwd(); err == nil {
 		Settings.Root, _ = filepath.Abs(cwd)
+		Settings.Load(".env")
 	} else {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	}

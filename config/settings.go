@@ -22,22 +22,32 @@
  * ----------------------------------------------------------------------*/
 package config
 
-import "sync"
+import (
+	"path/filepath"
+	"sync"
+
+	"github.com/goanywhere/x/env"
+)
 
 type config struct {
-	Root      string
-	Debug     bool
-	SecretKey string
+	Root   string
+	Debug  bool
+	Secret string
 
 	Host string
 	Port int
 
 	Templates string
 
-	XFrameOptions       string
-	XContentTypeOptions string
-	XXSSProtection      string
-	XUACompatible       string
+	X_Frame_Options        string
+	X_Content_Type_Options string
+	X_XSS_Protection       string
+	X_UA_Compatible        string
+}
+
+func (self *config) Load(dotenv string) {
+	env.Load(filepath.Join(self.Root, dotenv))
+	env.Dump(self)
 }
 
 var (
@@ -55,10 +65,10 @@ func Settings() *config {
 
 		settings.Templates = "templates"
 
-		settings.XFrameOptions = "deny"
-		settings.XContentTypeOptions = "nosniff"
-		settings.XXSSProtection = "1; mode=block"
-		settings.XUACompatible = "IE=Edge,chrome=1"
+		settings.X_Frame_Options = "deny"
+		settings.X_Content_Type_Options = "nosniff"
+		settings.X_XSS_Protection = "1; mode=block"
+		settings.X_UA_Compatible = "IE=Edge, chrome=1"
 	})
 	return settings
 }

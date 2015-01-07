@@ -190,9 +190,9 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Hot-Compile Runner
 - [X] Live Reload Integration
 - [X] Template Functions
+- [X] Common Modules
 - [ ] Better Logging
 - [ ] i18n Supports
-- [ ] More Modules
 - [ ] Form Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration
