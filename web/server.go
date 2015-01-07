@@ -30,7 +30,6 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
-	"golang.org/x/net/context"
 )
 
 type (
@@ -71,10 +70,10 @@ func (self *Server) register(method, pattern string, h interface{}) {
 		handler = h.(http.Handler)
 	case func(w http.ResponseWriter, r *http.Request):
 		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
-	case func(ctx *context.Context):
+	case func(ctx *Context):
 		handler = HandlerFunc(h.(func(ctx *Context)))
 	default:
-		log.Fatalf("Unknown handler type (%v) passed in.", handler)
+		log.Fatalf("Unknown handler type (%v) passed in.", h)
 	}
 	// finds the full function name (with package)
 	name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()

@@ -130,12 +130,10 @@ func TestContextId(t *testing.T) {
 
 func TestContextGet(t *testing.T) {
 	Convey("Context Data Get", t, func() {
+		var value = "example"
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			//contextId = ctx.Id()
-			ctx.data = make(map[string]interface{})
-			//ctx.data["id"] = contextId
-			ctx.data["name"] = "example"
+			ctx.data["name"] = value
 			ctx.String(ctx.Get("name").(string))
 		}))
 		defer server.Close()
@@ -181,7 +179,7 @@ func TestContextClear(t *testing.T) {
 		if response, err := http.Get(server.URL); err == nil {
 			body, _ := ioutil.ReadAll(response.Body)
 			defer response.Body.Close()
-			So(a, ShouldEqual, 3)
+			So(a, ShouldEqual, 1)
 			So(b, ShouldEqual, 0)
 			So(response.StatusCode, ShouldEqual, http.StatusOK)
 			So(string(body), ShouldEqual, "DONE")

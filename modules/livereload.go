@@ -25,7 +25,7 @@ package modules
 import (
 	"net/http"
 
-	"github.com/goanywhere/rex/http/livereload"
+	"github.com/goanywhere/rex/web/livereload"
 )
 
 func LiveReload(next http.Handler) http.Handler {
