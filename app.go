@@ -3,10 +3,10 @@ package main
 import (
 	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/modules"
-	. "github.com/goanywhere/rex/context"	
+	"github.com/goanywhere/rex/web"	
 )
 
-func index(ctx *Context) {
+func index(ctx *web.Context) {
 	ctx.HTML("index.html")
 }
 
