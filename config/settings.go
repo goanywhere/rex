@@ -22,11 +22,11 @@
  * ----------------------------------------------------------------------*/
 package config
 
-import (
-	"path/filepath"
-	"sync"
+import "sync"
 
-	"github.com/goanywhere/x/env"
+var (
+	once     sync.Once
+	settings *config
 )
 
 type config struct {
@@ -44,16 +44,6 @@ type config struct {
 	X_XSS_Protection       string
 	X_UA_Compatible        string
 }
-
-func (self *config) Load(dotenv string) {
-	env.Load(filepath.Join(self.Root, dotenv))
-	env.Dump(self)
-}
-
-var (
-	once     sync.Once
-	settings *config
-)
 
 // Settings returns a singleton settings access point.
 func Settings() *config {

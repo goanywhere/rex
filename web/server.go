@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package http
+package web
 
 import (
 	"fmt"
@@ -29,8 +29,8 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/rex/context"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/context"
 )
 
 type (
@@ -39,7 +39,7 @@ type (
 		modules []Module
 	}
 
-	HandlerFunc func(*context.Context)
+	HandlerFunc func(*Context)
 
 	// Conventional method to implement custom modules.
 	Module func(http.Handler) http.Handler
@@ -52,7 +52,7 @@ func NewServer() *Server {
 
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(context.New(w, r))
+	self(NewContext(w, r))
 }
 
 // ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ func (self *Server) register(method, pattern string, h interface{}) {
 	case func(w http.ResponseWriter, r *http.Request):
 		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
 	case func(ctx *context.Context):
-		handler = HandlerFunc(h.(func(ctx *context.Context)))
+		handler = HandlerFunc(h.(func(ctx *Context)))
 	default:
 		log.Fatalf("Unknown handler type (%v) passed in.", handler)
 	}

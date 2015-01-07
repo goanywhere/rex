@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package context
+package web
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/goanywhere/rex/http/livereload"
+	"github.com/goanywhere/rex/web/livereload"
 )
 
 type Context struct {
@@ -42,7 +42,7 @@ type Context struct {
 	data map[string]interface{}
 }
 
-func New(w http.ResponseWriter, r *http.Request) *Context {
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.data = make(map[string]interface{})
 

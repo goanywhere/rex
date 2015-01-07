@@ -20,15 +20,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
-package http
+package web
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/goanywhere/rex/context"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -37,10 +35,10 @@ func TestGet(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	app := NewServer()
-	app.Get("/", func(ctx *context.Context) {
+	app.Get("/", func(ctx *Context) {
 		ctx.String("hello")
 	})
-	app.Get("/404", func(ctx *context.Context) {
+	app.Get("/404", func(ctx *Context) {
 		ctx.WriteHeader(http.StatusNotFound)
 		ctx.String("NotFound")
 	})
@@ -53,7 +51,7 @@ func TestGet(t *testing.T) {
 		So(status, ShouldEqual, http.StatusOK)
 	})
 
-	app.Get("/404", func(ctx *context.Context) {
+	app.Get("/404", func(ctx *Context) {
 		ctx.WriteHeader(http.StatusNotFound)
 		ctx.String("NotFound")
 	})

@@ -31,16 +31,16 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    . "github.com/goanywhere/rex/context"
+    "github.com/goanywhere/rex/web"
 )
 
 func main() {
     server := rex.New()
     server.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        ctx := context.New(w, r)
+        ctx := web.NewContext(w, r)
         ctx.String("Hello World")
     })
-    server.Get("/hello", func(ctx *Context) {
+    server.Get("/hello", func(ctx *web.Context) {
         ctx.String("Hello Again")
     })
     server.Run()
@@ -99,14 +99,14 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    . "github.com/goanywhere/rex/context"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *Context) {
+func json (ctx *web.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
@@ -128,10 +128,10 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    . "github.com/goanywhere/rex/context"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")
 }
 

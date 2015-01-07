@@ -26,10 +26,9 @@ package rex
 import (
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/http"
+	"github.com/goanywhere/rex/web"
 )
 
 var Settings = config.Settings()
@@ -38,15 +37,14 @@ var Settings = config.Settings()
 type H map[string]interface{}
 
 // New creates a plain web.Server.
-func New() *http.Server {
-	server := http.NewServer()
+func New() *web.Server {
+	server := web.NewServer()
 	return server
 }
 
 func init() {
 	if cwd, err := os.Getwd(); err == nil {
-		Settings.Root, _ = filepath.Abs(cwd)
-		Settings.Load(".env")
+		web.Configure(cwd)
 	} else {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	}

@@ -20,10 +20,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package http
 
-import (
-	"github.com/goanywhere/rex/config"
-)
+/*
+Package template (rex/template) brings shortcuts for using standard "html/template",
+in addtions to the standard (& vanilla) way, it also add some helper tags like
 
-var settings = config.Settings()
+	{% extends "layouts/base.html" %}
+
+	{% include "partial/header.html" %}
+
+to make you template rendering much more easier.
+*/
+
+package web
