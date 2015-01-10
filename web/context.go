@@ -46,8 +46,8 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.data = make(map[string]interface{})
 
-	ctx.Writer = newWriter(w)
 	ctx.Request = r
+	ctx.Writer = &writer{w, 0, 0}
 	return ctx
 }
 
@@ -132,17 +132,18 @@ func (self *Context) Error(status int) {
 // to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
 	var buffer bytes.Buffer
-	self.Header().Set("Content-Type", "text/html; charset=utf-8")
+	self.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
 		return
 	}
+	var bytes = buffer.Bytes()
 	if settings.Debug {
 		javascript := fmt.Sprintf(`<script src="//%s%s"></script></head>`, self.Request.Host, livereload.JavaScript)
-		self.Writer.Write(regexp.MustCompile(`</head>`).ReplaceAll(buffer.Bytes(), []byte(javascript)))
-	} else {
-		self.Writer.Write(buffer.Bytes())
+		bytes = regexp.MustCompile(`</head>`).ReplaceAll(bytes, []byte(javascript))
 	}
+	self.Writer.Write(bytes)
 }
 
 // JSON renders JSON data to response.
@@ -157,19 +158,18 @@ func (self *Context) JSON(values map[string]interface{}) {
 		self.Error(http.StatusInternalServerError)
 		return
 	}
-	self.Header().Set("Content-Type", "application/json; charset=utf-8")
-	self.Write(data)
+	self.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	self.Writer.Write(data)
 }
 
 // String writes plain text back to the HTTP response.
 func (self *Context) String(format string, values ...interface{}) {
-	self.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	self.Write([]byte(fmt.Sprintf(format, values...)))
+	self.Writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	self.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
 // XML renders XML data to response.
 func (self *Context) XML(values interface{}) {
-	self.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	encoder := xml.NewEncoder(self)
-	encoder.Encode(values)
+	self.Writer.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	xml.NewEncoder(self.Writer).Encode(values)
 }

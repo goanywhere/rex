@@ -146,7 +146,7 @@ func (self *xsrf) generate() {
 		cookie.HttpOnly = true
 		self.SetCookie(cookie)
 	}
-	self.Header().Set(xsrfHeaderName, token)
+	self.Writer.Header().Set(xsrfHeaderName, token)
 	self.Set(xsrfFieldName, token)
 	self.token = token
 }

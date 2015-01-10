@@ -20,38 +20,4 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
-
-import (
-	"log"
-	"path/filepath"
-	"sync"
-
-	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/rex/template"
-	"github.com/goanywhere/x/env"
-)
-
-var (
-	once      sync.Once
-	signature *crypto.Signature
-	settings  = config.Settings()
-
-	loader = template.NewLoader(settings.Templates)
-)
-
-//FIXME better way to init signature.
-func Configure(cwd string) {
-	once.Do(func() {
-		settings.Root, _ = filepath.Abs(cwd)
-		env.Load(filepath.Join(settings.Root, ".env"))
-		env.Dump(settings)
-
-		if settings.Secret == "" {
-			log.Fatal("Secret key missing")
-		}
-		// creates a signature for accessing securecookie.
-		signature = crypto.NewSignature(settings.Secret)
-	})
-}
+package modules

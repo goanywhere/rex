@@ -33,8 +33,8 @@ import (
 )
 
 var (
-	extends = regexp.MustCompile(`{%\s+extends\s+["]([^"]*\.html)["]\s+%}`)
-	include = regexp.MustCompile(`{%\s+include\s+["]([^"]*\.html)["]\s+%}`)
+	regexExtends = regexp.MustCompile(`{%\s+extends\s+["]([^"]*\.html)["]\s+%}`)
+	regexInclude = regexp.MustCompile(`{%\s+include\s+["]([^"]*\.html)["]\s+%}`)
 )
 
 type page struct {
@@ -56,7 +56,7 @@ func (self *page) ancestors() (names []string) {
 			log.Fatalf("Failed to open template (%s): %v", name, err)
 		}
 
-		var result = extends.FindSubmatch(bits)
+		var result = regexExtends.FindSubmatch(bits)
 		if result == nil {
 			break
 		}
@@ -84,7 +84,7 @@ func (self *page) include() (source string) {
 
 	source = string(bits)
 	for {
-		result := include.FindAllStringSubmatch(source, -1)
+		result := regexInclude.FindAllStringSubmatch(source, -1)
 		if result == nil {
 			break
 		}

@@ -27,14 +27,48 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
+var (
+	regexAcceptEncoding = regexp.MustCompile(`(\w+|\*)(;q=(1(\.0)?|0(\.[0-9])?))?`)
+)
+
+// AcceptEncodings fetches the requested encodings from client with priority.
+func AcceptEncodings(request *http.Request) (encodings []string) {
+	// find all encodings supported by backend server.
+	matches := regexAcceptEncoding.FindAllString(request.Header.Get("Accept-Encoding"), -1)
+	for _, item := range matches {
+		units := strings.SplitN(item, ";", 2)
+		// top priority with q=1|q=1.0|Not Specified.
+		if len(units) == 1 {
+			encodings = append(encodings, units[0])
+
+		} else {
+			if strings.HasPrefix(units[1], "q=1") {
+				// insert the specified top priority to the first.
+				encodings = append([]string{units[0]}, encodings...)
+
+			} else if strings.HasSuffix(units[1], "0") {
+				// not acceptable at client side.
+				continue
+			} else {
+				// lower priority encoding
+				encodings = append(encodings, units[0])
+			}
+		}
+	}
+	return
+}
+
 /*
-Extension to http.ResponseWriter with compression supports.
+Extension to http.WriterWriter with compression supports.
 */
 
 type Writer interface {
 	http.Flusher
+	http.CloseNotifier
 	http.ResponseWriter
 
 	Size() int
@@ -43,18 +77,10 @@ type Writer interface {
 }
 
 type writer struct {
+	http.ResponseWriter
+
 	size   int
 	status int
-
-	http.ResponseWriter
-}
-
-func newWriter(w http.ResponseWriter) *writer {
-	writer := new(writer)
-	writer.ResponseWriter = w
-	writer.size = 0
-	writer.status = 0
-	return writer
 }
 
 /* ----------------------------------------------------------------------
@@ -63,7 +89,7 @@ func newWriter(w http.ResponseWriter) *writer {
 func (self *writer) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := self.ResponseWriter.(http.Hijacker)
 	if !ok {
-		return nil, nil, errors.New("the ResponseWriter doesn't support the Hijacker interface")
+		return nil, nil, errors.New("ResponseWriter doesn't support the Hijacker interface")
 	}
 	return hijacker.Hijack()
 }
@@ -97,16 +123,13 @@ func (self *writer) WriteHeader(status int) {
 
 // Write: Implementation of http.ResponseWriter#Write
 func (self *writer) Write(data []byte) (size int, err error) {
-	if !self.Written() {
-		self.WriteHeader(http.StatusOK)
-	}
 	size, err = self.ResponseWriter.Write(data)
 	self.size += size
 	return
 }
 
 /* ----------------------------------------------------------------------
- * Implementations of Writer
+ * Implementations of rex.Writer interface.
  * ----------------------------------------------------------------------*/
 func (self *writer) Size() int {
 	return self.size
@@ -120,7 +143,3 @@ func (self *writer) Status() int {
 func (self *writer) Written() bool {
 	return self.status != 0 || self.size > 0
 }
-
-/* ----------------------------------------------------------------------
- * Compression Supports: gzip,deflate
- * ----------------------------------------------------------------------*/
