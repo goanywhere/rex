@@ -38,7 +38,7 @@ type static struct {
 	once sync.Once
 }
 
-func (self *static) init(options Options) {
+func (self *static) init(options rex.Options) {
 	self.Dir = options.Get("Dir", "build").(string)
 	self.URL = options.Get("URL", "/static/").(string)
 
@@ -90,7 +90,7 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, stat.ModTime(), file)
 }
 
-func Static(options Options) func(http.Handler) http.Handler {
+func Static(options rex.Options) func(http.Handler) http.Handler {
 	s := new(static)
 	s.init(options)
 

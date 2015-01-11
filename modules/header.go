@@ -49,7 +49,7 @@ func (self *header) set(key string, value interface{}) {
 }
 
 // Header provides additional headers supports for response writer.
-func Header(options Options) func(http.Handler) http.Handler {
+func Header(options rex.Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			var header = &header{w}

@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package livereload
+package modules
 
 import (
 	"bytes"
@@ -31,6 +31,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/goanywhere/rex/modules/livereload"
 )
 
 type writer struct {
@@ -40,7 +42,7 @@ type writer struct {
 
 func (self *writer) addJavaScript(data []byte) []byte {
 	javascript := fmt.Sprintf(`<script src="//%s%s"></script>
-</head>`, self.host, url.JavaScript)
+</head>`, self.host, livereload.URL.JavaScript)
 	return regexp.MustCompile(`</head>`).ReplaceAll(data, []byte(javascript))
 }
 
@@ -84,12 +86,12 @@ func (self *writer) Write(data []byte) (size int, e error) {
 }
 
 func LiveReload(next http.Handler) http.Handler {
-	start()
+	livereload.Start()
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == url.WebSocket {
-			serveWebSocket(w, r)
-		} else if r.URL.Path == url.JavaScript {
-			serveJavaScript(w, r)
+		if r.URL.Path == livereload.URL.WebSocket {
+			livereload.ServeWebSocket(w, r)
+		} else if r.URL.Path == livereload.URL.JavaScript {
+			livereload.ServeJavaScript(w, r)
 		} else {
 			writer := new(writer)
 			writer.host = r.Host

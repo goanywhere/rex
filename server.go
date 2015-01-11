@@ -128,7 +128,18 @@ func (self *server) Group(path string) *server {
 }
 
 // Use append middleware module into the serving list, modules will be served in FIFO order.
-func (self *server) Use(module Module) {
+func (self *server) Use(m interface{}) {
+	var module Module
+	switch m.(type) {
+	// Standard http.Handler module.
+	case func(http.Handler) http.Handler:
+		module = m.(func(http.Handler) http.Handler)
+	// http.Handler with module options (using default Options).
+	case func(Options) func(http.Handler) http.Handler:
+		module = m.(func(Options) func(http.Handler) http.Handler)(Options{})
+	default:
+		log.Fatalf("Unknown module type (%v) passed in.", m)
+	}
 	self.modules = append(self.modules, module)
 }
 

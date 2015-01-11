@@ -35,7 +35,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
-	"github.com/goanywhere/rex/filters/livereload"
+	"github.com/goanywhere/rex/modules/livereload"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
