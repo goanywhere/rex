@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package filters
+package modules
 
 import (
 	"bytes"
@@ -31,7 +31,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goanywhere/rex/web"
+	"github.com/goanywhere/rex"
 )
 
 var (
@@ -101,7 +101,7 @@ func Compress(options Options) func(http.Handler) http.Handler {
 			if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {
 				next.ServeHTTP(w, r)
 			} else {
-				encodings := web.AcceptEncodings(r)
+				encodings := rex.AcceptEncodings(r)
 				if len(encodings) == 0 {
 					next.ServeHTTP(w, r)
 

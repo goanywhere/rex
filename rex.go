@@ -20,37 +20,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-
 package rex
-
-import (
-	"log"
-	"os"
-
-	"github.com/goanywhere/rex/core"
-	"github.com/goanywhere/rex/web"
-)
 
 type H map[string]interface{}
 
 var (
-	Filters  = []web.Filter{}
-	Settings = core.Settings()
+	Modules  = []Module{}
+	Settings = configure()
 )
 
 // New creates a plain web.Server.
-func New() *web.Server {
-	server := web.NewServer()
-	for _, filter := range Filters {
-		server.Use(filter)
+func New() *Server {
+	server := NewServer()
+	for _, module := range Modules {
+		server.Use(module)
 	}
 	return server
-}
-
-func init() {
-	if cwd, err := os.Getwd(); err == nil {
-		web.Configure(cwd)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
-	}
 }

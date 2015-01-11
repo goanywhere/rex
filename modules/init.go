@@ -20,22 +20,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package filters
+package modules
 
-import (
-	"log"
-	"net/http"
-	"os"
-)
+import "log"
 
-var logger = log.New(os.Stdout, "[rex]", 0)
+type Options map[string]interface{}
 
-// ---------------------------------------------------------------------------
-//  Logging Middleware Supports
-// ---------------------------------------------------------------------------
-func Logger(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
+// Get provides shortcut access to map with default value as fallback.
+func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
+	if len(fallback) > 1 {
+		log.Fatalf("Options <%s> can has only one default value", key)
 	}
-	return http.HandlerFunc(fn)
+	if v, exists := self[key]; exists {
+		value = v
+	} else if len(fallback) == 1 {
+		value = fallback[0]
+	}
+	return
 }

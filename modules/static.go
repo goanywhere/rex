@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package filters
+package modules
 
 import (
 	"net/http"
@@ -28,6 +28,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/template"
 )
 
@@ -52,7 +53,7 @@ func (self *static) init(options Options) {
 }
 
 func (self *static) serve(w http.ResponseWriter, r *http.Request) {
-	var dir = http.Dir(filepath.Join(settings.Root, self.Dir))
+	var dir = http.Dir(filepath.Join(rex.Settings.Root, self.Dir))
 	var path = r.URL.Path[len(self.URL):]
 
 	var file, err = dir.Open(path)

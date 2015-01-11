@@ -20,30 +20,63 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"log"
+	"os"
 	"path/filepath"
 	"sync"
 
-	"github.com/goanywhere/rex/core"
 	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/template"
 	"github.com/goanywhere/x/env"
 )
 
 var (
-	once      sync.Once
-	signature *crypto.Signature
-	settings  = core.Settings()
+	once   sync.Once
+	loader *template.Loader
 
-	loader = template.NewLoader(settings.Templates)
+	settings  *config
+	signature *crypto.Signature
 )
 
-//FIXME better way to init signature.
-func Configure(cwd string) {
+type config struct {
+	Root   string
+	Debug  bool
+	Secret string
+
+	Host string
+	Port int
+
+	Templates string
+
+	X_Frame_Options        string
+	X_Content_Type_Options string
+	X_XSS_Protection       string
+	X_UA_Compatible        string
+}
+
+// Settings returns a singleton settings access point.
+func configure() *config {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	}
+
 	once.Do(func() {
+		settings = new(config)
+		settings.Debug = true
+		settings.Host = "localhost"
+		settings.Port = 5000
+
+		settings.Templates = "templates"
+
+		settings.X_Frame_Options = "deny"
+		settings.X_Content_Type_Options = "nosniff"
+		settings.X_XSS_Protection = "1; mode=block"
+		settings.X_UA_Compatible = "IE=Edge, chrome=1"
+
 		settings.Root, _ = filepath.Abs(cwd)
 		env.Load(filepath.Join(settings.Root, ".env"))
 		env.Dump(settings)
@@ -51,7 +84,10 @@ func Configure(cwd string) {
 		if settings.Secret == "" {
 			log.Fatal("Secret key missing")
 		}
+
+		loader = template.NewLoader(settings.Templates)
 		// creates a signature for accessing securecookie.
 		signature = crypto.NewSignature(settings.Secret)
 	})
+	return settings
 }

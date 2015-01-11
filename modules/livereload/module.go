@@ -33,18 +33,18 @@ import (
 	"strings"
 )
 
-type lrwriter struct {
+type writer struct {
 	http.ResponseWriter
 	host string
 }
 
-func (self *lrwriter) addJavaScript(data []byte) []byte {
+func (self *writer) addJavaScript(data []byte) []byte {
 	javascript := fmt.Sprintf(`<script src="//%s%s"></script>
 </head>`, self.host, url.JavaScript)
 	return regexp.MustCompile(`</head>`).ReplaceAll(data, []byte(javascript))
 }
 
-func (self *lrwriter) Write(data []byte) (size int, e error) {
+func (self *writer) Write(data []byte) (size int, e error) {
 	if strings.Contains(self.Header().Get("Content-Type"), "html") {
 		var encoding = self.Header().Get("Content-Encoding")
 		if encoding == "" {
@@ -91,7 +91,7 @@ func LiveReload(next http.Handler) http.Handler {
 		} else if r.URL.Path == url.JavaScript {
 			serveJavaScript(w, r)
 		} else {
-			writer := new(lrwriter)
+			writer := new(writer)
 			writer.host = r.Host
 			writer.ResponseWriter = w
 			next.ServeHTTP(writer, r)

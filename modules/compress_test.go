@@ -20,8 +20,4 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package template
-
-import "github.com/goanywhere/rex/core"
-
-var settings = core.Settings()
+package modules

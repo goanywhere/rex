@@ -20,23 +20,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package filters
 
-import (
-	"net/http"
-	"strings"
-)
+/*
+Package template (rex/template) brings shortcuts for using standard "html/template",
+in addtions to the standard (& vanilla) way, it also add some helper tags like
 
-// NoCache simply disables browser-base cache.
-func NoCache(path string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, path) {
-				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-				w.Header().Set("Pragma", "no-cache")
-				w.Header().Set("Expires", "0")
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
-}
+	{% extends "layouts/base.html" %}
+
+	{% include "partial/header.html" %}
+
+to make you template rendering much more easier.
+*/
+
+package template

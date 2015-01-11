@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"fmt"
@@ -35,13 +35,13 @@ import (
 type (
 	Server struct {
 		router  *mux.Router
-		filters []Filter
+		modules []Module
 	}
 
 	HandlerFunc func(*Context)
 
 	// Conventional method to implement custom modules.
-	Filter func(http.Handler) http.Handler
+	Module func(http.Handler) http.Handler
 )
 
 // New creates an application instance & setup its default settings..
@@ -127,18 +127,18 @@ func (self *Server) Group(path string) *Server {
 	return &Server{self.router.PathPrefix(path).Subrouter(), nil}
 }
 
-// Use append middleware into the serving list, middleware will be served in FIFO order.
-func (self *Server) Use(filter Filter) {
-	self.filters = append(self.filters, filter)
+// Use append middleware module into the serving list, modules will be served in FIFO order.
+func (self *Server) Use(module Module) {
+	self.modules = append(self.modules, module)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var mux http.Handler = self.router
-	// Activate filters in FIFO order.
-	if len(self.filters) > 0 {
-		for index := len(self.filters) - 1; index >= 0; index-- {
-			mux = self.filters[index](mux)
+	// Activate modules in FIFO order.
+	if len(self.modules) > 0 {
+		for index := len(self.modules) - 1; index >= 0; index-- {
+			mux = self.modules[index](mux)
 		}
 	}
 	mux.ServeHTTP(writer, request)
@@ -146,7 +146,7 @@ func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 
 // Serve starts serving the requests at the pre-defined address from settings.
 func (self *Server) Run() {
-	var address = fmt.Sprintf("%s:%d", settings.Host, settings.Port)
+	var address = fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
 	log.Printf("Application server started [%s]", address)
 	if err := http.ListenAndServe(address, self); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)

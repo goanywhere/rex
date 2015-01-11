@@ -20,60 +20,44 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package modules
 
 import (
 	"net/http"
-	"net/http/httptest"
-	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/goanywhere/rex"
 )
 
-func TestGet(t *testing.T) {
-	r, _ := http.NewRequest("GET", "/", nil)
-	w := httptest.NewRecorder()
+const (
+	xFrameOptions       = "X-Frame-Options"
+	xContentTypeOptions = "X-Content-Type-Options"
+	xXSSProtection      = "X-XSS-Protection"
+	xUACompatible       = "X-UA-Compatible"
+)
 
-	app := NewServer()
-	app.Get("/", func(ctx *Context) {
-		ctx.String("hello")
-	})
-	app.Get("/404", func(ctx *Context) {
-		ctx.WriteHeader(http.StatusNotFound)
-		ctx.String("NotFound")
-	})
-	app.ServeHTTP(w, r)
-
-	body := w.Body.String()
-	status := w.Code
-	Convey("http 200@hello GET test", t, func() {
-		So(body, ShouldEqual, "hello")
-		So(status, ShouldEqual, http.StatusOK)
-	})
-
-	app.Get("/404", func(ctx *Context) {
-		ctx.WriteHeader(http.StatusNotFound)
-		ctx.String("NotFound")
-	})
-	r, _ = http.NewRequest("GET", "/404", nil)
-	w = httptest.NewRecorder()
-	app.ServeHTTP(w, r)
-	body = w.Body.String()
-	status = w.Code
-	Convey("http 400 GET test", t, func() {
-		So(body, ShouldEqual, "NotFound")
-		So(status, ShouldEqual, http.StatusNotFound)
-	})
+type header struct {
+	writer http.ResponseWriter
 }
 
-func TestPost(t *testing.T) {}
+func (self *header) set(key string, value interface{}) {
+	if v := self.writer.Header().Get(key); v == "" {
+		if value != nil {
+			self.writer.Header()[key] = []string{value.(string)}
+		}
+	}
+}
 
-func TestPut(t *testing.T) {}
-
-func TestDelete(t *testing.T) {}
-
-func TestPatch(t *testing.T) {}
-
-func TestHead(t *testing.T) {}
-
-func TestOptions(t *testing.T) {}
+// Header provides additional headers supports for response writer.
+func Header(options Options) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			var header = &header{w}
+			header.set(xFrameOptions, options.Get(xFrameOptions, rex.Settings.X_Frame_Options))
+			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, rex.Settings.X_Content_Type_Options))
+			header.set(xXSSProtection, options.Get(xXSSProtection, rex.Settings.X_XSS_Protection))
+			header.set(xUACompatible, options.Get(xUACompatible, rex.Settings.X_UA_Compatible))
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
+}
