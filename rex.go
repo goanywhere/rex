@@ -30,8 +30,8 @@ var (
 )
 
 // New creates a plain web.Server.
-func New() *Server {
-	server := NewServer()
+func New() *server {
+	server := newServer()
 	for _, module := range Modules {
 		server.Use(module)
 	}

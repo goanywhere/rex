@@ -27,40 +27,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"regexp"
-	"strings"
 )
-
-var (
-	regexAcceptEncoding = regexp.MustCompile(`(\w+|\*)(;q=(1(\.0)?|0(\.[0-9])?))?`)
-)
-
-// AcceptEncodings fetches the requested encodings from client with priority.
-func AcceptEncodings(request *http.Request) (encodings []string) {
-	// find all encodings supported by backend server.
-	matches := regexAcceptEncoding.FindAllString(request.Header.Get("Accept-Encoding"), -1)
-	for _, item := range matches {
-		units := strings.SplitN(item, ";", 2)
-		// top priority with q=1|q=1.0|Not Specified.
-		if len(units) == 1 {
-			encodings = append(encodings, units[0])
-
-		} else {
-			if strings.HasPrefix(units[1], "q=1") {
-				// insert the specified top priority to the first.
-				encodings = append([]string{units[0]}, encodings...)
-
-			} else if strings.HasSuffix(units[1], "0") {
-				// not acceptable at client side.
-				continue
-			} else {
-				// lower priority encoding
-				encodings = append(encodings, units[0])
-			}
-		}
-	}
-	return
-}
 
 /*
 Extension to http.WriterWriter with compression supports.

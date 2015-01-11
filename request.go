@@ -20,45 +20,41 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package rex
 
 import (
 	"net/http"
-
-	"github.com/goanywhere/rex"
+	"regexp"
+	"strings"
 )
 
-const (
-	xFrameOptions       = "X-Frame-Options"
-	xContentTypeOptions = "X-Content-Type-Options"
-	xXSSProtection      = "X-XSS-Protection"
-	xUACompatible       = "X-UA-Compatible"
+var (
+	regexAcceptEncoding = regexp.MustCompile(`(\w+|\*)(;q=(1(\.0)?|0(\.[0-9])?))?`)
 )
 
-//TODO add Options.
-type header struct {
-	writer http.ResponseWriter
-}
+// AcceptEncodings fetches the requested encodings from client with priority.
+func AcceptEncodings(request *http.Request) (encodings []string) {
+	// find all encodings supported by backend server.
+	matches := regexAcceptEncoding.FindAllString(request.Header.Get("Accept-Encoding"), -1)
+	for _, item := range matches {
+		units := strings.SplitN(item, ";", 2)
+		// top priority with q=1|q=1.0|Not Specified.
+		if len(units) == 1 {
+			encodings = append(encodings, units[0])
 
-func (self *header) set(key string, value interface{}) {
-	if v := self.writer.Header().Get(key); v == "" {
-		if value != nil {
-			self.writer.Header()[key] = []string{value.(string)}
+		} else {
+			if strings.HasPrefix(units[1], "q=1") {
+				// insert the specified top priority to the first.
+				encodings = append([]string{units[0]}, encodings...)
+
+			} else if strings.HasSuffix(units[1], "0") {
+				// not acceptable at client side.
+				continue
+			} else {
+				// lower priority encoding
+				encodings = append(encodings, units[0])
+			}
 		}
 	}
-}
-
-// Header provides additional headers supports for response writer.
-func Header(options Options) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			var header = &header{w}
-			header.set(xFrameOptions, options.Get(xFrameOptions, rex.Settings.X_Frame_Options))
-			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, rex.Settings.X_Content_Type_Options))
-			header.set(xXSSProtection, options.Get(xXSSProtection, rex.Settings.X_XSS_Protection))
-			header.set(xUACompatible, options.Get(xUACompatible, rex.Settings.X_UA_Compatible))
-			next.ServeHTTP(w, r)
-		}
-		return http.HandlerFunc(fn)
-	}
+	return
 }

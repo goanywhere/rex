@@ -15,7 +15,7 @@ $ go get -v github.com/goanywhere/rex/...
 * Flexible Env-based configurations.
 * Non-intrusive/Modular design, extremely easy to use.
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
-* Flexible middleware system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
+* Flexible modular system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Works nicely with other Golang packages.
 * Command line tools 
     * Auto compile for .go & .html
@@ -31,16 +31,15 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
 func main() {
     server := rex.New()
     server.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        ctx := web.NewContext(w, r)
+        ctx := rex.NewContext(w, r)
         ctx.String("Hello World")
     })
-    server.Get("/hello", func(ctx *web.Context) {
+    server.Get("/hello", func(ctx *rex.Context) {
         ctx.String("Hello Again")
     })
     server.Run()
@@ -99,14 +98,13 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *web.Context) {
+func index (ctx *rex.Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *web.Context) {
+func json (ctx *rex.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
@@ -128,10 +126,9 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *web.Context) {
+func index (ctx *rex.Context) {
     ctx.HTML("index.html")
 }
 
@@ -164,9 +161,9 @@ Since a module is just the standard http.Handler, writing a custom module is als
 ``` go
 app.Use(func(next http.Handler) http.Handler {
     return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-        rex.Debug("Custom Middleware Started")
+        rex.Debug("Custom Module Started")
         next.ServeHTTP(writer, request)
-        rex.Debug("Custom Middleware Ended")
+        rex.Debug("Custom Module Ended")
     })
 })
 ```
