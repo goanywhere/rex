@@ -20,23 +20,45 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package core
 
-package modules
+import "sync"
 
-import (
-	"log"
-	"net/http"
-	"os"
+var (
+	once     sync.Once
+	settings *config
 )
 
-var logger = log.New(os.Stdout, "[rex]", 0)
+type config struct {
+	Root   string
+	Debug  bool
+	Secret string
 
-// ---------------------------------------------------------------------------
-//  Logging Middleware Supports
-// ---------------------------------------------------------------------------
-func Logger(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
+	Host string
+	Port int
+
+	Templates string
+
+	X_Frame_Options        string
+	X_Content_Type_Options string
+	X_XSS_Protection       string
+	X_UA_Compatible        string
+}
+
+// Settings returns a singleton settings access point.
+func Settings() *config {
+	once.Do(func() {
+		settings = new(config)
+		settings.Debug = true
+		settings.Host = "localhost"
+		settings.Port = 5000
+
+		settings.Templates = "templates"
+
+		settings.X_Frame_Options = "deny"
+		settings.X_Content_Type_Options = "nosniff"
+		settings.X_XSS_Protection = "1; mode=block"
+		settings.X_UA_Compatible = "IE=Edge, chrome=1"
+	})
+	return settings
 }

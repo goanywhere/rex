@@ -27,18 +27,23 @@ import (
 	"log"
 	"os"
 
-	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/core"
 	"github.com/goanywhere/rex/web"
 )
 
-var Settings = config.Settings()
-
-// Shortcut to create map.
 type H map[string]interface{}
+
+var (
+	Filters  = []web.Filter{}
+	Settings = core.Settings()
+)
 
 // New creates a plain web.Server.
 func New() *web.Server {
 	server := web.NewServer()
+	for _, filter := range Filters {
+		server.Use(filter)
+	}
 	return server
 }
 

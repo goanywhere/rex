@@ -20,27 +20,40 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package filters
 
-import (
-	"log"
+import "net/http"
 
-	"github.com/goanywhere/rex/config"
+const (
+	xFrameOptions       = "X-Frame-Options"
+	xContentTypeOptions = "X-Content-Type-Options"
+	xXSSProtection      = "X-XSS-Protection"
+	xUACompatible       = "X-UA-Compatible"
 )
 
-var settings = config.Settings()
+type header struct {
+	writer http.ResponseWriter
+}
 
-type Options map[string]interface{}
+func (self *header) set(key string, value interface{}) {
+	if v := self.writer.Header().Get(key); v == "" {
+		if value != nil {
+			self.writer.Header()[key] = []string{value.(string)}
+		}
+	}
+}
 
-// Get provides shortcut access to map with default value as fallback.
-func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
-	if len(fallback) > 1 {
-		log.Fatalf("Options <%s> can has only one default value", key)
+// Header provides additional headers supports for response writer.
+func Header(options Options) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			var header = &header{w}
+			header.set(xFrameOptions, options.Get(xFrameOptions, settings.X_Frame_Options))
+			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, settings.X_Content_Type_Options))
+			header.set(xXSSProtection, options.Get(xXSSProtection, settings.X_XSS_Protection))
+			header.set(xUACompatible, options.Get(xUACompatible, settings.X_UA_Compatible))
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
 	}
-	if v, exists := self[key]; exists {
-		value = v
-	} else if len(fallback) == 1 {
-		value = fallback[0]
-	}
-	return
 }

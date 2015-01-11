@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/rex/core"
 	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/template"
 	"github.com/goanywhere/x/env"
@@ -36,7 +36,7 @@ import (
 var (
 	once      sync.Once
 	signature *crypto.Signature
-	settings  = config.Settings()
+	settings  = core.Settings()
 
 	loader = template.NewLoader(settings.Templates)
 )

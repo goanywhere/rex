@@ -20,14 +20,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package filters
 
 import (
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
 	"io"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -88,7 +87,6 @@ func (self *compressor) filter(src []byte) ([]byte, string) {
 
 func (self *compressor) Write(data []byte) (size int, err error) {
 	if bytes, encoding := self.filter(data); encoding != "" {
-		log.Printf("Compress: %s", self.Header().Get("Content-Type"))
 		self.Header().Set("Content-Encoding", encoding)
 		self.Header().Add("Vary", "Accept-Encoding")
 		self.Header().Del("Content-Length")

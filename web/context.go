@@ -30,9 +30,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"regexp"
-
-	"github.com/goanywhere/rex/web/livereload"
 )
 
 type Context struct {
@@ -138,12 +135,7 @@ func (self *Context) HTML(filename string) {
 		self.Error(http.StatusInternalServerError)
 		return
 	}
-	var bytes = buffer.Bytes()
-	if settings.Debug {
-		javascript := fmt.Sprintf(`<script src="//%s%s"></script></head>`, self.Request.Host, livereload.JavaScript)
-		bytes = regexp.MustCompile(`</head>`).ReplaceAll(bytes, []byte(javascript))
-	}
-	self.Writer.Write(bytes)
+	self.Writer.Write(buffer.Bytes())
 }
 
 // JSON renders JSON data to response.

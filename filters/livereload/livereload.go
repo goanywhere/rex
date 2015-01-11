@@ -33,11 +33,6 @@ import (
 /* ----------------------------------------------------------------------
  * WebSocket Server
  * ----------------------------------------------------------------------*/
-const (
-	WebSocket  string = "/livereload"
-	JavaScript string = "/livereload.js"
-)
-
 var (
 	once sync.Once
 
@@ -52,6 +47,14 @@ var (
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+	}
+
+	url = struct {
+		WebSocket  string
+		JavaScript string
+	}{
+		WebSocket:  "/livereload",
+		JavaScript: "/livereload.js",
 	}
 )
 
@@ -71,7 +74,7 @@ func Reload() {
 	go func() {
 		var bytes, _ = json.Marshal(&reload{
 			Command: "reload",
-			Path:    WebSocket,
+			Path:    url.WebSocket,
 			LiveCSS: true,
 		})
 		broadcast <- bytes
@@ -109,7 +112,7 @@ func run() {
 }
 
 // Serve serves as a livereload server for accepting I/O tunnel messages.
-func Serve(w http.ResponseWriter, r *http.Request) {
+func serveWebSocket(w http.ResponseWriter, r *http.Request) {
 	var socket, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -125,13 +128,13 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeJS serves livereload.js for browser.
-func ServeJS(w http.ResponseWriter, r *http.Request) {
+func serveJavaScript(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/javascript")
 	w.Write(javascript)
 }
 
 // Start activates livereload server for accepting tunnel messages.
-func Start() {
+func start() {
 	once.Do(func() {
 		broadcast = make(chan []byte)
 		tunnels = make(map[*tunnel]bool)

@@ -35,18 +35,18 @@ import (
 type (
 	Server struct {
 		router  *mux.Router
-		modules []Module
+		filters []Filter
 	}
 
 	HandlerFunc func(*Context)
 
 	// Conventional method to implement custom modules.
-	Module func(http.Handler) http.Handler
+	Filter func(http.Handler) http.Handler
 )
 
 // New creates an application instance & setup its default settings..
 func NewServer() *Server {
-	return &Server{mux.NewRouter(), nil}
+	return &Server{router: mux.NewRouter()}
 }
 
 // Custom handler func provides Context Supports.
@@ -128,17 +128,17 @@ func (self *Server) Group(path string) *Server {
 }
 
 // Use append middleware into the serving list, middleware will be served in FIFO order.
-func (self *Server) Use(modules ...Module) {
-	self.modules = append(self.modules, modules...)
+func (self *Server) Use(filter Filter) {
+	self.filters = append(self.filters, filter)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	var mux http.Handler = self.router
-	// Activate modules in FIFO order.
-	if len(self.modules) > 0 {
-		for index := len(self.modules) - 1; index >= 0; index-- {
-			mux = self.modules[index](mux)
+	// Activate filters in FIFO order.
+	if len(self.filters) > 0 {
+		for index := len(self.filters) - 1; index >= 0; index-- {
+			mux = self.filters[index](mux)
 		}
 	}
 	mux.ServeHTTP(writer, request)

@@ -20,23 +20,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package filters
 
 import (
-	"net/http"
-	"strings"
+	"log"
+
+	"github.com/goanywhere/rex/core"
 )
 
-// NoCache simply disables browser-base cache.
-func NoCache(path string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, path) {
-				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-				w.Header().Set("Pragma", "no-cache")
-				w.Header().Set("Expires", "0")
-			}
-			next.ServeHTTP(w, r)
-		})
+var settings = core.Settings()
+
+type Options map[string]interface{}
+
+// Get provides shortcut access to map with default value as fallback.
+func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
+	if len(fallback) > 1 {
+		log.Fatalf("Options <%s> can has only one default value", key)
 	}
+	if v, exists := self[key]; exists {
+		value = v
+	} else if len(fallback) == 1 {
+		value = fallback[0]
+	}
+	return
 }

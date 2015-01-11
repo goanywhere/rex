@@ -22,6 +22,6 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import "github.com/goanywhere/rex/config"
+import "github.com/goanywhere/rex/core"
 
-var settings = config.Settings()
+var settings = core.Settings()

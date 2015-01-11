@@ -20,37 +20,4 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
-
-import "net/http"
-
-const (
-	xFrameOptions       = "X-Frame-Options"
-	xContentTypeOptions = "X-Content-Type-Options"
-	xXSSProtection      = "X-XSS-Protection"
-	xUACompatible       = "X-UA-Compatible"
-)
-
-func securelySet(w http.ResponseWriter, key string, value interface{}) {
-	if v := w.Header().Get(key); v == "" {
-		if value != nil {
-			w.Header().Set(key, value.(string))
-		}
-	}
-}
-
-// Secure provides basic security supports by rendering common response headers.
-func Secure(options Options) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-
-			securelySet(w, xFrameOptions, options.Get(xFrameOptions, settings.X_Frame_Options))
-			securelySet(w, xContentTypeOptions, options.Get(xContentTypeOptions, settings.X_Content_Type_Options))
-			securelySet(w, xXSSProtection, options.Get(xXSSProtection, settings.X_XSS_Protection))
-			securelySet(w, xUACompatible, options.Get(xUACompatible, settings.X_UA_Compatible))
-
-			next.ServeHTTP(w, r)
-		}
-		return http.HandlerFunc(fn)
-	}
-}
+package filters

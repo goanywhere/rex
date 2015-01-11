@@ -30,21 +30,21 @@ import (
 
 func TestExtends(t *testing.T) {
 	Convey("extends", t, func() {
-		So(extends.MatchString("{% extends \"layouts/base.html\" %}"), ShouldBeTrue)
-		So(extends.MatchString("{% extends \"c://Users/someone/templates/layouts/base.html\" %}"), ShouldBeTrue)
-		So(len(extends.FindStringSubmatch("{% extends \"layouts/base.html\" %}")), ShouldEqual, 2)
-		So(len(extends.FindStringSubmatch("{% extends \"c://Users/someone/templates/layouts/base.html\" %}")), ShouldEqual, 2)
+		So(regexExtends.MatchString("{% extends \"layouts/base.html\" %}"), ShouldBeTrue)
+		So(regexExtends.MatchString("{% extends \"c://Users/someone/templates/layouts/base.html\" %}"), ShouldBeTrue)
+		So(len(regexExtends.FindStringSubmatch("{% extends \"layouts/base.html\" %}")), ShouldEqual, 2)
+		So(len(regexExtends.FindStringSubmatch("{% extends \"c://Users/someone/templates/layouts/base.html\" %}")), ShouldEqual, 2)
 	})
 }
 
 func TestInclude(t *testing.T) {
 	Convey("include", t, func() {
-		So(include.MatchString("{% include \"partials/header.html\" %}"), ShouldBeTrue)
-		So(include.MatchString("{% include \"c://Users/someone/templates/partials/nav.html\" %}"), ShouldBeTrue)
-		So(len(include.FindStringSubmatch("{% include \"partials/nav.html\" %}")), ShouldEqual, 2)
-		So(len(include.FindStringSubmatch("{% include \"c://Users/someone/templates/partials/nav.html\" %}")), ShouldEqual, 2)
+		So(regexInclude.MatchString("{% include \"partials/header.html\" %}"), ShouldBeTrue)
+		So(regexInclude.MatchString("{% include \"c://Users/someone/templates/partials/nav.html\" %}"), ShouldBeTrue)
+		So(len(regexInclude.FindStringSubmatch("{% include \"partials/nav.html\" %}")), ShouldEqual, 2)
+		So(len(regexInclude.FindStringSubmatch("{% include \"c://Users/someone/templates/partials/nav.html\" %}")), ShouldEqual, 2)
 
-		matches := include.FindAllStringSubmatch(`{% include "partials/header.html" %}\t\n{% include "partials/footer.html" %}\n`, -1)
+		matches := regexInclude.FindAllStringSubmatch(`{% include "partials/header.html" %}\t\n{% include "partials/footer.html" %}\n`, -1)
 		So(len(matches), ShouldEqual, 2)
 		So(len(matches[0]), ShouldEqual, 2)
 		So(matches[0][1], ShouldEqual, "partials/header.html")

@@ -20,24 +20,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package filters
 
 import (
 	"net/http"
-
-	"github.com/goanywhere/rex/web/livereload"
+	"strings"
 )
 
-func LiveReload(next http.Handler) http.Handler {
-	livereload.Start()
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == livereload.WebSocket {
-			livereload.Serve(w, r)
-		} else if r.URL.Path == livereload.JavaScript {
-			livereload.ServeJS(w, r)
-		} else {
+// NoCache simply disables browser-base cache.
+func NoCache(path string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, path) {
+				w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+				w.Header().Set("Pragma", "no-cache")
+				w.Header().Set("Expires", "0")
+			}
 			next.ServeHTTP(w, r)
-		}
+		})
 	}
-	return http.HandlerFunc(fn)
 }
