@@ -22,6 +22,21 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import "html/template"
+import (
+	"html/template"
+	"strings"
+)
 
-var Functions = template.FuncMap{}
+var Functions template.FuncMap
+
+func static(path string) string {
+	if strings.HasPrefix(path, "/") {
+		return path
+	}
+	return "/" + path
+}
+
+func init() {
+	Functions = make(template.FuncMap)
+	Functions["static"] = static
+}

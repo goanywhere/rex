@@ -26,7 +26,7 @@ package cache
 // Storage serve as a generic key value cache storage interface.
 // The storage may be persistent (e.g., a database) or volatile (e.g., cache).
 // All Storage implementations must be thread safe.
-type Storage interface {
+type Cache interface {
 	// Get retrieves value(s) from the storage.
 	Get(key interface{}, otherKeys ...interface{}) (interface{}, error)
 

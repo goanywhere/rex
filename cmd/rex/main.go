@@ -63,7 +63,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	cmd := cli.NewApp()
 	cmd.Name = "rex"
-	cmd.Usage = "manage Rex application project"
+	cmd.Usage = "manage rex application"
 	cmd.Version = "0.9.0"
 	cmd.Author = "GoAnywhere"
 	cmd.Email = "opensource@goanywhere.io"

@@ -147,7 +147,7 @@ func (self *server) Use(modules ...interface{}) {
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
-func (self *server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (self *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var mux http.Handler = self.router
 	// Activate modules in FIFO order.
 	if len(self.modules) > 0 {
@@ -155,7 +155,7 @@ func (self *server) ServeHTTP(writer http.ResponseWriter, request *http.Request)
 			mux = self.modules[index](mux)
 		}
 	}
-	mux.ServeHTTP(writer, request)
+	mux.ServeHTTP(w, r)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.

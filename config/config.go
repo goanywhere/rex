@@ -62,6 +62,7 @@ func Settings() *config {
 
 		settings.Templates = "templates"
 		settings.Root, _ = filepath.Abs(cwd)
+
 		env.Load(filepath.Join(settings.Root, ".env"))
 		env.Dump(settings)
 	})
