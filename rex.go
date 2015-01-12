@@ -25,8 +25,8 @@ package rex
 import (
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/template"
-	"github.com/gorilla/mux"
 )
 
 type H map[string]interface{}
@@ -39,6 +39,8 @@ var (
 )
 
 // New creates an application instance & setup its default settings..
-func New() *server {
-	return &server{router: mux.NewRouter()}
+func New() *Server {
+	server := NewServer()
+	server.Use(modules.Header)
+	return server
 }

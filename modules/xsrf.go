@@ -36,7 +36,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/crypto"
 )
 
@@ -58,7 +57,8 @@ var (
 )
 
 type xsrf struct {
-	*rex.Context
+	*http.Request
+	http.ResponseWriter
 	token string
 }
 
@@ -127,7 +127,12 @@ func (self *xsrf) checkToken(token string) bool {
 
 func (self *xsrf) generate() {
 	// Ensure we have XSRF token in the cookie first.
-	token := self.Cookie(xsrfCookieName)
+	var token string
+	if cookie, err := self.Request.Cookie(xsrfCookieName); err == nil {
+		if cookie.Value != "" {
+			token = cookie.Value
+		}
+	}
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
@@ -144,10 +149,9 @@ func (self *xsrf) generate() {
 		cookie.MaxAge = xsrfMaxAge
 		cookie.Path = "/"
 		cookie.HttpOnly = true
-		self.SetCookie(cookie)
+		http.SetCookie(self.ResponseWriter, cookie)
 	}
-	self.Writer.Header().Set(xsrfHeaderName, token)
-	self.Set(xsrfFieldName, token)
+	self.ResponseWriter.Header()[xsrfHeaderName] = []string{token}
 	self.token = token
 }
 
@@ -157,7 +161,8 @@ func (self *xsrf) generate() {
 func XSRF(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		x := new(xsrf)
-		x.Context = rex.NewContext(w, r)
+		x.Request = r
+		x.ResponseWriter = w
 		x.generate()
 
 		if unsafeMethods.MatchString(r.Method) {

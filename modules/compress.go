@@ -31,12 +31,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/config"
 )
 
 var (
-	regexContentType = regexp.MustCompile(`((message|text)\/.+)|((application\/).*(javascript|json|xml))`)
+	regexAcceptEncoding = regexp.MustCompile(`(gzip|deflate|\*)(;q=(1(\.0)?|0(\.[0-9])?))?`)
+	regexContentType    = regexp.MustCompile(`((message|text)\/.+)|((application\/).*(javascript|json|xml))`)
 )
 
 type compression interface {
@@ -47,6 +47,33 @@ type compression interface {
 type compressor struct {
 	http.ResponseWriter
 	encodings []string
+}
+
+// AcceptEncodings fetches the requested encodings from client with priority.
+func (self *compressor) acceptEncodings(request *http.Request) (encodings []string) {
+	// find all encodings supported by backend server.
+	matches := regexAcceptEncoding.FindAllString(request.Header.Get("Accept-Encoding"), -1)
+	for _, item := range matches {
+		units := strings.SplitN(item, ";", 2)
+		// top priority with q=1|q=1.0|Not Specified.
+		if len(units) == 1 {
+			encodings = append(encodings, units[0])
+
+		} else {
+			if strings.HasPrefix(units[1], "q=1") {
+				// insert the specified top priority to the first.
+				encodings = append([]string{units[0]}, encodings...)
+
+			} else if strings.HasSuffix(units[1], "0") {
+				// not acceptable at client side.
+				continue
+			} else {
+				// lower priority encoding
+				encodings = append(encodings, units[0])
+			}
+		}
+	}
+	return
 }
 
 func (self *compressor) filter(src []byte) ([]byte, string) {
@@ -102,14 +129,13 @@ func Compress(options config.Options) func(http.Handler) http.Handler {
 			if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {
 				next.ServeHTTP(w, r)
 			} else {
-				encodings := rex.AcceptEncodings(r)
+				compressor := new(compressor)
+				compressor.ResponseWriter = w
+
+				encodings := compressor.acceptEncodings(r)
 				if len(encodings) == 0 {
 					next.ServeHTTP(w, r)
-
 				} else {
-					compressor := new(compressor)
-					compressor.ResponseWriter = w
-					compressor.encodings = encodings
 					next.ServeHTTP(compressor, r)
 				}
 			}

@@ -120,8 +120,12 @@ func (self *Context) Query() url.Values {
 }
 
 // Error raises a HTTP error response according to the given status code.
-func (self *Context) Error(status int) {
-	http.Error(self.Writer, http.StatusText(status), status)
+func (self *Context) Error(status int, errors ...string) {
+	if len(errors) == 1 {
+		http.Error(self.Writer, errors[0], status)
+	} else {
+		http.Error(self.Writer, http.StatusText(status), status)
+	}
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
@@ -139,19 +143,14 @@ func (self *Context) HTML(filename string) {
 }
 
 // JSON renders JSON data to response.
-func (self *Context) JSON(values map[string]interface{}) {
-	var (
-		data []byte
-		err  error
-	)
-	data, err = json.Marshal(values)
-	if err != nil {
-		log.Printf("Failed to render JSON: %v", err)
-		self.Error(http.StatusInternalServerError)
-		return
+func (self *Context) JSON(v interface{}) {
+	if data, e := json.Marshal(v); e == nil {
+		self.Writer.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
+		self.Writer.Write(data)
+	} else {
+		log.Printf("Failed to render JSON: %v", e)
+		self.Error(http.StatusInternalServerError, e.Error())
 	}
-	self.Writer.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
-	self.Writer.Write(data)
 }
 
 // String writes plain text back to the HTTP response.
@@ -161,7 +160,12 @@ func (self *Context) String(format string, values ...interface{}) {
 }
 
 // XML renders XML data to response.
-func (self *Context) XML(values interface{}) {
-	self.Writer.Header()["Content-Type"] = []string{"application/xml; charset=utf-8"}
-	xml.NewEncoder(self.Writer).Encode(values)
+func (self *Context) XML(v interface{}) {
+	if data, e := xml.Marshal(v); e == nil {
+		self.Writer.Header()["Content-Type"] = []string{"application/xml; charset=utf-8"}
+		self.Writer.Write(data)
+	} else {
+		log.Printf("Failed to render XML: %v", e)
+		self.Error(http.StatusInternalServerError, e.Error())
+	}
 }
