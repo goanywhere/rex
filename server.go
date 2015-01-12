@@ -45,11 +45,6 @@ type (
 	Module func(http.Handler) http.Handler
 )
 
-// New creates an application instance & setup its default settings..
-func newServer() *server {
-	return &server{router: mux.NewRouter()}
-}
-
 // Custom handler func provides Context Supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self(NewContext(w, r))
@@ -125,7 +120,9 @@ func (self *server) Options(pattern string, handler http.HandlerFunc) {
 
 // Group creates a new application group under the given path.
 func (self *server) Group(path string) *server {
-	return &server{self.router.PathPrefix(path).Subrouter(), nil}
+	server := new(server)
+	server.router = self.router.PathPrefix(path).Subrouter()
+	return server
 }
 
 // Use append middleware module into the serving list, modules will be served in FIFO order.

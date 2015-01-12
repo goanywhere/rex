@@ -26,20 +26,19 @@ import (
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/template"
+	"github.com/gorilla/mux"
 )
 
 type H map[string]interface{}
 
 var (
-	Modules  []Module
 	Settings = config.Settings()
 
 	loader    = template.NewLoader(Settings.Templates)
 	signature = crypto.NewSignature(Settings.Secret)
 )
 
-// New creates a plain web.Server.
+// New creates an application instance & setup its default settings..
 func New() *server {
-	server := newServer()
-	return server
+	return &server{router: mux.NewRouter()}
 }

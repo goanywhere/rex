@@ -129,7 +129,7 @@ func (self *Context) Error(status int) {
 // to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
 	var buffer bytes.Buffer
-	self.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
 
 	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
@@ -150,18 +150,18 @@ func (self *Context) JSON(values map[string]interface{}) {
 		self.Error(http.StatusInternalServerError)
 		return
 	}
-	self.Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	self.Writer.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
 	self.Writer.Write(data)
 }
 
 // String writes plain text back to the HTTP response.
 func (self *Context) String(format string, values ...interface{}) {
-	self.Writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	self.Writer.Header()["Content-Type"] = []string{"text/plain; charset=utf-8"}
 	self.Writer.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
 // XML renders XML data to response.
 func (self *Context) XML(values interface{}) {
-	self.Writer.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	self.Writer.Header()["Content-Type"] = []string{"application/xml; charset=utf-8"}
 	xml.NewEncoder(self.Writer).Encode(values)
 }
