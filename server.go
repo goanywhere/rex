@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"runtime"
 
@@ -140,12 +141,18 @@ func (self *Server) Use(modules ...interface{}) {
 		// Standard http.Handler module.
 		case func(http.Handler) http.Handler:
 			mod = module.(func(http.Handler) http.Handler)
-		// http.Handler with module options (using default Options).
+
 		case func(config.Options) func(http.Handler) http.Handler:
+			// http.Handler with module options (using default Options).
 			mod = module.(func(config.Options) func(http.Handler) http.Handler)(config.Options{})
+
 		default:
 			log.Fatalf("Unknown module type (%v) passed in.", module)
 		}
+
+		name := runtime.FuncForPC(reflect.ValueOf(module).Pointer()).Name()
+		log.Printf("Module: %s", filepath.Base(name))
+
 		self.modules = append(self.modules, mod)
 	}
 }

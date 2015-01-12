@@ -24,23 +24,19 @@ package rex
 
 import (
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/modules"
-	"github.com/goanywhere/rex/template"
 )
 
 type H map[string]interface{}
 
 var (
 	Settings = config.Settings()
-
-	loader    = template.NewLoader(Settings.Templates)
-	signature = crypto.NewSignature(Settings.Secret)
 )
 
 // New creates an application instance & setup its default settings..
 func New() *Server {
 	server := NewServer()
 	server.Use(modules.Header)
+	server.Use(modules.XSRF)
 	return server
 }

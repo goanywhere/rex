@@ -136,6 +136,7 @@ func Compress(options config.Options) func(http.Handler) http.Handler {
 				if len(encodings) == 0 {
 					next.ServeHTTP(w, r)
 				} else {
+					compressor.encodings = encodings
 					next.ServeHTTP(compressor, r)
 				}
 			}
