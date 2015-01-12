@@ -30,7 +30,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/rex/template"
 )
+
+var loader = template.NewLoader(Settings.Templates)
+var signature = crypto.NewSignature(Settings.Secret)
 
 type Context struct {
 	Writer

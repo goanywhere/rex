@@ -20,21 +20,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package config
 
-import (
-	"github.com/goanywhere/rex/config"
-)
+import "log"
 
-type H map[string]interface{}
+type Options map[string]interface{}
 
-var (
-	Modules  []Module
-	Settings = config.Settings()
-)
-
-// New creates a plain web.Server.
-func New() *server {
-	server := newServer()
-	return server
+// Get provides shortcut access to map with default value as fallback.
+func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
+	if len(fallback) > 1 {
+		log.Fatalf("Options <%s> can has only one default value", key)
+	}
+	if v, exists := self[key]; exists {
+		value = v
+	} else if len(fallback) == 1 {
+		value = fallback[0]
+	}
+	return
 }

@@ -20,21 +20,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package modules
 
-import (
-	"github.com/goanywhere/rex/config"
-)
+import "github.com/goanywhere/rex/config"
 
-type H map[string]interface{}
-
-var (
-	Modules  []Module
-	Settings = config.Settings()
-)
-
-// New creates a plain web.Server.
-func New() *server {
-	server := newServer()
-	return server
-}
+var settings = config.Settings()

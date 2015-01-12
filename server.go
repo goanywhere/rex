@@ -29,6 +29,7 @@ import (
 	"reflect"
 	"runtime"
 
+	"github.com/goanywhere/rex/config"
 	"github.com/gorilla/mux"
 )
 
@@ -128,19 +129,21 @@ func (self *server) Group(path string) *server {
 }
 
 // Use append middleware module into the serving list, modules will be served in FIFO order.
-func (self *server) Use(m interface{}) {
-	var module Module
-	switch m.(type) {
-	// Standard http.Handler module.
-	case func(http.Handler) http.Handler:
-		module = m.(func(http.Handler) http.Handler)
-	// http.Handler with module options (using default Options).
-	case func(Options) func(http.Handler) http.Handler:
-		module = m.(func(Options) func(http.Handler) http.Handler)(Options{})
-	default:
-		log.Fatalf("Unknown module type (%v) passed in.", m)
+func (self *server) Use(modules ...interface{}) {
+	var mod Module
+	for _, module := range modules {
+		switch module.(type) {
+		// Standard http.Handler module.
+		case func(http.Handler) http.Handler:
+			mod = module.(func(http.Handler) http.Handler)
+		// http.Handler with module options (using default Options).
+		case func(config.Options) func(http.Handler) http.Handler:
+			mod = module.(func(config.Options) func(http.Handler) http.Handler)(config.Options{})
+		default:
+			log.Fatalf("Unknown module type (%v) passed in.", module)
+		}
+		self.modules = append(self.modules, mod)
 	}
-	self.modules = append(self.modules, module)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.

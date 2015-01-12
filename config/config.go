@@ -20,21 +20,50 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package config
 
-import "log"
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"sync"
 
-type Options map[string]interface{}
+	"github.com/goanywhere/x/env"
+)
 
-// Get provides shortcut access to map with default value as fallback.
-func (self Options) Get(key string, fallback ...interface{}) (value interface{}) {
-	if len(fallback) > 1 {
-		log.Fatalf("Options <%s> can has only one default value", key)
+var (
+	once     sync.Once
+	settings *config
+)
+
+type config struct {
+	Root   string
+	Debug  bool
+	Secret string
+
+	Host string
+	Port int
+
+	Templates string
+}
+
+// Settings returns a singleton settings access point.
+func Settings() *config {
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
 	}
-	if v, exists := self[key]; exists {
-		value = v
-	} else if len(fallback) == 1 {
-		value = fallback[0]
-	}
-	return
+
+	once.Do(func() {
+		settings = new(config)
+		settings.Debug = true
+		settings.Host = "localhost"
+		settings.Port = 5000
+
+		settings.Templates = "templates"
+		settings.Root, _ = filepath.Abs(cwd)
+		env.Load(filepath.Join(settings.Root, ".env"))
+		env.Dump(settings)
+	})
+	return settings
 }

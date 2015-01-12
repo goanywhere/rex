@@ -25,7 +25,7 @@ package modules
 import (
 	"net/http"
 
-	"github.com/goanywhere/rex"
+	"github.com/goanywhere/rex/config"
 )
 
 const (
@@ -49,14 +49,14 @@ func (self *header) set(key string, value interface{}) {
 }
 
 // Header provides additional headers supports for response writer.
-func Header(options rex.Options) func(http.Handler) http.Handler {
+func Header(options config.Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			var header = &header{w}
-			header.set(xFrameOptions, options.Get(xFrameOptions, rex.Settings.X_Frame_Options))
-			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, rex.Settings.X_Content_Type_Options))
-			header.set(xXSSProtection, options.Get(xXSSProtection, rex.Settings.X_XSS_Protection))
-			header.set(xUACompatible, options.Get(xUACompatible, rex.Settings.X_UA_Compatible))
+			header.set(xFrameOptions, options.Get(xFrameOptions, "deny"))
+			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, "nosniff"))
+			header.set(xXSSProtection, options.Get(xXSSProtection, "1; mode=block"))
+			header.set(xUACompatible, options.Get(xUACompatible, "IE=Edge, chrome=1"))
 			next.ServeHTTP(w, r)
 		}
 		return http.HandlerFunc(fn)

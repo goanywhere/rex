@@ -32,6 +32,7 @@ import (
 	"strings"
 
 	"github.com/goanywhere/rex"
+	"github.com/goanywhere/rex/config"
 )
 
 var (
@@ -95,7 +96,7 @@ func (self *compressor) Write(data []byte) (size int, err error) {
 	return self.ResponseWriter.Write(data)
 }
 
-func Compress(options rex.Options) func(http.Handler) http.Handler {
+func Compress(options config.Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {

@@ -23,12 +23,13 @@
 package modules
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"github.com/goanywhere/rex"
+	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/template"
 )
 
@@ -38,8 +39,12 @@ type static struct {
 	once sync.Once
 }
 
-func (self *static) init(options rex.Options) {
-	self.Dir = options.Get("Dir", "build").(string)
+func (self *static) init(options config.Options) {
+	abs, err := filepath.Abs(options.Get("Dir", "build").(string))
+	if err != nil {
+		log.Fatalf("Failed to initialize static directory: %v", err)
+	}
+	self.Dir = abs
 	self.URL = options.Get("URL", "/static/").(string)
 
 	self.once.Do(func() {
@@ -53,7 +58,7 @@ func (self *static) init(options rex.Options) {
 }
 
 func (self *static) serve(w http.ResponseWriter, r *http.Request) {
-	var dir = http.Dir(filepath.Join(rex.Settings.Root, self.Dir))
+	var dir = http.Dir(self.Dir)
 	var path = r.URL.Path[len(self.URL):]
 
 	var file, err = dir.Open(path)
@@ -66,6 +71,7 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+
 	// try serving index.html
 	if stat.IsDir() {
 		// redirect if missing trailing slash
@@ -90,7 +96,7 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, stat.ModTime(), file)
 }
 
-func Static(options rex.Options) func(http.Handler) http.Handler {
+func Static(options config.Options) func(http.Handler) http.Handler {
 	s := new(static)
 	s.init(options)
 

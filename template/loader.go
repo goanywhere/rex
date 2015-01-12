@@ -36,9 +36,10 @@ import (
 var ignores = regexp.MustCompile(`(include|layout)s?`)
 
 type Loader struct {
+	sync.RWMutex
+
 	root      string
 	loaded    bool
-	mutex     sync.RWMutex
 	templates map[string]*template.Template
 }
 
@@ -95,8 +96,8 @@ func (self *Loader) Get(name string) *template.Template {
 // parsed templates & cause panic if there's any error occured.
 func (self *Loader) Load() (pages int) {
 	if !self.loaded {
-		self.mutex.Lock()
-		defer self.mutex.Unlock()
+		self.Lock()
+		defer self.Unlock()
 		for _, name := range self.files() {
 			self.templates[name] = self.page(name).parse()
 			pages++
@@ -116,8 +117,8 @@ func (self *Loader) page(name string) *page {
 
 // Reset clears the cached pages.
 func (self *Loader) Reset() {
-	self.mutex.Lock()
-	defer self.mutex.Unlock()
+	self.Lock()
+	defer self.Unlock()
 	for k := range self.templates {
 		delete(self.templates, k)
 	}
