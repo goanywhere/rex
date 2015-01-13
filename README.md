@@ -15,7 +15,7 @@ Project Template for Rex
       ▸ includes/
       ▸ layouts/
         index.html
-      app.go
+      main.go
       package.json
 
 
@@ -28,6 +28,6 @@ Project Template for Rex
 * templates: html/template for Go
     * includes: partial page components
     * layouts: basic page layouts
-* app.go: application server
+* main.go: application server
 * package.json: package build file for NPM.
 
