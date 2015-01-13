@@ -30,6 +30,8 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/goanywhere/x/fs"
 )
 
 var ignores = regexp.MustCompile(`(include|layout)s?`)
@@ -43,9 +45,12 @@ type Loader struct {
 }
 
 func NewLoader(path string) *Loader {
-	abspath, err := filepath.Abs(path)
-	if err != nil {
-		log.Fatalf("Failed to initialize templates path: %v", err)
+	abspath, e := filepath.Abs(path)
+	if e != nil {
+		log.Fatalf("Failed to initialize templates: %v", e)
+	}
+	if !fs.Exists(abspath) {
+		log.Fatalf("Failed to initialize templates: <%s> does not exist", path)
 	}
 	loader := new(Loader)
 	loader.root = abspath

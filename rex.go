@@ -57,6 +57,8 @@ var (
 	Settings = config.Settings()
 )
 
+type H map[string]interface{}
+
 func Get(pattern string, handler interface{}) {
 	server.Get(pattern, handler)
 }
