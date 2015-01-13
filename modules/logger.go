@@ -25,16 +25,14 @@ package modules
 import (
 	"log"
 	"net/http"
-	"os"
 )
-
-var logger = log.New(os.Stdout, "[rex]", 0)
 
 // ---------------------------------------------------------------------------
 //  Logging Middleware Supports
 // ---------------------------------------------------------------------------
 func Logger(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[%s] %s", r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)

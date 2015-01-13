@@ -20,13 +20,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package web
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"runtime"
 
@@ -149,10 +147,7 @@ func (self *Server) Use(modules ...interface{}) {
 		default:
 			log.Fatalf("Unknown module type (%v) passed in.", module)
 		}
-
-		name := runtime.FuncForPC(reflect.ValueOf(module).Pointer()).Name()
-		log.Printf("Module: %s", filepath.Base(name))
-
+		//name := runtime.FuncForPC(reflect.ValueOf(module).Pointer()).Name()
 		self.modules = append(self.modules, mod)
 	}
 }
@@ -167,13 +162,4 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	mux.ServeHTTP(w, r)
-}
-
-// Serve starts serving the requests at the pre-defined address from settings.
-func (self *Server) Run() {
-	var address = fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
-	log.Printf("Application server started [%s]", address)
-	if err := http.ListenAndServe(address, self); err != nil {
-		log.Fatalf("Failed to start the server: %v", err)
-	}
 }

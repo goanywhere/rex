@@ -27,7 +27,7 @@ import (
 	"strings"
 )
 
-// NoCache simply disables browser-base cache.
+// NoCache simply disables browser-based cache.
 func NoCache(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

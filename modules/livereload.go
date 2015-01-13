@@ -54,6 +54,7 @@ func (self *writer) Write(data []byte) (size int, e error) {
 		} else {
 			var reader io.ReadCloser
 			var buffer *bytes.Buffer = new(bytes.Buffer)
+
 			if encoding == "gzip" {
 				// decode to add javascript reference.
 				reader, _ = gzip.NewReader(bytes.NewReader(data))
@@ -93,9 +94,7 @@ func LiveReload(next http.Handler) http.Handler {
 		} else if r.URL.Path == livereload.URL.JavaScript {
 			livereload.ServeJavaScript(w, r)
 		} else {
-			writer := new(writer)
-			writer.host = r.Host
-			writer.ResponseWriter = w
+			writer := &writer{w, r.Host}
 			next.ServeHTTP(writer, r)
 		}
 	}

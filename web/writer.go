@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package web
 
 import (
 	"bufio"
@@ -35,6 +35,7 @@ Extension to http.WriterWriter with compression supports.
 
 type Writer interface {
 	http.Flusher
+	http.Hijacker
 	http.CloseNotifier
 	http.ResponseWriter
 

@@ -20,23 +20,94 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+/*
+Package rex provides an out-of-box web server with common middleware modules.
+Example:
+	package main
+
+	import (
+		"net/http"
+		"github.com/goanywhere/rex"
+		"github.com/goanywhere/rex/web"
+	)
+
+	func index(ctx *rex.Context) {
+		ctx.String("Hello World")
+	}
+
+	func main() {
+		rex.Get("/", index)
+		rex.Run()
+	}
+*/
 package rex
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/modules"
+	"github.com/goanywhere/rex/web"
 )
 
-type H map[string]interface{}
-
 var (
+	server   *web.Server
 	Settings = config.Settings()
 )
 
-// New creates an application instance & setup its default settings..
-func New() *Server {
-	server := NewServer()
+func Get(pattern string, handler interface{}) {
+	server.Get(pattern, handler)
+}
+
+func Post(pattern string, handler interface{}) {
+	server.Post(pattern, handler)
+}
+
+func Put(pattern string, handler interface{}) {
+	server.Put(pattern, handler)
+}
+
+func Delete(pattern string, handler interface{}) {
+	server.Delete(pattern, handler)
+}
+
+func Patch(pattern string, handler http.HandlerFunc) {
+	server.Patch(pattern, handler)
+}
+
+func Head(pattern string, handler http.HandlerFunc) {
+	server.Head(pattern, handler)
+}
+
+func Options(pattern string, handler http.HandlerFunc) {
+	server.Options(pattern, handler)
+}
+
+func Group(path string) *web.Server {
+	return server.Group(path)
+}
+
+func Use(modules ...interface{}) {
+	server.Use(modules...)
+}
+
+// Serve starts serving the requests at the pre-defined address from settings.
+func Run() {
+	var address = fmt.Sprintf("%s:%d", Settings.Host, Settings.Port)
+	log.Printf("Application server started [%s]", address)
+	if err := http.ListenAndServe(address, server); err != nil {
+		log.Fatalf("Failed to start the server: %v", err)
+	}
+}
+
+func init() {
+	server = web.NewServer()
 	server.Use(modules.Header)
 	server.Use(modules.XSRF)
-	return server
+	server.Use(modules.Static)
+	server.Use(modules.LiveReload)
+	server.Use(modules.Compress)
+	server.Use(modules.Logger)
 }
