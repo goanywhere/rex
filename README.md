@@ -141,7 +141,7 @@ func main() {
 
 You will now have the HTTP server running on `0.0.0.0:9394`.
 
-Hey, dude, why not just use those popular approaches, like file-based config? We know you'll be asking & we have the answer as well, [here](//12factor.net/config).
+Hey, dude, why not just use those popular approaches, like file-based config? We know you'll be asking & we have the answer as well, [here](http://12factor.net/config).
 
 
 ## Modules
@@ -173,7 +173,6 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 ##Roadmap for v1.0
 
 
-- [X] Sharding Supports
 - [X] Env-Based Configurations
 - [X] Project Home page
 - [X] Test Suite
@@ -185,6 +184,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Live Reload Integration
 - [X] Template Functions
 - [X] Common Modules
+- [ ] Cache Framework
 - [ ] Better Logging
 - [ ] i18n Supports
 - [ ] Form Validations
