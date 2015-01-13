@@ -34,8 +34,6 @@ import (
 	"sync/atomic"
 )
 
-const xContextKey string = "contextid"
-
 var (
 	contextId uint64
 )
@@ -58,11 +56,11 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 
 // Id creates a unique & cookie-based identity for Context.
 func (self *Context) Id() (id string) {
-	id = self.SecureCookie(xContextKey)
+	id = self.SecureCookie(xSessionKey)
 	if id == "" || !strings.HasPrefix(id, process) {
 		id = fmt.Sprintf("%s-%07d", process, atomic.AddUint64(&contextId, 1))
 		cookie := new(http.Cookie)
-		cookie.Name = xContextKey
+		cookie.Name = xSessionKey
 		cookie.MaxAge = 86400 // OneDay
 		cookie.Path = "/"
 		cookie.Secure = false // HTTP/HTTPS
@@ -157,10 +155,10 @@ func (self *Context) Error(status int, errors ...string) {
 // Under Debug mode, livereload.js will be added to the end of <head>
 // to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
-	var buffer bytes.Buffer
+	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
 
-	if err := loader.Get(filename).Execute(&buffer, self.data); err != nil {
+	if err := loader.Get(filename).Execute(buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
 		return
 	}

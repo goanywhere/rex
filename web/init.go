@@ -35,6 +35,10 @@ import (
 	"github.com/goanywhere/rex/template"
 )
 
+const (
+	xSessionKey = "sessionid"
+)
+
 var (
 	settings = config.Settings()
 

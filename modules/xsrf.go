@@ -49,8 +49,8 @@ const (
 )
 
 var (
-	errInvalidReferer = "Referer URL is missing from the request or the value was malformed."
-	errInvalidToken   = "Invalid/Mismatch XSRF tokens."
+	errXSRFReferer = "Referer URL is missing from the request or the value was malformed."
+	errXSRFToken   = "Invalid XSRF tokens"
 
 	xsrfPattern   = regexp.MustCompile("[^0-9a-zA-Z-_]")
 	unsafeMethods = regexp.MustCompile("^(DELETE|POST|PUT)$")
@@ -168,12 +168,12 @@ func XSRF(next http.Handler) http.Handler {
 		if unsafeMethods.MatchString(r.Method) {
 			// Ensure the URL came for "Referer" under HTTPS.
 			if !x.checkOrigin() {
-				http.Error(w, errInvalidReferer, http.StatusForbidden)
+				http.Error(w, errXSRFReferer, http.StatusForbidden)
 			}
 
 			// length => bytes => issue time checkpoints.
 			if !x.checkToken(x.token) {
-				http.Error(w, errInvalidToken, http.StatusForbidden)
+				http.Error(w, errXSRFToken, http.StatusForbidden)
 			}
 		}
 
