@@ -23,6 +23,13 @@
 package web
 
 import (
+	"crypto/hmac"
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
+	"os"
+	"time"
+
 	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
 	"github.com/goanywhere/rex/template"
@@ -31,6 +38,19 @@ import (
 var (
 	settings = config.Settings()
 
+	process   string
 	loader    = template.NewLoader(settings.Templates)
 	signature = crypto.NewSignature(settings.Secret)
 )
+
+func init() {
+	// prepare a md5-based fixed length (32-bits) string for Go process.
+	hostname, err := os.Hostname()
+	if hostname == "" || err != nil {
+		hostname = "localhost"
+	}
+	// system pid combined with timestamp to identity current go process.
+	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
+	hash := hmac.New(md5.New, []byte(fmt.Sprintf("%s-%s", hostname, pid)))
+	process = hex.EncodeToString(hash.Sum(nil))
+}

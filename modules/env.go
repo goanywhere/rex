@@ -22,43 +22,26 @@
  * ----------------------------------------------------------------------*/
 package modules
 
-import (
-	"net/http"
-
-	"github.com/goanywhere/rex/config"
-)
+import "net/http"
 
 const (
-	xFrameOptions       = "X-Frame-Options"
-	xContentTypeOptions = "X-Content-Type-Options"
-	xXSSProtection      = "X-XSS-Protection"
 	xUACompatible       = "X-UA-Compatible"
+	xFrameOptions       = "X-Frame-Options"
+	xXSSProtection      = "X-XSS-Protection"
+	xContentTypeOptions = "X-Content-Type-Options"
 )
 
-//TODO add Options.
-type header struct {
-	writer http.ResponseWriter
-}
-
-func (self *header) set(key string, value interface{}) {
-	if v := self.writer.Header().Get(key); v == "" {
-		if value != nil {
-			self.writer.Header()[key] = []string{value.(string)}
+func Env(next http.Handler) http.Handler {
+	var Set = func(w http.ResponseWriter, key, val string) {
+		if v := w.Header().Get(key); v == "" {
+			w.Header()[key] = []string{val}
 		}
 	}
-}
-
-// Header provides additional headers supports for response writer.
-func Header(options config.Options) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			var header = &header{w}
-			header.set(xFrameOptions, options.Get(xFrameOptions, "deny"))
-			header.set(xContentTypeOptions, options.Get(xContentTypeOptions, "nosniff"))
-			header.set(xXSSProtection, options.Get(xXSSProtection, "1; mode=block"))
-			header.set(xUACompatible, options.Get(xUACompatible, "IE=Edge, chrome=1"))
-			next.ServeHTTP(w, r)
-		}
-		return http.HandlerFunc(fn)
-	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Set(w, xUACompatible, "deny")
+		Set(w, xFrameOptions, "nosniff")
+		Set(w, xXSSProtection, "1; mode=block")
+		Set(w, xContentTypeOptions, "IE=Edge, chrome=1")
+		next.ServeHTTP(w, r)
+	})
 }

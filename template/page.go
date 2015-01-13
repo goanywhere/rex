@@ -37,7 +37,7 @@ var (
 )
 
 type page struct {
-	Name   string  // name of the page under laoder's root path.
+	name   string  // name of the page under laoder's root path.
 	loader *Loader // file loader.
 }
 
@@ -45,7 +45,7 @@ type page struct {
 // and combines them along with the page name iteself into correct order for parsing.
 // tag: {% extends "layout/base.html" %}
 func (self *page) ancestors() (names []string) {
-	var name = self.Name
+	var name = self.name
 	names = append(names, name)
 
 	for {
@@ -78,7 +78,7 @@ func (self *page) ancestors() (names []string) {
 func (self *page) include() (source string) {
 	bits, err := ioutil.ReadFile(self.path())
 	if err != nil {
-		log.Fatalf("Failed to open template (%s): %v", self.Name, err)
+		log.Fatalf("Failed to open template (%s): %v", self.name, err)
 	}
 
 	source = string(bits)
@@ -90,7 +90,7 @@ func (self *page) include() (source string) {
 
 		for _, match := range result {
 			tag, name := match[0], match[1]
-			if name == self.Name {
+			if name == self.name {
 				log.Fatalf("Template cannot include itself (%s)", name)
 			}
 			page := self.loader.page(name)
@@ -102,31 +102,32 @@ func (self *page) include() (source string) {
 }
 
 // Parse constructs `template.Template` object with additional // "extends" & "include" like Jinja.
-func (self *page) parse() (output *template.Template) {
+func (self *page) parse() (out *template.Template) {
 	var e error
 	names := self.ancestors()
 
+	var tmpl *template.Template
+	var page *page
 	for _, name := range names {
-		var tmpl *template.Template
-		var page = self.loader.page(name)
+		page = self.loader.page(name)
 
-		if output == nil {
-			output = template.New(name).Funcs(Functions)
+		if out == nil {
+			out = template.New(name).Funcs(Functions)
 		}
-		if name == output.Name() {
-			tmpl = output
+		if name == out.Name() {
+			tmpl = out
 		} else {
-			tmpl = output.New(name)
+			tmpl = out.New(name)
 		}
 		_, e = tmpl.Parse(page.include())
 	}
 
-	return template.Must(output, e)
+	return template.Must(out, e)
 }
 
 // Path returns the abolute path of the page.
 func (self *page) path() string {
-	return path.Join(self.loader.root, self.Name)
+	return path.Join(self.loader.root, self.name)
 }
 
 // Source returns the plain raw source of the page.
@@ -134,7 +135,7 @@ func (self *page) source() (src string) {
 	if bits, err := ioutil.ReadFile(self.path()); err == nil {
 		src = string(bits)
 	} else {
-		log.Fatalf("Failed to open template (%s): %v", self.Name, err)
+		log.Fatalf("Failed to open template (%s): %v", self.name, err)
 	}
 	return src
 }

@@ -40,8 +40,7 @@ var (
 )
 
 type compression interface {
-	io.Writer
-	io.Closer
+	io.WriteCloser
 }
 
 type compressor struct {

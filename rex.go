@@ -104,10 +104,9 @@ func Run() {
 
 func init() {
 	server = web.NewServer()
-	server.Use(modules.Header)
+	server.Use(modules.Env)
 	server.Use(modules.XSRF)
 	server.Use(modules.Static)
 	server.Use(modules.LiveReload)
 	server.Use(modules.Compress)
-	server.Use(modules.Logger)
 }

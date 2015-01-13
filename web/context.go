@@ -30,6 +30,14 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
+	"sync/atomic"
+)
+
+const xContextKey string = "contextid"
+
+var (
+	contextId uint64
 )
 
 type Context struct {
@@ -46,6 +54,23 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx.Request = r
 	ctx.Writer = &writer{w, 0, 0}
 	return ctx
+}
+
+// Id creates a unique & cookie-based identity for Context.
+func (self *Context) Id() (id string) {
+	id = self.SecureCookie(xContextKey)
+	if id == "" || !strings.HasPrefix(id, process) {
+		id = fmt.Sprintf("%s-%07d", process, atomic.AddUint64(&contextId, 1))
+		cookie := new(http.Cookie)
+		cookie.Name = xContextKey
+		cookie.MaxAge = 86400 // OneDay
+		cookie.Path = "/"
+		cookie.Secure = false // HTTP/HTTPS
+		cookie.HttpOnly = true
+		cookie.Value = id
+		self.SetSecureCookie(cookie)
+	}
+	return
 }
 
 // Get fetches context data under the given key.

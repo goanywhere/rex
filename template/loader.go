@@ -109,7 +109,7 @@ func (self *Loader) Load() (pages int) {
 // internal page helper.
 func (self *Loader) page(name string) *page {
 	page := new(page)
-	page.Name = name
+	page.name = name
 	page.loader = self
 	return page
 }
