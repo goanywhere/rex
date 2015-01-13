@@ -13,12 +13,11 @@ $ go get -v github.com/goanywhere/rex/...
 
 ## Features
 * Flexible Env-based configurations.
-* Non-intrusive/Modular design, extremely easy to use.
 * Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
-* Flexible modular system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
-* Works nicely with other Golang packages.
-* Command line tools 
-    * Auto compile for .go & .html
+* Non-intrusive/Modular design, extremely easy to use.
+* Standard & modular system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
+* Command line tools
+    * Auto-compile for .go & .html
     * Browser-based Live reload supports
     * Support Node scripts (defined in package.json)
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
@@ -30,19 +29,17 @@ After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html
 package main
 
 import (
+    "fmt"
+    "net/http"
+
     "github.com/goanywhere/rex"
 )
 
 func main() {
-    server := rex.New()
-    server.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        ctx := rex.NewContext(w, r)
-        ctx.String("Hello World")
+    rex.Get("/", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintf(w, "Hello World")
     })
-    server.Get("/hello", func(ctx *rex.Context) {
-        ctx.String("Hello Again")
-    })
-    server.Run()
+    rex.Run()
 }
 ```
 
@@ -98,21 +95,21 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *rex.Context) {
+func json (ctx *web.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
 func main() {
-    server := rex.New()
-    server.Get("/", index)
-    server.Get("/api", json)
-    server.Run()
+    rex.Get("/", index)
+    rex.Get("/api", json)
+    rex.Run()
 }
 ```
 
@@ -126,9 +123,10 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.HTML("index.html")
 }
 
@@ -136,9 +134,8 @@ func main() {
     // Override default 5000 port here.
     rex.Settings.Port = 9394
 
-    server := rex.New()
-    server.Get("/", index)
-    server.Run()
+    rex.Get("/", index)
+    rex.Run()
 }
 ```
 
