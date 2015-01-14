@@ -112,7 +112,7 @@ func (self *page) parse() (out *template.Template) {
 		page = self.loader.page(name)
 
 		if out == nil {
-			out = template.New(name).Funcs(Functions)
+			out = template.New(name).Funcs(FuncMap)
 		}
 		if name == out.Name() {
 			tmpl = out

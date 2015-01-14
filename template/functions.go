@@ -23,20 +23,14 @@
 package template
 
 import (
-	"html/template"
 	"strings"
+
+	"github.com/goanywhere/rex/config"
 )
 
-var Functions template.FuncMap
-
 func static(path string) string {
-	if strings.HasPrefix(path, "/") {
-		return path
-	}
-	return "/" + path
-}
-
-func init() {
-	Functions = make(template.FuncMap)
-	Functions["static"] = static
+	return strings.Join([]string{
+		strings.TrimRight(config.URL.Static, "/"),
+		strings.TrimLeft(path, "/")},
+		"/")
 }

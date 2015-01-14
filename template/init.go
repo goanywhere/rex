@@ -21,3 +21,12 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 package template
+
+import "html/template"
+
+var FuncMap template.FuncMap
+
+func init() {
+	FuncMap = make(template.FuncMap)
+	FuncMap["static"] = static
+}

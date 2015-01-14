@@ -54,8 +54,7 @@ import (
 )
 
 var (
-	server   *web.Server
-	Settings = config.Settings()
+	server *web.Server
 )
 
 type H map[string]interface{}
