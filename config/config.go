@@ -26,45 +26,59 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/goanywhere/x/env"
 )
 
 var (
-	once     sync.Once
-	settings *config
-)
-
-type config struct {
 	Root   string
-	Debug  bool
 	Secret string
 
-	Host string
-	Port int
+	Port = 5000
+	Mode = "debug"
 
-	Templates string
-}
+	Dir = struct {
+		Static    string
+		Templates string
+	}{
+		Static:    "build",
+		Templates: "templates",
+	}
 
-// Settings returns a singleton settings access point.
-func Settings() *config {
+	URL = struct {
+		Static string
+	}{
+		Static: "/static/",
+	}
+)
+
+func init() {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	}
+	env.Load(filepath.Join(cwd, ".env"))
 
-	once.Do(func() {
-		settings = new(config)
-		settings.Debug = true
-		settings.Host = "localhost"
-		settings.Port = 5000
+	Root, _ = filepath.Abs(cwd)
+	Secret = env.Get("secret")
 
-		settings.Templates = "templates"
-		settings.Root, _ = filepath.Abs(cwd)
+	if value, e := env.Int("port"); e == nil {
+		Port = value
+	}
 
-		env.Load(filepath.Join(settings.Root, ".env"))
-		env.Dump(settings)
-	})
-	return settings
+	if value := env.Get("mode"); value != "" {
+		Mode = value
+	}
+
+	if value := env.Get("dir.static"); value != "" {
+		Dir.Static = value
+	}
+
+	if value := env.Get("dir.templates"); value != "" {
+		Dir.Templates = value
+	}
+
+	if value := env.Get("url.static"); value != "" {
+		URL.Static = value
+	}
 }

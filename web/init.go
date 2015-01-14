@@ -40,11 +40,10 @@ const (
 )
 
 var (
-	settings = config.Settings()
-
-	process   string
-	loader    = template.NewLoader(settings.Templates)
-	signature = crypto.NewSignature(settings.Secret)
+	process string
+	//FIXME & TODO better way to initialize them.
+	loader    = template.NewLoader(config.Dir.Templates)
+	signature = crypto.NewSignature(config.Secret)
 )
 
 func init() {

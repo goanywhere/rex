@@ -23,14 +23,12 @@
 package modules
 
 import (
-	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/goanywhere/rex/config"
-	"github.com/goanywhere/rex/template"
 )
 
 type static struct {
@@ -39,22 +37,20 @@ type static struct {
 	once sync.Once
 }
 
-func (self *static) init(options config.Options) {
-	abs, err := filepath.Abs(options.Get("Dir", "build").(string))
-	if err != nil {
-		log.Fatalf("Failed to initialize static directory: %v", err)
-	}
-	self.Dir = abs
-	self.URL = options.Get("URL", "/static/").(string)
+func (self *static) init(options map[string]interface{}) {
+	self.Dir = config.Dir.Static
+	self.URL = config.URL.Static
 
-	self.once.Do(func() {
-		template.Functions["static"] = func(path string) string {
-			return strings.Join([]string{
-				strings.TrimRight(self.URL, "/"),
-				strings.TrimLeft(path, "/")},
-				"/")
-		}
-	})
+	/*
+		self.once.Do(func() {
+			template.Functions["static"] = func(path string) string {
+				return strings.Join([]string{
+					strings.TrimRight(self.URL, "/"),
+					strings.TrimLeft(path, "/")},
+					"/")
+			}
+		})
+	*/
 }
 
 func (self *static) serve(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +92,7 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, stat.ModTime(), file)
 }
 
-func Static(options config.Options) func(http.Handler) http.Handler {
+func Static(options map[string]interface{}) func(http.Handler) http.Handler {
 	s := new(static)
 	s.init(options)
 

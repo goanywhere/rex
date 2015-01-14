@@ -28,7 +28,6 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/goanywhere/rex/config"
 	"github.com/gorilla/mux"
 )
 
@@ -49,8 +48,8 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self(NewContext(w, r))
 }
 
-// NewServer creates a plain web server without any middleware modules.
-func NewServer() *Server {
+// New creates a plain web server without any middleware modules.
+func New() *Server {
 	server := new(Server)
 	server.router = mux.NewRouter()
 	return server
@@ -131,7 +130,7 @@ func (self *Server) Group(path string) *Server {
 	return server
 }
 
-// Use append middleware module into the serving list, modules will be served in FIFO order.
+// Add appends middleware module into the serving list, modules will be served in FIFO order.
 func (self *Server) Use(modules ...interface{}) {
 	var mod Module
 	for _, module := range modules {
@@ -140,9 +139,10 @@ func (self *Server) Use(modules ...interface{}) {
 		case func(http.Handler) http.Handler:
 			mod = module.(func(http.Handler) http.Handler)
 
-		case func(config.Options) func(http.Handler) http.Handler:
+		case func(map[string]interface{}) func(http.Handler) http.Handler:
 			// http.Handler with module options (using default Options).
-			mod = module.(func(config.Options) func(http.Handler) http.Handler)(config.Options{})
+			var options = make(map[string]interface{})
+			mod = module.(func(map[string]interface{}) func(http.Handler) http.Handler)(options)
 
 		default:
 			log.Fatalf("Unknown module type (%v) passed in.", module)

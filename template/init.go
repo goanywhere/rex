@@ -21,7 +21,3 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 package template
-
-import "github.com/goanywhere/rex/config"
-
-var settings = config.Settings()
