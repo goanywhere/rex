@@ -112,7 +112,6 @@ func init() {
 	mux.Use(modules.Env)
 	mux.Use(modules.XSRF)
 
-	env.NS = "rex"
 	if cwd, err := os.Getwd(); err != nil {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	} else {

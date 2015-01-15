@@ -24,13 +24,18 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 
 	"github.com/codegangsta/cli"
+	"github.com/goanywhere/rex/crypto"
 )
 
-var cwd string
+var (
+	cwd   string
+	chars = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
+)
 
 var commands = []cli.Command{
 	// rex project template supports
@@ -54,6 +59,21 @@ var commands = []cli.Command{
 				Name:  "task",
 				Value: "build",
 				Usage: "task script for npm (http://npmjs.com/)",
+			},
+		},
+	},
+	// helper to generate a secret key.
+	{
+		Name:  "secret",
+		Usage: "generate a new application secret key",
+		Action: func(ctx *cli.Context) {
+			fmt.Println(crypto.RandomString(ctx.Int("length"), chars))
+		},
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "length",
+				Value: 64,
+				Usage: "length of the secret key",
 			},
 		},
 	},
