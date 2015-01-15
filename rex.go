@@ -46,6 +46,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/goanywhere/rex/modules"
@@ -111,6 +113,23 @@ func init() {
 	server.Use(modules.Env)
 	server.Use(modules.XSRF)
 
-	bootstrap()
+	env.NS = "rex"
+	if cwd, err := os.Getwd(); err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	} else {
+		root, _ := filepath.Abs(cwd)
+		env.Set("root", root)
+	}
+	env.Set("port", "5000")
+	env.Set("mode", "debug")
+	env.Set("dir.static", "build")
+	env.Set("dir.templates", "templates")
+	env.Set("url.static", "/static/")
+	// default environmental headers for modules.Env
+	env.Set("header.x.ua.compatible", "deny")
+	env.Set("header.x.frame.options", "nosniff")
+	env.Set("header.x.xss.protection", "1; mode=block")
+	env.Set("header.x.content.type.options", "IE=Edge,chrome=1")
+	// custom settings
 	env.Load(".env")
 }
