@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -162,4 +163,15 @@ func (self *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	mux.ServeHTTP(w, r)
+}
+
+// Run starts the application server to serve incoming requests at the given address.
+func (self *Mux) Run(address string) {
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		log.Printf("Application server started [%s]", address)
+	}()
+	if err := http.ListenAndServe(address, self); err != nil {
+		log.Fatalf("Failed to start the server: %v", err)
+	}
 }

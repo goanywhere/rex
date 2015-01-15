@@ -49,7 +49,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/web"
@@ -103,14 +102,7 @@ func Use(modules ...interface{}) {
 // Serve starts serving the requests at the pre-defined address from settings.
 func Run() {
 	flag.Parse()
-
-	go func() {
-		time.Sleep(100 * time.Millisecond)
-		log.Printf("Application server started [:%d]", port)
-	}()
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
-		log.Fatalf("Failed to start the server: %v", err)
-	}
+	mux.Run(fmt.Sprintf(":%d", port))
 }
 
 func init() {
