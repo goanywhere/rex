@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package config
+package rex
 
 import (
 	"log"
@@ -57,28 +57,16 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	}
-	env.Load(filepath.Join(cwd, ".env"))
-
 	Root, _ = filepath.Abs(cwd)
-	Secret = env.Get("secret")
 
-	if value, e := env.Int("port"); e == nil {
-		Port = value
-	}
+	env.Prefix = "rex"
+	env.Set("root", Root)
+	env.Set("port", "5000")
+	env.Set("mode", "debug")
+	env.Set("dir.static", "build")
+	env.Set("dir.templates", "templates")
+	env.Set("url.static", "/static/")
 
-	if value := env.Get("mode"); value != "" {
-		Mode = value
-	}
-
-	if value := env.Get("dir.static"); value != "" {
-		Dir.Static = value
-	}
-
-	if value := env.Get("dir.templates"); value != "" {
-		Dir.Templates = value
-	}
-
-	if value := env.Get("url.static"); value != "" {
-		URL.Static = value
-	}
+	env.Load(filepath.Join(cwd, ".env"))
+	Secret = env.String("secret")
 }

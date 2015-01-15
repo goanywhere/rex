@@ -25,12 +25,10 @@ package template
 import (
 	"strings"
 
-	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/x/env"
 )
 
 func static(path string) string {
-	return strings.Join([]string{
-		strings.TrimRight(config.URL.Static, "/"),
-		strings.TrimLeft(path, "/")},
-		"/")
+	var url = env.String("url.static")
+	return strings.Join([]string{strings.TrimRight(url, "/"), strings.TrimLeft(path, "/")}, "/")
 }

@@ -30,9 +30,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/rex/template"
 )
 
 const (
@@ -40,10 +38,8 @@ const (
 )
 
 var (
-	process string
-	//FIXME & TODO better way to initialize them.
-	loader    = template.NewLoader(config.Dir.Templates)
-	signature = crypto.NewSignature(config.Secret)
+	process   string
+	signature *crypto.Signature
 )
 
 func init() {

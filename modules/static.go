@@ -26,31 +26,13 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-	"sync"
 
-	"github.com/goanywhere/rex/config"
+	"github.com/goanywhere/x/env"
 )
 
 type static struct {
-	Dir  string
-	URL  string
-	once sync.Once
-}
-
-func (self *static) init(options map[string]interface{}) {
-	self.Dir = config.Dir.Static
-	self.URL = config.URL.Static
-
-	/*
-		self.once.Do(func() {
-			template.Functions["static"] = func(path string) string {
-				return strings.Join([]string{
-					strings.TrimRight(self.URL, "/"),
-					strings.TrimLeft(path, "/")},
-					"/")
-			}
-		})
-	*/
+	Dir string
+	URL string
 }
 
 func (self *static) serve(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +76,8 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 
 func Static(options map[string]interface{}) func(http.Handler) http.Handler {
 	s := new(static)
-	s.init(options)
+	s.Dir = env.String("dir.static", "build")
+	s.URL = env.String("url.static", "/static/")
 
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {

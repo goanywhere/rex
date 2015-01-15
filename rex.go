@@ -48,7 +48,6 @@ import (
 	"net/http"
 	"time"
 
-	. "github.com/goanywhere/rex/config"
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/web"
 )

@@ -32,10 +32,14 @@ import (
 	"net/url"
 	"strings"
 	"sync/atomic"
+
+	"github.com/goanywhere/rex/template"
+	"github.com/goanywhere/x/env"
 )
 
 var (
 	contextId uint64
+	loader    *template.Loader
 )
 
 type Context struct {
@@ -155,6 +159,9 @@ func (self *Context) Error(status int, errors ...string) {
 // Under Debug mode, livereload.js will be added to the end of <head>
 // to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
+	if loader == nil {
+		loader = template.NewLoader(env.String("dir.templates"))
+	}
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
 

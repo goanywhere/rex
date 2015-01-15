@@ -30,6 +30,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -39,7 +40,7 @@ import (
 var (
 	errSignatureInvalid = errors.New("The signature is invalid")
 	errSignatureExpired = errors.New("The signature is already expired")
-	signature           = regexp.MustCompile(`((\d{19})\|(\w+)\|(\w{40}))`)
+	regexSignature      = regexp.MustCompile(`((\d{19})\|(\w+)\|(\w{40}))`)
 )
 
 type Signature struct {
@@ -49,6 +50,9 @@ type Signature struct {
 
 // NewSignature creates a signature with secret salt for encode/decode consequent values.
 func NewSignature(secret string) *Signature {
+	if secret == "" {
+		log.Fatal("Failed to create signature with empty secret")
+	}
 	signature := new(Signature)
 	signature.secret = secret
 	signature.timeout = time.Hour * 24 * 365
@@ -92,7 +96,7 @@ func (self *Signature) Encode(key string, src []byte) (value string, err error) 
 //	3) verify nano timestamp
 func (self *Signature) Decode(key, value string) (src []byte, err error) {
 	if bits, err := base64.URLEncoding.DecodeString(value); err == nil {
-		if signature.Match(bits) {
+		if regexSignature.Match(bits) {
 			// values: nano|src(hex)|crc
 			values := strings.Split(string(bits), "|")
 			if nano, err := strconv.ParseInt(values[0], 0, 64); err == nil {
