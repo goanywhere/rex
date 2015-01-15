@@ -32,7 +32,7 @@ import (
 )
 
 type (
-	Server struct {
+	Mux struct {
 		router  *mux.Router
 		modules []Module
 	}
@@ -49,10 +49,10 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // New creates a plain web server without any middleware modules.
-func New() *Server {
-	server := new(Server)
-	server.router = mux.NewRouter()
-	return server
+func New() *Mux {
+	self := new(Mux)
+	self.router = mux.NewRouter()
+	return self
 }
 
 // ---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ func New() *Server {
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
 //	* rex.HandlerFunc	=> func(ctx *Context)
-func (self *Server) register(method, pattern string, h interface{}) {
+func (self *Mux) register(method, pattern string, h interface{}) {
 	var handler http.Handler
 
 	switch h.(type) {
@@ -83,55 +83,55 @@ func (self *Server) register(method, pattern string, h interface{}) {
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Get(pattern string, handler interface{}) {
+func (self *Mux) Get(pattern string, handler interface{}) {
 	self.register("GET", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Post(pattern string, handler interface{}) {
+func (self *Mux) Post(pattern string, handler interface{}) {
 	self.register("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Put(pattern string, handler interface{}) {
+func (self *Mux) Put(pattern string, handler interface{}) {
 	self.register("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Delete(pattern string, handler interface{}) {
+func (self *Mux) Delete(pattern string, handler interface{}) {
 	self.register("DELETE", pattern, handler)
 }
 
 // Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Patch(pattern string, handler http.HandlerFunc) {
+func (self *Mux) Patch(pattern string, handler http.HandlerFunc) {
 	self.register("PATCH", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Head(pattern string, handler http.HandlerFunc) {
+func (self *Mux) Head(pattern string, handler http.HandlerFunc) {
 	self.register("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Server) Options(pattern string, handler http.HandlerFunc) {
+func (self *Mux) Options(pattern string, handler http.HandlerFunc) {
 	self.register("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
-func (self *Server) Group(path string) *Server {
-	server := new(Server)
-	server.router = self.router.PathPrefix(path).Subrouter()
-	return server
+func (self *Mux) Group(path string) *Mux {
+	mux := new(Mux)
+	mux.router = self.router.PathPrefix(path).Subrouter()
+	return mux
 }
 
 // Add appends middleware module into the serving list, modules will be served in FIFO order.
-func (self *Server) Use(modules ...interface{}) {
+func (self *Mux) Use(modules ...interface{}) {
 	var mod Module
 	for _, module := range modules {
 		switch module.(type) {
@@ -153,7 +153,7 @@ func (self *Server) Use(modules ...interface{}) {
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
-func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (self *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var mux http.Handler = self.router
 	// Activate modules in FIFO order.
 	if len(self.modules) > 0 {

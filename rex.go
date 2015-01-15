@@ -56,44 +56,44 @@ import (
 )
 
 // default rex server with reasonable middleware modules.
-var server *web.Server
+var mux = web.New()
 
 type H map[string]interface{}
 
 func Get(pattern string, handler interface{}) {
-	server.Get(pattern, handler)
+	mux.Get(pattern, handler)
 }
 
 func Post(pattern string, handler interface{}) {
-	server.Post(pattern, handler)
+	mux.Post(pattern, handler)
 }
 
 func Put(pattern string, handler interface{}) {
-	server.Put(pattern, handler)
+	mux.Put(pattern, handler)
 }
 
 func Delete(pattern string, handler interface{}) {
-	server.Delete(pattern, handler)
+	mux.Delete(pattern, handler)
 }
 
 func Patch(pattern string, handler http.HandlerFunc) {
-	server.Patch(pattern, handler)
+	mux.Patch(pattern, handler)
 }
 
 func Head(pattern string, handler http.HandlerFunc) {
-	server.Head(pattern, handler)
+	mux.Head(pattern, handler)
 }
 
 func Options(pattern string, handler http.HandlerFunc) {
-	server.Options(pattern, handler)
+	mux.Options(pattern, handler)
 }
 
-func Group(path string) *web.Server {
-	return server.Group(path)
+func Group(path string) *web.Mux {
+	return mux.Group(path)
 }
 
 func Use(modules ...interface{}) {
-	server.Use(modules...)
+	mux.Use(modules...)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
@@ -103,15 +103,14 @@ func Run() {
 		time.Sleep(100 * time.Millisecond)
 		log.Printf("Application server started [:%d]", port)
 	}()
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), server); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), mux); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)
 	}
 }
 
 func init() {
-	server = web.New()
-	server.Use(modules.Env)
-	server.Use(modules.XSRF)
+	mux.Use(modules.Env)
+	mux.Use(modules.XSRF)
 
 	env.NS = "rex"
 	if cwd, err := os.Getwd(); err != nil {
