@@ -43,6 +43,7 @@ Example:
 package rex
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -56,7 +57,10 @@ import (
 )
 
 // default rex server with reasonable middleware modules.
-var mux = web.New()
+var (
+	port int
+	mux  = web.New()
+)
 
 type H map[string]interface{}
 
@@ -98,7 +102,8 @@ func Use(modules ...interface{}) {
 
 // Serve starts serving the requests at the pre-defined address from settings.
 func Run() {
-	var port = env.Int("port")
+	flag.Parse()
+
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		log.Printf("Application server started [:%d]", port)
@@ -118,7 +123,7 @@ func init() {
 		root, _ := filepath.Abs(cwd)
 		env.Set("root", root)
 	}
-	env.Set("port", "5000")
+	env.Set("port", string(port))
 	env.Set("mode", "debug")
 	env.Set("dir.static", "build")
 	env.Set("dir.templates", "templates")
@@ -130,4 +135,6 @@ func init() {
 	env.Set("header.x.content.type.options", "IE=Edge,chrome=1")
 	// custom settings
 	env.Load(".env")
+
+	flag.IntVar(&port, "port", 5000, "port to run the application server")
 }

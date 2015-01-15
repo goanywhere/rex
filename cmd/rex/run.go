@@ -23,6 +23,7 @@
 package main
 
 import (
+	"fmt"
 	"go/build"
 	"log"
 	"os"
@@ -36,11 +37,13 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
 	"github.com/goanywhere/rex/modules/livereload"
-	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
 
-var watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)
+var (
+	port      int
+	watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)
+)
 
 type app struct {
 	dir    string
@@ -93,7 +96,7 @@ func (self *app) run() (gorun chan bool) {
 			if !start {
 				continue
 			}
-			cmd := exec.Command(self.binary)
+			cmd := exec.Command(self.binary, fmt.Sprintf("--port=%d", port))
 			cmd.Dir = self.dir
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -141,7 +144,7 @@ func (self *app) Start() {
 // Run creates an executable application package with livereload supports.
 // FIXME env port is not passed into Server Mux.
 func Run(ctx *cli.Context) {
-	env.Set("port", ctx.String("port"))
+	port = ctx.Int("port")
 
 	pkg, err := build.ImportDir(cwd, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {

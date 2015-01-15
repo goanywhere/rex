@@ -53,7 +53,7 @@ var commands = []cli.Command{
 			cli.IntFlag{
 				Name:  "port",
 				Value: 5000,
-				Usage: "port to run application server",
+				Usage: "port to run the application server",
 			},
 			cli.StringFlag{
 				Name:  "task",
