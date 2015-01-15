@@ -31,7 +31,7 @@ Example:
 		"github.com/goanywhere/rex/web"
 	)
 
-	func index(ctx *rex.Context) {
+	func index(ctx *web.Context) {
 		ctx.String("Hello World")
 	}
 
@@ -46,15 +46,38 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/web"
+	"github.com/goanywhere/x/env"
 )
 
 var (
-	server *web.Server
+	Root   string
+	Secret string
+
+	Port = 5000
+	Mode = "debug"
+
+	Dir = struct {
+		Static    string
+		Templates string
+	}{
+		Static:    "build",
+		Templates: "templates",
+	}
+
+	URL = struct {
+		Static string
+	}{
+		Static: "/static/",
+	}
 )
+
+var server *web.Server
 
 type H map[string]interface{}
 
@@ -108,8 +131,21 @@ func Run() {
 func init() {
 	server = web.New()
 	server.Use(modules.Env)
-	server.Use(modules.XSRF)
-	server.Use(modules.Static)
-	server.Use(modules.LiveReload)
-	server.Use(modules.Compress)
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	}
+	Root, _ = filepath.Abs(cwd)
+
+	env.Prefix = "rex"
+	env.Set("root", Root)
+	env.Set("port", "5000")
+	env.Set("mode", "debug")
+	env.Set("dir.static", "build")
+	env.Set("dir.templates", "templates")
+	env.Set("url.static", "/static/")
+
+	env.Load(filepath.Join(cwd, ".env"))
+	Secret = env.String("secret")
 }
