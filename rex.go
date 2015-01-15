@@ -46,8 +46,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/goanywhere/rex/modules"
@@ -55,28 +53,7 @@ import (
 	"github.com/goanywhere/x/env"
 )
 
-var (
-	Root   string
-	Secret string
-
-	Port = 5000
-	Mode = "debug"
-
-	Dir = struct {
-		Static    string
-		Templates string
-	}{
-		Static:    "build",
-		Templates: "templates",
-	}
-
-	URL = struct {
-		Static string
-	}{
-		Static: "/static/",
-	}
-)
-
+// default rex server with reasonable middleware modules.
 var server *web.Server
 
 type H map[string]interface{}
@@ -119,11 +96,12 @@ func Use(modules ...interface{}) {
 
 // Serve starts serving the requests at the pre-defined address from settings.
 func Run() {
+	var port = env.Int("port")
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		log.Printf("Application server started [:%d]", Port)
+		log.Printf("Application server started [:%d]", port)
 	}()
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", Port), server); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), server); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)
 	}
 }
@@ -131,21 +109,8 @@ func Run() {
 func init() {
 	server = web.New()
 	server.Use(modules.Env)
+	server.Use(modules.XSRF)
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Failed to retrieve project root: %v", err)
-	}
-	Root, _ = filepath.Abs(cwd)
-
-	env.Prefix = "rex"
-	env.Set("root", Root)
-	env.Set("port", "5000")
-	env.Set("mode", "debug")
-	env.Set("dir.static", "build")
-	env.Set("dir.templates", "templates")
-	env.Set("url.static", "/static/")
-
-	env.Load(filepath.Join(cwd, ".env"))
-	Secret = env.String("secret")
+	bootstrap()
+	env.Load(".env")
 }

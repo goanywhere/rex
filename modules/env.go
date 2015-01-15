@@ -22,26 +22,19 @@
  * ----------------------------------------------------------------------*/
 package modules
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
 
-const (
-	xUACompatible       = "X-UA-Compatible"
-	xFrameOptions       = "X-Frame-Options"
-	xXSSProtection      = "X-XSS-Protection"
-	xContentTypeOptions = "X-Content-Type-Options"
+	"github.com/goanywhere/x/env"
 )
 
 func Env(next http.Handler) http.Handler {
-	var Set = func(w http.ResponseWriter, key, val string) {
-		if v := w.Header().Get(key); v == "" {
-			w.Header()[key] = []string{val}
-		}
-	}
+	var values = env.Values("header")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Set(w, xUACompatible, "deny")
-		Set(w, xFrameOptions, "nosniff")
-		Set(w, xXSSProtection, "1; mode=block")
-		Set(w, xContentTypeOptions, "IE=Edge, chrome=1")
+		for key, value := range values {
+			w.Header().Set(strings.Replace(key, ".", "-", -1), value)
+		}
 		next.ServeHTTP(w, r)
 	})
 }
