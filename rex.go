@@ -62,6 +62,7 @@ var (
 )
 
 type H map[string]interface{}
+type Context web.Context
 
 func Get(pattern string, handler interface{}) {
 	mux.Get(pattern, handler)
@@ -127,6 +128,6 @@ func init() {
 	env.Set("header.x.content.type.options", "IE=Edge,chrome=1")
 	// custom settings
 	env.Load(".env")
-
+	// cmd parameters take the priority
 	flag.IntVar(&port, "port", 5000, "port to run the application server")
 }

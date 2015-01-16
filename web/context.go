@@ -35,6 +35,7 @@ import (
 
 	"github.com/goanywhere/rex/template"
 	"github.com/goanywhere/x/env"
+	"github.com/gorilla/mux"
 )
 
 var (
@@ -198,4 +199,12 @@ func (self *Context) XML(v interface{}) {
 		log.Printf("Failed to render XML: %v", e)
 		self.Error(http.StatusInternalServerError, e.Error())
 	}
+}
+
+// Var retrieves the string value of the current request named by the key.
+func (self *Context) Var(key string) string {
+	if value, exists := mux.Vars(self.Request)[key]; exists {
+		return value
+	}
+	return ""
 }
