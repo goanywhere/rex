@@ -22,13 +22,9 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import (
-	"strings"
-
-	"github.com/goanywhere/x/env"
-)
+import "strings"
 
 func static(path string) string {
-	var url = env.String("url.static")
+	var url = options.String("url.static")
 	return strings.Join([]string{strings.TrimRight(url, "/"), strings.TrimLeft(path, "/")}, "/")
 }

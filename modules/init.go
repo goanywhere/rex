@@ -20,38 +20,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package modules
 
-import (
-	"crypto/hmac"
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"os"
-	"time"
+import "github.com/goanywhere/rex/internal"
 
-	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/rex/internal"
-)
-
-const (
-	xSessionKey = "sessionid"
-)
-
-var (
-	process   string
-	signature *crypto.Signature
-	options   = internal.Options()
-)
-
-func init() {
-	// prepare a md5-based fixed length (32-bits) string for Go process.
-	hostname, err := os.Hostname()
-	if hostname == "" || err != nil {
-		hostname = "localhost"
-	}
-	// system pid combined with timestamp to identity current go process.
-	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
-	hash := hmac.New(md5.New, []byte(fmt.Sprintf("%s-%s", hostname, pid)))
-	process = hex.EncodeToString(hash.Sum(nil))
-}
+var options = internal.Options()

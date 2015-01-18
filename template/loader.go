@@ -45,15 +45,8 @@ type Loader struct {
 }
 
 func NewLoader(path string) *Loader {
-	abspath, e := filepath.Abs(path)
-	if e != nil {
-		log.Fatalf("Failed to initialize templates: %v", e)
-	}
-	if !fs.Exists(abspath) {
-		log.Fatalf("Failed to initialize templates: <%s> does not exist", path)
-	}
 	loader := new(Loader)
-	loader.root = abspath
+	loader.root, _ = filepath.Abs(path)
 	loader.templates = make(map[string]*template.Template)
 	return loader
 }
@@ -67,28 +60,6 @@ func (self *Loader) Exists(name string) bool {
 	return true
 }
 
-// files lists all HTML files under the root.
-func (self *Loader) files() (names []string) {
-	err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
-		// NOTE ignore folders for partial HTMLs: layout(s) & include(s).
-		if info.IsDir() && ignores.MatchString(info.Name()) {
-			return filepath.SkipDir
-		}
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
-			if name, e := filepath.Rel(self.root, path); e == nil {
-				names = append(names, name)
-			} else {
-				err = e
-			}
-		}
-		return err
-	})
-	if err != nil {
-		log.Fatalf("Failed to list HTML templates: %v", err)
-	}
-	return
-}
-
 // Get retrieves the parsed template from preloaded pool.
 func (self *Loader) Get(name string) *template.Template {
 	self.Load()
@@ -99,13 +70,29 @@ func (self *Loader) Get(name string) *template.Template {
 // This should be called ASAP since it will cache all
 // parsed templates & cause panic if there's any error occured.
 func (self *Loader) Load() (pages int) {
-	if !self.loaded {
+	if fs.Exists(self.root) && !self.loaded {
 		self.Lock()
 		defer self.Unlock()
-		for _, name := range self.files() {
-			self.templates[name] = self.page(name).parse()
-			pages++
+
+		err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
+			// NOTE ignore folders for partial HTMLs: layout(s) & include(s).
+			if info.IsDir() && ignores.MatchString(info.Name()) {
+				return filepath.SkipDir
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
+				if name, e := filepath.Rel(self.root, path); e == nil {
+					self.templates[name] = self.page(name).parse()
+					pages++
+				} else {
+					err = e
+				}
+			}
+			return err
+		})
+		if err != nil {
+			log.Fatalf("Failed to list HTML templates: %v", err)
 		}
+
 		self.loaded = true
 	}
 	return

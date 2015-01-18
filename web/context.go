@@ -34,7 +34,6 @@ import (
 	"sync/atomic"
 
 	"github.com/goanywhere/rex/template"
-	"github.com/goanywhere/x/env"
 	"github.com/gorilla/mux"
 )
 
@@ -161,11 +160,11 @@ func (self *Context) Error(status int, errors ...string) {
 // to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
 	if loader == nil {
-		loader = template.NewLoader(env.String("dir.templates"))
+		loader = template.NewLoader(options.String("dir.templates"))
+		loader.Load()
 	}
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-
 	if err := loader.Get(filename).Execute(buffer, self.data); err != nil {
 		self.Error(http.StatusInternalServerError)
 		return

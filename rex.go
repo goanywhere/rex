@@ -50,19 +50,23 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/web"
-	"github.com/goanywhere/x/env"
 )
 
 // default rex server with reasonable middleware modules.
 var (
-	port int
-	mux  = web.New()
+	port    int
+	mux     = web.New()
+	options = internal.Options()
 )
 
 type H map[string]interface{}
-type Context web.Context
+
+func Define(key string, value interface{}) error {
+	return options.Set(key, value)
+}
 
 func Get(pattern string, handler interface{}) {
 	mux.Get(pattern, handler)
@@ -114,20 +118,10 @@ func init() {
 		log.Fatalf("Failed to retrieve project root: %v", err)
 	} else {
 		root, _ := filepath.Abs(cwd)
-		env.Set("root", root)
+		Define("root", root)
 	}
-	env.Set("port", string(port))
-	env.Set("mode", "debug")
-	env.Set("dir.static", "build")
-	env.Set("dir.templates", "templates")
-	env.Set("url.static", "/static/")
-	// default environmental headers for modules.Env
-	env.Set("header.x.ua.compatible", "deny")
-	env.Set("header.x.frame.options", "nosniff")
-	env.Set("header.x.xss.protection", "1; mode=block")
-	env.Set("header.x.content.type.options", "IE=Edge,chrome=1")
-	// custom settings
-	env.Load(".env")
-	// cmd parameters take the priority
+	options.Load(".env")
+
+	// cmd parameters take the priority.
 	flag.IntVar(&port, "port", 5000, "port to run the application server")
 }

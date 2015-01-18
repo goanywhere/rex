@@ -26,8 +26,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-
-	"github.com/goanywhere/x/env"
 )
 
 type static struct {
@@ -74,19 +72,16 @@ func (self *static) serve(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, path, stat.ModTime(), file)
 }
 
-func Static(options map[string]interface{}) func(http.Handler) http.Handler {
+func Static(next http.Handler) http.Handler {
 	s := new(static)
-	s.Dir = env.String("dir.static", "build")
-	s.URL = env.String("url.static", "/static/")
+	s.Dir = options.String("dir.static", "build")
+	s.URL = options.String("url.static", "/static/")
 
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == "GET" && strings.HasPrefix(r.URL.Path, s.URL) {
-				s.serve(w, r)
-			} else {
-				next.ServeHTTP(w, r)
-			}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" && strings.HasPrefix(r.URL.Path, s.URL) {
+			s.serve(w, r)
+		} else {
+			next.ServeHTTP(w, r)
 		}
-		return http.HandlerFunc(fn)
-	}
+	})
 }

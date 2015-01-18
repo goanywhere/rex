@@ -25,12 +25,10 @@ package modules
 import (
 	"net/http"
 	"strings"
-
-	"github.com/goanywhere/x/env"
 )
 
 func Env(next http.Handler) http.Handler {
-	var values = env.Values("header")
+	var values = options.Values("header")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for key, value := range values {
 			w.Header().Set(strings.Replace(key, ".", "-", -1), value)

@@ -29,7 +29,6 @@ import (
 	"testing"
 
 	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/x/env"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -257,9 +256,9 @@ func TestSetCookie(t *testing.T) {
 
 func TestSecureCookie(t *testing.T) {
 	Convey("[contex#SecureCookie]", t, func() {
-		env.Set("secret", crypto.RandomString(32, nil))
+		options.Set("secret", crypto.RandomString(32, nil))
 		// Ensure we use the same signature as context does.
-		signature = crypto.NewSignature(env.String("secret"))
+		signature = crypto.NewSignature(options.String("secret"))
 
 		name, value := "number", "1234567890"
 		src, _ := signature.Encode(name, []byte(value))
@@ -289,9 +288,9 @@ func TestSecureCookie(t *testing.T) {
 
 func TestSetSecureCookie(t *testing.T) {
 	Convey("context#SetSecureCookie", t, func() {
-		env.Set("secret", crypto.RandomString(32, nil))
+		options.Set("secret", crypto.RandomString(32, nil))
 		// Ensure we use the same signature as context does.
-		signature = crypto.NewSignature(env.String("secret"))
+		signature = crypto.NewSignature(options.String("secret"))
 
 		name, value := "number", "123"
 

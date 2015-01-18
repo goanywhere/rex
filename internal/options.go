@@ -20,38 +20,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package internal
 
 import (
-	"crypto/hmac"
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"os"
-	"time"
+	"sync"
 
-	"github.com/goanywhere/rex/crypto"
-	"github.com/goanywhere/rex/internal"
-)
-
-const (
-	xSessionKey = "sessionid"
+	"github.com/goanywhere/x/env"
 )
 
 var (
-	process   string
-	signature *crypto.Signature
-	options   = internal.Options()
+	once    sync.Once
+	options *env.Env
 )
 
-func init() {
-	// prepare a md5-based fixed length (32-bits) string for Go process.
-	hostname, err := os.Hostname()
-	if hostname == "" || err != nil {
-		hostname = "localhost"
-	}
-	// system pid combined with timestamp to identity current go process.
-	pid := fmt.Sprintf("%d:%d", os.Getpid(), time.Now().UnixNano())
-	hash := hmac.New(md5.New, []byte(fmt.Sprintf("%s-%s", hostname, pid)))
-	process = hex.EncodeToString(hash.Sum(nil))
+func Options() *env.Env {
+	once.Do(func() {
+		options = env.New("rex")
+		options.Set("port", "5000")
+		options.Set("mode", "debug")
+		options.Set("dir.static", "build")
+		options.Set("dir.templates", "templates")
+		options.Set("url.static", "/static/")
+		// default environmental headers for modules.Env
+		options.Set("header.x.ua.compatible", "deny")
+		options.Set("header.x.frame.options", "nosniff")
+		options.Set("header.x.xss.protection", "1; mode=block")
+		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
+	})
+	return options
 }

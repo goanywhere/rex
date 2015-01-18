@@ -51,7 +51,7 @@ type Signature struct {
 // NewSignature creates a signature with secret salt for encode/decode consequent values.
 func NewSignature(secret string) *Signature {
 	if secret == "" {
-		log.Fatal("Failed to create signature with empty secret")
+		log.Fatal("Failed to create signature: secret key missing")
 	}
 	signature := new(Signature)
 	signature.secret = secret
