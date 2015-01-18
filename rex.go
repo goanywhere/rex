@@ -70,6 +70,10 @@ func Define(key string, value interface{}) error {
 	return options.Set(key, value)
 }
 
+func Option(key string, pointer interface{}) {
+	internal.Option(key, pointer)
+}
+
 func Get(pattern string, handler interface{}) {
 	mux.Get(pattern, handler)
 }

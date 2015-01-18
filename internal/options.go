@@ -23,6 +23,8 @@
 package internal
 
 import (
+	"log"
+	"reflect"
 	"sync"
 
 	"github.com/goanywhere/x/env"
@@ -48,4 +50,25 @@ func Options() *env.Env {
 		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
 	})
 	return options
+}
+
+// TODO strings Array/Slice
+func Option(key string, pointer interface{}) (e error) {
+	T := reflect.TypeOf(pointer)
+	if T.Kind() == reflect.Ptr {
+		rv := reflect.ValueOf(pointer).Elem()
+		switch rv.Kind() {
+		case reflect.Bool:
+			rv.SetBool(options.Bool(key))
+		case reflect.Float32, reflect.Float64:
+			rv.SetFloat(options.Float(key))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			rv.SetInt(options.Int(key))
+		case reflect.String:
+			rv.SetString(options.String(key))
+		default:
+			log.Printf("unknown type")
+		}
+	}
+	return
 }
