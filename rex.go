@@ -57,13 +57,15 @@ import (
 
 // default rex server with reasonable middleware modules.
 var (
-	port    int
-	mux     = web.New()
+	port int
+	mux  = web.New()
+
 	options = internal.Options()
 )
 
 type H map[string]interface{}
 
+// Define saves primitive values using os environment.
 func Define(key string, value interface{}) error {
 	return options.Set(key, value)
 }
@@ -107,7 +109,10 @@ func Use(modules ...interface{}) {
 // Serve starts serving the requests at the pre-defined address from settings.
 func Run() {
 	flag.Parse()
-	mux.Run(fmt.Sprintf(":%d", port))
+	if port > 0 {
+		options.Set("port", port)
+	}
+	mux.Run(fmt.Sprintf(":%d", options.Int("port")))
 }
 
 func init() {
@@ -123,5 +128,5 @@ func init() {
 	options.Load(".env")
 
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", 5000, "port to run the application server")
+	flag.IntVar(&port, "port", 0, "port to run the application server")
 }
