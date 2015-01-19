@@ -131,7 +131,7 @@ func (self *Mux) Group(path string) *Mux {
 	return mux
 }
 
-// Add appends middleware module into the serving list, modules will be served in FIFO order.
+// Use appends middleware module into the serving list, modules will be served in FIFO order.
 func (self *Mux) Use(modules ...interface{}) {
 	var mod Module
 	for _, module := range modules {

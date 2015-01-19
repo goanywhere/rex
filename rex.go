@@ -67,45 +67,55 @@ type H map[string]interface{}
 
 // Define saves primitive values using os environment.
 func Define(key string, value interface{}) error {
-	return options.Set(key, value)
+	return internal.Define(key, value)
 }
 
-func Option(key string, pointer interface{}) {
-	internal.Option(key, pointer)
+// Option fetches the value from os's enviroment into the appointed address.
+func Option(key string, ptr interface{}, fallback ...interface{}) {
+	internal.Option(key, ptr, fallback...)
 }
 
+// Get adds a HTTP GET route to the default Mux.
 func Get(pattern string, handler interface{}) {
 	mux.Get(pattern, handler)
 }
 
+// Post adds a HTTP POST route to the default Mux.
 func Post(pattern string, handler interface{}) {
 	mux.Post(pattern, handler)
 }
 
+// Put adds a HTTP PUT route to the default Mux.
 func Put(pattern string, handler interface{}) {
 	mux.Put(pattern, handler)
 }
 
+// Delete adds a HTTP DELETE route to the default Mux.
 func Delete(pattern string, handler interface{}) {
 	mux.Delete(pattern, handler)
 }
 
+// Patch adds a HTTP PATCH route to the default Mux.
 func Patch(pattern string, handler http.HandlerFunc) {
 	mux.Patch(pattern, handler)
 }
 
+// Head adds a HTTP HEAD route to the default Mux.
 func Head(pattern string, handler http.HandlerFunc) {
 	mux.Head(pattern, handler)
 }
 
+// Options adds a HTTP OPTIONS route to the default Mux.
 func Options(pattern string, handler http.HandlerFunc) {
 	mux.Options(pattern, handler)
 }
 
+// Group creates a new application group in default Mux with the given path.
 func Group(path string) *web.Mux {
 	return mux.Group(path)
 }
 
+// Use appends middleware module into the default serving list.
 func Use(modules ...interface{}) {
 	mux.Use(modules...)
 }
