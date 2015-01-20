@@ -31,6 +31,6 @@ import (
 
 func BenchmarkRandomString(b *testing.B) {
 	for index := 0; index < b.N; index++ {
-		RandomString(32, nil)
+		RandomString(32)
 	}
 }

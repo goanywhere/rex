@@ -39,7 +39,7 @@ var (
 func Options() *env.Env {
 	once.Do(func() {
 		options = env.New("rex")
-		options.Set("port", "5000")
+		options.Set("port", 5000)
 		options.Set("mode", "debug")
 		options.Set("dir.static", "build")
 		options.Set("dir.templates", "templates")
@@ -49,13 +49,14 @@ func Options() *env.Env {
 		options.Set("header.x.frame.options", "nosniff")
 		options.Set("header.x.xss.protection", "1; mode=block")
 		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
+		// session cookie defaults
+		options.Set("session.cookie.name", "gsid")
+		options.Set("session.cookie.maxage", 1209600)
+		options.Set("session.cookie.httponly", true)
+		options.Set("session.cookie.path", "/")
+		options.Set("session.cookie.secure", false)
 	})
 	return options
-}
-
-// Define saves primitive values using os environment.
-func Define(key string, value interface{}) error {
-	return options.Set(key, value)
 }
 
 // Option fetches the value from os's enviroment into the appointed address.

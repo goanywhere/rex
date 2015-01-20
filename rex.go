@@ -28,10 +28,9 @@ Example:
 	import (
 		"net/http"
 		"github.com/goanywhere/rex"
-		"github.com/goanywhere/rex/web"
 	)
 
-	func index(ctx *web.Context) {
+	func index(ctx *rex.Context) {
 		ctx.String("Hello World")
 	}
 
@@ -52,27 +51,21 @@ import (
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
-	"github.com/goanywhere/rex/web"
 )
 
 // default rex server with reasonable middleware modules.
 var (
 	port int
-	mux  = web.New()
+	mux  = New()
 
-	options = internal.Options()
+	Options = internal.Options()
 )
 
 type H map[string]interface{}
 
 // Define saves primitive values using os environment.
 func Define(key string, value interface{}) error {
-	return internal.Define(key, value)
-}
-
-// Option fetches the value from os's enviroment into the appointed address.
-func Option(key string, ptr interface{}, fallback ...interface{}) {
-	internal.Option(key, ptr, fallback...)
+	return Options.Set(key, value)
 }
 
 // Get adds a HTTP GET route to the default Mux.
@@ -95,23 +88,13 @@ func Delete(pattern string, handler interface{}) {
 	mux.Delete(pattern, handler)
 }
 
-// Patch adds a HTTP PATCH route to the default Mux.
-func Patch(pattern string, handler http.HandlerFunc) {
-	mux.Patch(pattern, handler)
-}
-
 // Head adds a HTTP HEAD route to the default Mux.
 func Head(pattern string, handler http.HandlerFunc) {
 	mux.Head(pattern, handler)
 }
 
-// Options adds a HTTP OPTIONS route to the default Mux.
-func Options(pattern string, handler http.HandlerFunc) {
-	mux.Options(pattern, handler)
-}
-
 // Group creates a new application group in default Mux with the given path.
-func Group(path string) *web.Mux {
+func Group(path string) *Mux {
 	return mux.Group(path)
 }
 
@@ -124,9 +107,9 @@ func Use(modules ...interface{}) {
 func Run() {
 	flag.Parse()
 	if port > 0 {
-		options.Set("port", port)
+		Options.Set("port", port)
 	}
-	mux.Run(fmt.Sprintf(":%d", options.Int("port")))
+	mux.Run(fmt.Sprintf(":%d", Options.Int("port")))
 }
 
 func init() {
@@ -139,7 +122,7 @@ func init() {
 		root, _ := filepath.Abs(cwd)
 		Define("root", root)
 	}
-	options.Load(".env")
+	Options.Load(".env")
 
 	// cmd parameters take the priority.
 	flag.IntVar(&port, "port", 0, "port to run the application server")

@@ -136,8 +136,8 @@ func (self *xsrf) generate() {
 	if token == "" {
 		// Generate a base64-encoded token.
 		nano := time.Now().UnixNano()
-		hash := hmac.New(sha1.New, []byte(crypto.RandomString(32, nil)))
-		fmt.Fprintf(hash, "%s|%d", crypto.RandomString(12, nil), nano)
+		hash := hmac.New(sha1.New, []byte(crypto.RandomString(32)))
+		fmt.Fprintf(hash, "%s|%d", crypto.RandomString(12), nano)
 		raw := fmt.Sprintf("%s|%d", hex.EncodeToString(hash.Sum(nil)), nano)
 		token = base64.URLEncoding.EncodeToString([]byte(raw))
 

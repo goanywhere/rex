@@ -23,36 +23,16 @@
 package crypto
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"encoding/base64"
+	"io"
 )
 
-var (
-	all      = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
-	alphanum = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	random   *rand.Rand
-)
-
-// RandomString creates a securely generated random string.
-//
-//	Args:
-//		length: length of the generated random string.
-func RandomString(length int, chars []rune) string {
-	bytes := make([]rune, length)
-
-	var pool []rune
-	if chars == nil {
-		pool = alphanum
-	} else {
-		pool = chars
-	}
-
-	for index := range bytes {
-		bytes[index] = pool[random.Intn(len(pool))]
-	}
-	return string(bytes)
-}
-
-func init() {
-	random = rand.New(rand.NewSource(time.Now().UnixNano()))
+// RandomString creates a URL-safe random string which is based on
+// the implementation with cryptographically secure pseudorandom number.
+func RandomString(length int) string {
+	key := make([]byte, length)
+	io.ReadFull(rand.Reader, key)
+	str := base64.URLEncoding.EncodeToString(key)
+	return str[0:length]
 }

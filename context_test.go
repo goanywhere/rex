@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"io/ioutil"
@@ -28,7 +28,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/goanywhere/rex/crypto"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -250,63 +249,6 @@ func TestSetCookie(t *testing.T) {
 			cookie := response.Cookies()[0]
 			So(cookie.Name, ShouldEqual, "number")
 			So(cookie.Value, ShouldEqual, "123")
-		}
-	})
-}
-
-func TestSecureCookie(t *testing.T) {
-	Convey("[contex#SecureCookie]", t, func() {
-		options.Set("secret", crypto.RandomString(32, nil))
-		// Ensure we use the same signature as context does.
-		signature = crypto.NewSignature(options.String("secret"))
-
-		name, value := "number", "1234567890"
-		src, _ := signature.Encode(name, []byte(value))
-		cookie := &http.Cookie{
-			Name:  name,
-			Value: src,
-			Path:  "/",
-		}
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
-			ctx.String(ctx.SecureCookie(name))
-		}))
-		defer server.Close()
-
-		client := new(http.Client)
-		request, _ := http.NewRequest("GET", server.URL, nil)
-		request.AddCookie(cookie)
-
-		response, _ := client.Do(request)
-		defer response.Body.Close()
-
-		body, _ := ioutil.ReadAll(response.Body)
-		So(string(body), ShouldEqual, value)
-	})
-}
-
-func TestSetSecureCookie(t *testing.T) {
-	Convey("context#SetSecureCookie", t, func() {
-		options.Set("secret", crypto.RandomString(32, nil))
-		// Ensure we use the same signature as context does.
-		signature = crypto.NewSignature(options.String("secret"))
-
-		name, value := "number", "123"
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := NewContext(w, r)
-			ctx.SetSecureCookie(&http.Cookie{Name: name, Value: value, Path: "/"})
-			ctx.String("Hello Cookie")
-		}))
-		defer server.Close()
-
-		if response, err := http.Get(server.URL); err == nil {
-			cookie := response.Cookies()[0]
-			bits, _ := signature.Decode(cookie.Name, cookie.Value)
-
-			So(cookie.Name, ShouldEqual, name)
-			So(string(bits), ShouldEqual, value)
 		}
 	})
 }

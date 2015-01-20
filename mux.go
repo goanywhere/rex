@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"log"
@@ -29,12 +29,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gorilla/mux"
+	gmux "github.com/gorilla/mux"
 )
 
 type (
 	Mux struct {
-		router  *mux.Router
+		router  *gmux.Router
 		modules []Module
 	}
 
@@ -52,7 +52,7 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // New creates a plain web server without any middleware modules.
 func New() *Mux {
 	self := new(Mux)
-	self.router = mux.NewRouter()
+	self.router = gmux.NewRouter()
 	return self
 }
 
@@ -120,6 +120,7 @@ func (self *Mux) Head(pattern string, handler http.HandlerFunc) {
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
+// NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
 func (self *Mux) Options(pattern string, handler http.HandlerFunc) {
 	self.register("OPTIONS", pattern, handler)
 }

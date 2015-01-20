@@ -31,7 +31,7 @@ import (
 )
 
 func TestSignature(t *testing.T) {
-	s := NewSignature(RandomString(128, nil))
+	s := NewSignature(RandomString(128))
 
 	k, v := "name", []byte("Hello Signature")
 	Convey("[crypto#Signature]", t, func() {

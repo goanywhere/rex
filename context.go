@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"bytes"
@@ -30,16 +30,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
-	"sync/atomic"
 
 	"github.com/goanywhere/rex/template"
-	"github.com/gorilla/mux"
 )
 
 var (
-	contextId uint64
-	loader    *template.Loader
+	loader *template.Loader
 )
 
 type Context struct {
@@ -56,23 +52,6 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx.Request = r
 	ctx.Writer = &writer{w, 0, 0}
 	return ctx
-}
-
-// Id creates a unique & cookie-based identity for Context.
-func (self *Context) Id() (id string) {
-	id = self.SecureCookie(xSessionKey)
-	if id == "" || !strings.HasPrefix(id, process) {
-		id = fmt.Sprintf("%s-%07d", process, atomic.AddUint64(&contextId, 1))
-		cookie := new(http.Cookie)
-		cookie.Name = xSessionKey
-		cookie.MaxAge = 86400 // OneDay
-		cookie.Path = "/"
-		cookie.Secure = false // HTTP/HTTPS
-		cookie.HttpOnly = true
-		cookie.Value = id
-		self.SetSecureCookie(cookie)
-	}
-	return
 }
 
 // Get fetches context data under the given key.
@@ -115,27 +94,6 @@ func (self *Context) SetCookie(cookie *http.Cookie) {
 	http.SetCookie(self.Writer, cookie)
 }
 
-// SecureCookie decodes the signed value from cookie.
-// Empty string value will be returned if the signature is invalide or expired.
-func (self *Context) SecureCookie(key string) (value string) {
-	if src := self.Cookie(key); src != "" {
-		if bits, err := signature.Decode(key, src); err == nil {
-			value = string(bits)
-		}
-	}
-	return
-}
-
-// SetSecureCookie replaces the raw value with a signed one & write the cookie into Context.
-func (self *Context) SetSecureCookie(cookie *http.Cookie) {
-	if cookie.Value != "" {
-		if value, err := signature.Encode(cookie.Name, []byte(cookie.Value)); err == nil {
-			cookie.Value = value
-		}
-	}
-	http.SetCookie(self.Writer, cookie)
-}
-
 // IsAjax checks if the incoming request is AJAX request.
 func (self *Context) IsAjax() bool {
 	return self.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
@@ -156,11 +114,9 @@ func (self *Context) Error(status int, errors ...string) {
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
-// Under Debug mode, livereload.js will be added to the end of <head>
-// to provide browser-based LiveReload supports.
 func (self *Context) HTML(filename string) {
 	if loader == nil {
-		loader = template.NewLoader(options.String("dir.templates"))
+		loader = template.NewLoader(Options.String("dir.templates"))
 		loader.Load()
 	}
 	var buffer = new(bytes.Buffer)
@@ -198,12 +154,4 @@ func (self *Context) XML(v interface{}) {
 		log.Printf("Failed to render XML: %v", e)
 		self.Error(http.StatusInternalServerError, e.Error())
 	}
-}
-
-// Var retrieves the string value of the current request named by the key.
-func (self *Context) Var(key string) string {
-	if value, exists := mux.Vars(self.Request)[key]; exists {
-		return value
-	}
-	return ""
 }
