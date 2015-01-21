@@ -95,14 +95,13 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *web.Context) {
+func index (ctx *rex.Context) {
     ctx.HTML("index.html")  // Context.HTML has the extends/include tag supports by default.
 }
 
-func json (ctx *web.Context) {
+func json (ctx *rex.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
@@ -123,7 +122,6 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
 func index (ctx *web.Context) {
@@ -132,7 +130,7 @@ func index (ctx *web.Context) {
 
 func main() {
     // Override default 5000 port here.
-    rex.Settings.Port = 9394
+    rex.Define("port", 9394)
 
     rex.Get("/", index)
     rex.Run()
