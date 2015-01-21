@@ -33,7 +33,7 @@ import (
 )
 
 type Context struct {
-	server  *Server
+	mux     *Mux
 	Request *http.Request
 	Writer  http.ResponseWriter
 }
@@ -76,7 +76,7 @@ func (self *Context) Error(status int, errors ...string) {
 func (self *Context) HTML(filename string, data ...map[string]interface{}) {
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-	template := self.server.loader.Get(filename)
+	template := self.mux.loader.Get(filename)
 
 	var v map[string]interface{}
 	if len(data) > 0 {

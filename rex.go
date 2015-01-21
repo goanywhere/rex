@@ -14,14 +14,14 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by serverlicable law or agreed to in writing, software
+ *  Unless required by muxlicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 /*
-Package rex provides an out-of-box web server with common middleware modules.
+Package rex provides an out-of-box web mux with common middleware modules.
 Example:
 	package main
 
@@ -50,12 +50,11 @@ import (
 	"github.com/goanywhere/rex/modules"
 )
 
-// default rex server with reasonable middleware modules.
+// default rex mux with reasonable middleware modules.
 var (
-	port   int
-	server = New()
-
-	Options = internal.Options()
+	port       int
+	DefaultMux = New()
+	Options    = internal.Options()
 )
 
 type H map[string]interface{}
@@ -65,39 +64,39 @@ func Define(key string, value interface{}) error {
 	return Options.Set(key, value)
 }
 
-// Get adds a HTTP GET route to the default server.
+// Get adds a HTTP GET route to the default DefaultMux.
 func Get(pattern string, handler interface{}) {
-	server.Get(pattern, handler)
+	DefaultMux.Get(pattern, handler)
 }
 
-// Post adds a HTTP POST route to the default server.
+// Post adds a HTTP POST route to the default DefaultMux.
 func Post(pattern string, handler interface{}) {
-	server.Post(pattern, handler)
+	DefaultMux.Post(pattern, handler)
 }
 
-// Put adds a HTTP PUT route to the default server.
+// Put adds a HTTP PUT route to the default DefaultMux.
 func Put(pattern string, handler interface{}) {
-	server.Put(pattern, handler)
+	DefaultMux.Put(pattern, handler)
 }
 
-// Delete adds a HTTP DELETE route to the default server.
+// Delete adds a HTTP DELETE route to the default DefaultMux.
 func Delete(pattern string, handler interface{}) {
-	server.Delete(pattern, handler)
+	DefaultMux.Delete(pattern, handler)
 }
 
-// Head adds a HTTP HEAD route to the default server.
+// Head adds a HTTP HEAD route to the default DefaultMux.
 func Head(pattern string, handler http.HandlerFunc) {
-	server.Head(pattern, handler)
+	DefaultMux.Head(pattern, handler)
 }
 
-// Group creates a new serverlication group in default Mux with the given path.
-func Group(path string) *Server {
-	return server.Group(path)
+// Group creates a new muxlication group in default Mux with the given path.
+func Group(path string) *Mux {
+	return DefaultMux.Group(path)
 }
 
-// Use serverends middleware module into the default serving list.
+// Use muxends middleware module into the default serving list.
 func Use(modules ...interface{}) {
-	server.Use(modules...)
+	DefaultMux.Use(modules...)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
@@ -106,13 +105,13 @@ func Run() {
 	if port > 0 {
 		Options.Set("port", port)
 	}
-	server.Run(fmt.Sprintf(":%d", Options.Int("port")))
+	DefaultMux.Run(fmt.Sprintf(":%d", Options.Int("port")))
 }
 
 func init() {
-	server.Use(modules.Env)
-	server.Use(modules.XSRF)
+	DefaultMux.Use(modules.Env)
+	DefaultMux.Use(modules.XSRF)
 
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", 0, "port to run the serverlication server")
+	flag.IntVar(&port, "port", 0, "port to run the muxlication mux")
 }
