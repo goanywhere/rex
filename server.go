@@ -25,35 +25,63 @@ package rex
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
+	"sync"
 	"time"
 
-	gmux "github.com/gorilla/mux"
+	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/rex/template"
+	"github.com/gorilla/mux"
 )
 
 type (
-	Mux struct {
-		router  *gmux.Router
+	Server struct {
+		mux     *mux.Router
+		pool    sync.Pool
 		modules []Module
+		loader  *template.Loader
 	}
-
-	HandlerFunc func(*Context)
 
 	// Conventional method to implement custom modules.
 	Module func(http.Handler) http.Handler
 )
 
-// Custom handler func provides Context Supports.
-func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(NewContext(w, r))
-}
+type HandlerFunc func(*Context)
 
 // New creates a plain web server without any middleware modules.
-func New() *Mux {
-	self := new(Mux)
-	self.router = gmux.NewRouter()
+func New() *Server {
+	self := new(Server)
+	self.mux = mux.NewRouter()
+	self.configure()
+	self.pool.New = func() interface{} {
+		return &Context{server: self}
+	}
 	return self
+}
+
+// configure initialize all application related settings before running.
+func (self *Server) configure() {
+	options := internal.Options()
+	if cwd, err := os.Getwd(); err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	} else {
+		root, _ := filepath.Abs(cwd)
+		options.Set("root", root)
+	}
+	options.Load(".env")
+	self.loader = template.NewLoader(options.String("dir.templates"))
+}
+
+// context creates a rex.Context instance for Server server.
+//	NOTE app.pool.Put(ctx) must be called to put back the created context.
+func (self *Server) createContext(w http.ResponseWriter, r *http.Request) *Context {
+	ctx := self.pool.Get().(*Context)
+	ctx.Writer = &writer{w, 0, 0}
+	ctx.Request = r
+	return ctx
 }
 
 // ---------------------------------------------------------------------------
@@ -63,77 +91,81 @@ func New() *Mux {
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
 //	* rex.HandlerFunc	=> func(ctx *Context)
-func (self *Mux) register(method, pattern string, h interface{}) {
-	var handler http.Handler
+func (self *Server) register(method, pattern string, handler interface{}) {
+	// finds the full function name (with package) as its mappings.
+	var name = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 
-	switch h.(type) {
-	// Standard net/http.Handler/HandlerFunc
+	switch H := handler.(type) {
 	case http.Handler:
-		handler = h.(http.Handler)
-	case func(w http.ResponseWriter, r *http.Request):
-		handler = http.HandlerFunc(h.(func(w http.ResponseWriter, r *http.Request)))
-	case func(ctx *Context):
-		handler = HandlerFunc(h.(func(ctx *Context)))
+		self.mux.Handle(pattern, H).Methods(method).Name(name)
+
+	case func(http.ResponseWriter, *http.Request):
+		self.mux.HandleFunc(pattern, H).Methods(method).Name(name)
+
+	case func(*Context):
+		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+			ctx := self.createContext(w, r)
+			H(ctx)
+			self.pool.Put(ctx)
+		}).Methods(method).Name(name)
+
 	default:
-		log.Fatalf("Unknown handler type (%v) passed in.", h)
+		log.Fatalf("Unknown handler type (%v) passed in.", H)
 	}
-	// finds the full function name (with package)
-	name := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
-	self.router.Handle(pattern, handler).Methods(method).Name(name)
 }
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Get(pattern string, handler interface{}) {
+func (self *Server) Get(pattern string, handler interface{}) {
 	self.register("GET", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Post(pattern string, handler interface{}) {
+func (self *Server) Post(pattern string, handler interface{}) {
 	self.register("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Put(pattern string, handler interface{}) {
+func (self *Server) Put(pattern string, handler interface{}) {
 	self.register("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Delete(pattern string, handler interface{}) {
+func (self *Server) Delete(pattern string, handler interface{}) {
 	self.register("DELETE", pattern, handler)
 }
 
 // Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Patch(pattern string, handler http.HandlerFunc) {
+func (self *Server) Patch(pattern string, handler interface{}) {
 	self.register("PATCH", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *Mux) Head(pattern string, handler http.HandlerFunc) {
+func (self *Server) Head(pattern string, handler interface{}) {
 	self.register("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
-func (self *Mux) Options(pattern string, handler http.HandlerFunc) {
+func (self *Server) Options(pattern string, handler interface{}) {
 	self.register("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
-func (self *Mux) Group(path string) *Mux {
-	mux := new(Mux)
-	mux.router = self.router.PathPrefix(path).Subrouter()
-	return mux
+func (self *Server) Group(path string) *Server {
+	app := new(Server)
+	app.mux = self.mux.PathPrefix(path).Subrouter()
+	return app
 }
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
-func (self *Mux) Use(modules ...interface{}) {
+func (self *Server) Use(modules ...interface{}) {
 	var mod Module
 	for _, module := range modules {
 		switch module.(type) {
@@ -149,14 +181,13 @@ func (self *Mux) Use(modules ...interface{}) {
 		default:
 			log.Fatalf("Unknown module type (%v) passed in.", module)
 		}
-		//name := runtime.FuncForPC(reflect.ValueOf(module).Pointer()).Name()
 		self.modules = append(self.modules, mod)
 	}
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
-func (self *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var mux http.Handler = self.router
+func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var mux http.Handler = self.mux
 	// Activate modules in FIFO order.
 	if len(self.modules) > 0 {
 		for index := len(self.modules) - 1; index >= 0; index-- {
@@ -167,10 +198,10 @@ func (self *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Run starts the application server to serve incoming requests at the given address.
-func (self *Mux) Run(address string) {
+func (self *Server) Run(address string) {
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		log.Printf("Application server started [%s]", address)
+		log.Printf("Serverlication server started [%s]", address)
 	}()
 	if err := http.ListenAndServe(address, self); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)

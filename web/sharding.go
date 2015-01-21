@@ -54,7 +54,7 @@
 //  2. Now suppose K = 31415 and perm(S, K) = (3, 1, 9, 4, 7, 5, 8, 2, 0, 6).
 //  3. After ignoring S - A, the remaining ids are (3, 1, 4, 2, 0)
 //  4. Therefore, the key belongs to shard 3.
-package rex
+package web
 
 import (
 	"crypto/hmac"

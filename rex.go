@@ -14,7 +14,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
+ *  Unless required by serverlicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
@@ -44,10 +44,7 @@ package rex
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
@@ -55,8 +52,8 @@ import (
 
 // default rex server with reasonable middleware modules.
 var (
-	port int
-	mux  = New()
+	port   int
+	server = New()
 
 	Options = internal.Options()
 )
@@ -68,39 +65,39 @@ func Define(key string, value interface{}) error {
 	return Options.Set(key, value)
 }
 
-// Get adds a HTTP GET route to the default Mux.
+// Get adds a HTTP GET route to the default server.
 func Get(pattern string, handler interface{}) {
-	mux.Get(pattern, handler)
+	server.Get(pattern, handler)
 }
 
-// Post adds a HTTP POST route to the default Mux.
+// Post adds a HTTP POST route to the default server.
 func Post(pattern string, handler interface{}) {
-	mux.Post(pattern, handler)
+	server.Post(pattern, handler)
 }
 
-// Put adds a HTTP PUT route to the default Mux.
+// Put adds a HTTP PUT route to the default server.
 func Put(pattern string, handler interface{}) {
-	mux.Put(pattern, handler)
+	server.Put(pattern, handler)
 }
 
-// Delete adds a HTTP DELETE route to the default Mux.
+// Delete adds a HTTP DELETE route to the default server.
 func Delete(pattern string, handler interface{}) {
-	mux.Delete(pattern, handler)
+	server.Delete(pattern, handler)
 }
 
-// Head adds a HTTP HEAD route to the default Mux.
+// Head adds a HTTP HEAD route to the default server.
 func Head(pattern string, handler http.HandlerFunc) {
-	mux.Head(pattern, handler)
+	server.Head(pattern, handler)
 }
 
-// Group creates a new application group in default Mux with the given path.
-func Group(path string) *Mux {
-	return mux.Group(path)
+// Group creates a new serverlication group in default Mux with the given path.
+func Group(path string) *Server {
+	return server.Group(path)
 }
 
-// Use appends middleware module into the default serving list.
+// Use serverends middleware module into the default serving list.
 func Use(modules ...interface{}) {
-	mux.Use(modules...)
+	server.Use(modules...)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
@@ -109,21 +106,13 @@ func Run() {
 	if port > 0 {
 		Options.Set("port", port)
 	}
-	mux.Run(fmt.Sprintf(":%d", Options.Int("port")))
+	server.Run(fmt.Sprintf(":%d", Options.Int("port")))
 }
 
 func init() {
-	mux.Use(modules.Env)
-	mux.Use(modules.XSRF)
-
-	if cwd, err := os.Getwd(); err != nil {
-		log.Fatalf("Failed to retrieve project root: %v", err)
-	} else {
-		root, _ := filepath.Abs(cwd)
-		Define("root", root)
-	}
-	Options.Load(".env")
+	server.Use(modules.Env)
+	server.Use(modules.XSRF)
 
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", 0, "port to run the application server")
+	flag.IntVar(&port, "port", 0, "port to run the serverlication server")
 }

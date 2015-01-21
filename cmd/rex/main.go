@@ -29,12 +29,11 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/x/crypto"
 )
 
 var (
-	cwd   string
-	chars = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*(-_+)")
+	cwd string
 )
 
 var commands = []cli.Command{
@@ -67,7 +66,7 @@ var commands = []cli.Command{
 		Name:  "secret",
 		Usage: "generate a new application secret key",
 		Action: func(ctx *cli.Context) {
-			fmt.Println(crypto.RandomString(ctx.Int("length"), chars))
+			fmt.Println(crypto.Random(ctx.Int("length")))
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{

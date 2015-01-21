@@ -30,53 +30,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-
-	"github.com/goanywhere/rex/template"
-)
-
-var (
-	loader *template.Loader
 )
 
 type Context struct {
-	Writer
+	server  *Server
 	Request *http.Request
-
-	data map[string]interface{}
-}
-
-func NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	ctx := new(Context)
-	ctx.data = make(map[string]interface{})
-
-	ctx.Request = r
-	ctx.Writer = &writer{w, 0, 0}
-	return ctx
-}
-
-// Get fetches context data under the given key.
-func (self *Context) Get(key string) interface{} {
-	if value, exists := self.data[key]; exists {
-		return value
-	}
-	return nil
-}
-
-// Set write value under the given key to context data.
-func (self *Context) Set(key string, value interface{}) {
-	self.data[key] = value
-}
-
-// Clear wipes out all existing context data.
-func (self *Context) Clear() {
-	for key := range self.data {
-		delete(self.data, key)
-	}
-}
-
-// Delete removes context data under the given key.
-func (self *Context) Delete(key string) {
-	delete(self.data, key)
+	Writer  http.ResponseWriter
 }
 
 // Cookie returns the cookie value previously set.
@@ -114,14 +73,16 @@ func (self *Context) Error(status int, errors ...string) {
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
-func (self *Context) HTML(filename string) {
-	if loader == nil {
-		loader = template.NewLoader(Options.String("dir.templates"))
-		loader.Load()
-	}
+func (self *Context) HTML(filename string, data ...map[string]interface{}) {
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-	if err := loader.Get(filename).Execute(buffer, self.data); err != nil {
+	template := self.server.loader.Get(filename)
+
+	var v map[string]interface{}
+	if len(data) > 0 {
+		v = data[0]
+	}
+	if err := template.Execute(buffer, v); err != nil {
 		self.Error(http.StatusInternalServerError)
 		return
 	}

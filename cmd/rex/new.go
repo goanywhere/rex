@@ -33,7 +33,7 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/rex/crypto"
+	"github.com/goanywhere/x/crypto"
 )
 
 const endpoint = "https://github.com/goanywhere/rex"
@@ -59,7 +59,7 @@ func (self *project) create() {
 		if dotenv, err := os.Create(filename); err == nil {
 			defer dotenv.Close()
 			buffer := bufio.NewWriter(dotenv)
-			buffer.WriteString(fmt.Sprintf("export Secret=\"%s\"\n", crypto.RandomString(64, secrets)))
+			buffer.WriteString(fmt.Sprintf("export Secret=\"%s\"\n", crypto.Random(64)))
 			buffer.Flush()
 			// close loading here as nodejs will take over prompt.
 			done <- true
