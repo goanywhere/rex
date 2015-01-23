@@ -122,7 +122,6 @@ func init() {
 		root, _ := filepath.Abs(cwd)
 		Options.Set("root", root)
 	}
-	Options.Load(".env")
 
 	// cmd parameters take the priority.
 	flag.IntVar(&port, "port", 0, "port to run the muxlication mux")

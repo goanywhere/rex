@@ -30,7 +30,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 
@@ -67,8 +66,11 @@ func New() *App {
 // configure initialize all application related settings before running.
 // App Secret Keys
 func (self *App) configure() {
+	Options.Load(".env")
 	var keys [][]byte
+	log.Printf("Keys: %s", Options.String("secret.keys"))
 	for _, key := range Options.Strings("secret.keys") {
+		log.Printf("Key: %s", key)
 		keys = append(keys, []byte(key))
 	}
 	self.store = sessions.NewCookieStore(keys...)
@@ -79,8 +81,12 @@ func (self *App) configure() {
 // context creates/fetches a rex.Context instance for App server.
 //	NOTE mux.pool.Put(ctx) must be called to put back the created context.
 func (self *App) context(w http.ResponseWriter, r *http.Request) *Context {
+	var err error
 	ctx := self.pool.Get().(*Context)
-	ctx.session, _ = self.store.Get(r, Options.String("session.cookie.name"))
+	ctx.session, err = self.store.Get(r, Options.String("session.cookie.name"))
+	if err != nil {
+		log.Fatalf("Failed to create session: %v", err)
+	}
 	ctx.Writer = w
 	ctx.Request = r
 	return ctx
@@ -195,7 +201,6 @@ func (self *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mux = self.modules[index](mux)
 		}
 	}
-	context.Clear(r)
 	mux.ServeHTTP(w, r)
 }
 

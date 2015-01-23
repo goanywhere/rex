@@ -115,7 +115,7 @@ func main() {
 
 ## Settings
 
-All settings on Rex can be accessed via `rex.Settings`, which essentially stored in `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, it also makes configuration extremly easy & flexible via both command line & application.
+All settings on Rex can be accessed via `rex.Options`, which essentially stored in `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, it also makes configuration extremly easy & flexible via both command line & application.
 
 ``` go
 package main

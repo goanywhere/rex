@@ -45,6 +45,12 @@ type Context struct {
 	status int
 }
 
+// Session Supports -----------------------------------------------------------------
+
+func (self *Context) Id() string {
+	return self.session.ID
+}
+
 func (self *Context) Get(key string) interface{} {
 	return self.session.Values[key]
 }
