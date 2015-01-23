@@ -25,6 +25,7 @@ package rex
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"sync"
@@ -33,6 +34,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/template"
 )
 
@@ -66,15 +68,18 @@ func New() *App {
 // configure initialize all application related settings before running.
 // App Secret Keys
 func (self *App) configure() {
-	Options.Load(".env")
+	options := internal.Options()
+	options.Load(".env")
+	// Fetch @ least a secret key to setup secret cookie.
 	var keys [][]byte
-	log.Printf("Keys: %s", Options.String("secret.keys"))
-	for _, key := range Options.Strings("secret.keys") {
-		log.Printf("Key: %s", key)
+	for _, key := range options.Strings("secret.keys") {
 		keys = append(keys, []byte(key))
 	}
+	if len(keys) == 0 || keys[0] == nil {
+		log.Fatalf("Failed to setup application: secret key(s) missing")
+	}
 	self.store = sessions.NewCookieStore(keys...)
-	self.loader = template.NewLoader(Options.String("dir.templates"))
+	self.loader = template.NewLoader(options.String("dir.templates"))
 	self.loader.Load()
 }
 
@@ -168,6 +173,17 @@ func (self *App) Options(pattern string, handler interface{}) {
 // Group creates a new application group under the given path.
 func (self *App) Group(path string) *App {
 	return &App{mux: self.mux.PathPrefix(path).Subrouter()}
+}
+
+// FileServer registers a handler to serve HTTP requests
+// with the contents of the file system rooted at root.
+func (self *App) FileServer(dir string) {
+	if abs, err := filepath.Abs(dir); err == nil {
+		prefix := Options.String("url.static")
+		self.mux.PathPrefix(prefix).Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(abs))))
+	} else {
+		log.Fatalf("Failed to setup file server: %v", err)
+	}
 }
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.

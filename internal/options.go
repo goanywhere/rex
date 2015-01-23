@@ -33,22 +33,11 @@ var (
 	options *env.Env
 )
 
-// Options Keys
-const (
-	Port         = "port"
-	Mode         = "mode"
-	DirStatic    = "dir.static"
-	DirTemplates = "dir.templates"
-	URLStatic    = "url.static"
-	SecretKeys   = "secret.keys"
-)
-
 func Options() *env.Env {
 	once.Do(func() {
 		options = env.New("rex")
 		options.Set("port", 5000)
 		options.Set("mode", "debug")
-		options.Set("dir.static", "build")
 		options.Set("dir.templates", "templates")
 		options.Set("url.static", "/static/")
 		// default environmental headers for modules.Env

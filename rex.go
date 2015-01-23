@@ -98,6 +98,10 @@ func Group(path string) *App {
 	return DefaultApp.Group(path)
 }
 
+func FileServer(dir string) {
+	DefaultApp.FileServer(dir)
+}
+
 // Use muxends middleware module into the default serving list.
 func Use(modules ...interface{}) {
 	DefaultApp.Use(modules...)
