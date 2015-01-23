@@ -10,9 +10,8 @@ func index(ctx *rex.Context) {
 }
 
 func main() {
-	rex.Use(modules.Static)
 	rex.Use(modules.LiveReload)
 	rex.Get("/", index)
-
+	rex.FileServer("build")
 	rex.Run()
 }
