@@ -120,24 +120,21 @@ func (self *compressor) Write(data []byte) (size int, err error) {
 	return self.ResponseWriter.Write(data)
 }
 
-func Compress(config map[string]interface{}) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {
+func Compress(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {
+			next.ServeHTTP(w, r)
+		} else {
+			compressor := new(compressor)
+			compressor.ResponseWriter = w
+
+			encodings := compressor.acceptEncodings(r)
+			if len(encodings) == 0 {
 				next.ServeHTTP(w, r)
 			} else {
-				compressor := new(compressor)
-				compressor.ResponseWriter = w
-
-				encodings := compressor.acceptEncodings(r)
-				if len(encodings) == 0 {
-					next.ServeHTTP(w, r)
-				} else {
-					compressor.encodings = encodings
-					next.ServeHTTP(compressor, r)
-				}
+				compressor.encodings = encodings
+				next.ServeHTTP(compressor, r)
 			}
 		}
-		return http.HandlerFunc(fn)
-	}
+	})
 }

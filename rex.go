@@ -27,6 +27,7 @@ Example:
 
 	import (
 		"net/http"
+
 		"github.com/goanywhere/rex"
 	)
 
@@ -44,7 +45,10 @@ package rex
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
@@ -53,7 +57,7 @@ import (
 // default rex mux with reasonable middleware modules.
 var (
 	port       int
-	DefaultMux = New()
+	DefaultApp = New()
 	Options    = internal.Options()
 )
 
@@ -64,39 +68,39 @@ func Define(key string, value interface{}) error {
 	return Options.Set(key, value)
 }
 
-// Get adds a HTTP GET route to the default DefaultMux.
+// Get adds a HTTP GET route to the default DefaultApp.
 func Get(pattern string, handler interface{}) {
-	DefaultMux.Get(pattern, handler)
+	DefaultApp.Get(pattern, handler)
 }
 
-// Post adds a HTTP POST route to the default DefaultMux.
+// Post adds a HTTP POST route to the default DefaultApp.
 func Post(pattern string, handler interface{}) {
-	DefaultMux.Post(pattern, handler)
+	DefaultApp.Post(pattern, handler)
 }
 
-// Put adds a HTTP PUT route to the default DefaultMux.
+// Put adds a HTTP PUT route to the default DefaultApp.
 func Put(pattern string, handler interface{}) {
-	DefaultMux.Put(pattern, handler)
+	DefaultApp.Put(pattern, handler)
 }
 
-// Delete adds a HTTP DELETE route to the default DefaultMux.
+// Delete adds a HTTP DELETE route to the default DefaultApp.
 func Delete(pattern string, handler interface{}) {
-	DefaultMux.Delete(pattern, handler)
+	DefaultApp.Delete(pattern, handler)
 }
 
-// Head adds a HTTP HEAD route to the default DefaultMux.
+// Head adds a HTTP HEAD route to the default DefaultApp.
 func Head(pattern string, handler http.HandlerFunc) {
-	DefaultMux.Head(pattern, handler)
+	DefaultApp.Head(pattern, handler)
 }
 
 // Group creates a new muxlication group in default Mux with the given path.
-func Group(path string) *Mux {
-	return DefaultMux.Group(path)
+func Group(path string) *App {
+	return DefaultApp.Group(path)
 }
 
 // Use muxends middleware module into the default serving list.
 func Use(modules ...interface{}) {
-	DefaultMux.Use(modules...)
+	DefaultApp.Use(modules...)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
@@ -105,12 +109,20 @@ func Run() {
 	if port > 0 {
 		Options.Set("port", port)
 	}
-	DefaultMux.Run(fmt.Sprintf(":%d", Options.Int("port")))
+	DefaultApp.Run(fmt.Sprintf(":%d", Options.Int("port")))
 }
 
 func init() {
-	DefaultMux.Use(modules.Env)
-	DefaultMux.Use(modules.XSRF)
+	DefaultApp.Use(modules.Env)
+	DefaultApp.Use(modules.XSRF)
+
+	if cwd, err := os.Getwd(); err != nil {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	} else {
+		root, _ := filepath.Abs(cwd)
+		Options.Set("root", root)
+	}
+	Options.Load(".env")
 
 	// cmd parameters take the priority.
 	flag.IntVar(&port, "port", 0, "port to run the muxlication mux")

@@ -30,12 +30,31 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/gorilla/sessions"
 )
 
 type Context struct {
-	mux     *Mux
-	Request *http.Request
 	Writer  http.ResponseWriter
+	Request *http.Request
+
+	app     *App
+	session *sessions.Session
+
+	size   int
+	status int
+}
+
+func (self *Context) Get(key string) interface{} {
+	return self.session.Values[key]
+}
+
+func (self *Context) Set(key string, value interface{}) {
+	self.session.Values[key] = value
+}
+
+func (self *Context) Save() error {
+	return self.session.Save(self.Request, self.Writer)
 }
 
 // Cookie returns the cookie value previously set.
@@ -65,7 +84,7 @@ func (self *Context) Query() url.Values {
 
 // Error raises a HTTP error response according to the given status code.
 func (self *Context) Error(status int, errors ...string) {
-	if len(errors) == 1 {
+	if len(errors) > 0 {
 		http.Error(self.Writer, errors[0], status)
 	} else {
 		http.Error(self.Writer, http.StatusText(status), status)
@@ -76,7 +95,7 @@ func (self *Context) Error(status int, errors ...string) {
 func (self *Context) HTML(filename string, data ...map[string]interface{}) {
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-	template := self.mux.loader.Get(filename)
+	template := self.app.loader.Get(filename)
 
 	var v map[string]interface{}
 	if len(data) > 0 {

@@ -33,6 +33,16 @@ var (
 	options *env.Env
 )
 
+// Options Keys
+const (
+	Port         = "port"
+	Mode         = "mode"
+	DirStatic    = "dir.static"
+	DirTemplates = "dir.templates"
+	URLStatic    = "url.static"
+	SecretKeys   = "secret.keys"
+)
+
 func Options() *env.Env {
 	once.Do(func() {
 		options = env.New("rex")
@@ -48,7 +58,7 @@ func Options() *env.Env {
 		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
 		// session cookie defaults
 		options.Set("session.cookie.name", "gsid")
-		options.Set("session.cookie.maxage", 1209600)
+		options.Set("session.cookie.maxage", 3600*24*7)
 		options.Set("session.cookie.httponly", true)
 		options.Set("session.cookie.path", "/")
 		options.Set("session.cookie.secure", false)

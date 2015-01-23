@@ -85,7 +85,7 @@ func main() {
 	cmd.Usage = "manage rex application"
 	cmd.Version = "0.9.0"
 	cmd.Author = "GoAnywhere"
-	cmd.Email = "opensource@goanywhere.io"
+	cmd.Email = "code@goanywhere.io"
 	cmd.Commands = commands
 	cmd.Run(os.Args)
 }
