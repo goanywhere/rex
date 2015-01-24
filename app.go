@@ -32,10 +32,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
+	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/template"
+	"github.com/goanywhere/x/fs"
+)
+
+var (
+	loader  *template.Loader
+	secrets []securecookie.Codec
 )
 
 type (
@@ -43,9 +49,6 @@ type (
 		mux     *mux.Router
 		pool    sync.Pool
 		modules []Module
-
-		store  *sessions.CookieStore
-		loader *template.Loader
 	}
 
 	// Conventional method to implement custom modules.
@@ -60,7 +63,7 @@ func New() *App {
 	self.mux = mux.NewRouter()
 	self.configure()
 	self.pool.New = func() interface{} {
-		return &Context{app: self}
+		return new(Context)
 	}
 	return self
 }
@@ -70,28 +73,31 @@ func New() *App {
 func (self *App) configure() {
 	options := internal.Options()
 	options.Load(".env")
-	// Fetch @ least a secret key to setup secret cookie.
-	var keys [][]byte
-	for _, key := range options.Strings("secret.keys") {
-		keys = append(keys, []byte(key))
-	}
-	if len(keys) == 0 || keys[0] == nil {
+	// ------------------------------------------------
+	// if secret keys exists, create codecs.
+	// ------------------------------------------------
+	if keys := options.Strings("secret.keys"); len(keys) > 0 {
+		var bytes [][]byte
+		for _, key := range keys {
+			bytes = append(bytes, []byte(key))
+		}
+		secrets = securecookie.CodecsFromPairs(bytes...)
+	} else {
 		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
-	self.store = sessions.NewCookieStore(keys...)
-	self.loader = template.NewLoader(options.String("dir.templates"))
-	self.loader.Load()
+	// ------------------------------------------------
+	// if templates folder exists, load HTML templates.
+	// ------------------------------------------------
+	if dir := options.String("dir.templates", "templates"); fs.Exists(dir) {
+		loader = template.NewLoader(dir)
+		loader.Load()
+	}
 }
 
 // context creates/fetches a rex.Context instance for App server.
 //	NOTE mux.pool.Put(ctx) must be called to put back the created context.
 func (self *App) context(w http.ResponseWriter, r *http.Request) *Context {
-	var err error
 	ctx := self.pool.Get().(*Context)
-	//	ctx.session, err = self.store.Get(r, Options.String("session.cookie.name"))
-	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
-	}
 	ctx.Writer = w
 	ctx.Request = r
 	return ctx
@@ -179,6 +185,7 @@ func (self *App) Group(path string) *App {
 // with the contents of the file system rooted at root.
 func (self *App) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
+		Define("url.static", prefix)
 		self.mux.PathPrefix(prefix).Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(abs))))
 	} else {
 		log.Fatalf("Failed to setup file server: %v", err)

@@ -40,8 +40,6 @@ type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 
-	app *App
-
 	size   int
 	status int
 
@@ -55,6 +53,10 @@ type Context struct {
 }
 
 // Session Supports -----------------------------------------------------------------
+
+func (self *Context) Id() string {
+	return ""
+}
 
 // Cookie returns the cookie value previously set.
 func (self *Context) Cookie(key string) (value string) {
@@ -92,18 +94,24 @@ func (self *Context) Error(status int, errors ...string) {
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
 func (self *Context) HTML(filename string, data ...map[string]interface{}) {
+	if loader == nil {
+		return
+	}
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-	template := self.app.loader.Get(filename)
 
-	var v map[string]interface{}
-	if len(data) > 0 {
-		v = data[0]
+	var err error
+	if len(data) == 0 {
+		err = loader.Get(filename).Execute(buffer, nil)
+	} else {
+		err = loader.Get(filename).Execute(buffer, data[0])
 	}
-	if err := template.Execute(buffer, v); err != nil {
+
+	if err != nil {
 		self.Error(http.StatusInternalServerError)
 		return
 	}
+
 	self.Writer.Write(buffer.Bytes())
 }
 

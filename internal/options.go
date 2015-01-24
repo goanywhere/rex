@@ -45,6 +45,12 @@ func Options() *env.Env {
 		options.Set("header.x.xss.protection", "1; mode=block")
 		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
 		// session cookie defaults
+		options.Set("context.cookie.path", "/")
+		options.Set("context.cookie.name", "gsid")
+		options.Set("context.cookie.secure", false)
+		options.Set("context.cookie.httponly", true)
+		options.Set("context.cookie.maxage", 3600*24*7)
+
 		options.Set("session.cookie.name", "gsid")
 		options.Set("session.cookie.maxage", 3600*24*7)
 		options.Set("session.cookie.httponly", true)
