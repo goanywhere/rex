@@ -88,7 +88,7 @@ func (self *App) configure() {
 func (self *App) context(w http.ResponseWriter, r *http.Request) *Context {
 	var err error
 	ctx := self.pool.Get().(*Context)
-	ctx.session, err = self.store.Get(r, Options.String("session.cookie.name"))
+	//	ctx.session, err = self.store.Get(r, Options.String("session.cookie.name"))
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
 	}
@@ -177,9 +177,8 @@ func (self *App) Group(path string) *App {
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
-func (self *App) FileServer(dir string) {
+func (self *App) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
-		prefix := Options.String("url.static")
 		self.mux.PathPrefix(prefix).Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(abs))))
 	} else {
 		log.Fatalf("Failed to setup file server: %v", err)

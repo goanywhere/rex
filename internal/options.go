@@ -39,7 +39,6 @@ func Options() *env.Env {
 		options.Set("port", 5000)
 		options.Set("mode", "debug")
 		options.Set("dir.templates", "templates")
-		options.Set("url.static", "/static/")
 		// default environmental headers for modules.Env
 		options.Set("header.x.ua.compatible", "deny")
 		options.Set("header.x.frame.options", "nosniff")

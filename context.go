@@ -31,37 +31,30 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gorilla/sessions"
+	"github.com/goanywhere/rex/internal"
 )
+
+var options = internal.Options()
 
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
 
-	app     *App
-	session *sessions.Session
+	app *App
 
 	size   int
 	status int
+
+	Options struct {
+		Path     string
+		Domain   string
+		MaxAge   int
+		Secure   bool
+		HttpOnly bool
+	}
 }
 
 // Session Supports -----------------------------------------------------------------
-
-func (self *Context) Id() string {
-	return self.session.ID
-}
-
-func (self *Context) Get(key string) interface{} {
-	return self.session.Values[key]
-}
-
-func (self *Context) Set(key string, value interface{}) {
-	self.session.Values[key] = value
-}
-
-func (self *Context) Save() error {
-	return self.session.Save(self.Request, self.Writer)
-}
 
 // Cookie returns the cookie value previously set.
 func (self *Context) Cookie(key string) (value string) {
@@ -74,7 +67,7 @@ func (self *Context) Cookie(key string) (value string) {
 }
 
 // SetCookie writes cookie to ResponseWriter.
-func (self *Context) SetCookie(cookie *http.Cookie) {
+func (self *Context) SetCookie2(cookie *http.Cookie) {
 	http.SetCookie(self.Writer, cookie)
 }
 

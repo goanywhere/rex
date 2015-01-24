@@ -124,7 +124,7 @@ import (
     "github.com/goanywhere/rex"
 )
 
-func index (ctx *web.Context) {
+func index (ctx *rex.Context) {
     ctx.HTML("index.html")
 }
 
