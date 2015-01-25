@@ -37,6 +37,7 @@ func Options() *env.Env {
 	once.Do(func() {
 		options = env.New("rex")
 		options.Set("port", 5000)
+		options.Set("debug", true)
 		options.Set("mode", "debug")
 		options.Set("dir.templates", "templates")
 		// default environmental headers for modules.Env

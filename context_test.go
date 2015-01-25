@@ -28,6 +28,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/goanywhere/x/crypto"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -35,6 +36,7 @@ import (
 //  Enhancements for native http.ResponseWriter
 // ---------------------------------------------------------------------------
 func TestContextStatus(t *testing.T) {
+	Define("secret.keys", crypto.Random(64))
 	Convey("Response Status Code", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := &Context{Writer: w, Request: r}
@@ -59,6 +61,7 @@ func TestContextStatus(t *testing.T) {
 }
 
 func TestContextSize(t *testing.T) {
+	Define("secret.keys", crypto.Random(64))
 	Convey("Response Size", t, func() {
 		value := "Hello 中文測試"
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -77,10 +80,11 @@ func TestContextSize(t *testing.T) {
 }
 
 func TestContextWritten(t *testing.T) {
+	Define("secret.keys", crypto.Random(64))
 	Convey("Response's Written Flag", t, func() {
 		var flag bool
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: &writer{w, 0, 0}, Request: r}
+			ctx := NewContext(w, r)
 			ctx.String("Hello World")
 		}))
 		defer server.Close()
@@ -129,11 +133,12 @@ func TestContextId(t *testing.T) {
 //  HTTP Cookies
 // ---------------------------------------------------------------------------
 func TestCookie(t *testing.T) {
+	Define("secret.keys", crypto.Random(64))
 	Convey("context#Cookie", t, func() {
 		cookie := &http.Cookie{Name: "number", Value: "123", Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: &writer{w, 0, 0}, Request: r}
+			ctx := NewContext(w, r)
 			ctx.String(ctx.Cookie(cookie.Name))
 		}))
 		defer server.Close()
@@ -151,9 +156,10 @@ func TestCookie(t *testing.T) {
 }
 
 func TestSetCookie(t *testing.T) {
+	Define("secret.keys", crypto.Random(64))
 	Convey("context#SetCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: &writer{w, 0, 0}, Request: r}
+			ctx := NewContext(w, r)
 			ctx.SetCookie(&http.Cookie{Name: "number", Value: "123", Path: "/"})
 			ctx.String("Hello Cookie")
 			return

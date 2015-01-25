@@ -44,8 +44,13 @@ var (
 	secrets []securecookie.Codec
 )
 
+var app struct {
+	Loader  *template.Loader
+	Secrets []securecookie.Codec
+}
+
 type (
-	App struct {
+	Server struct {
 		mux     *mux.Router
 		pool    sync.Pool
 		modules []Module
@@ -58,19 +63,20 @@ type (
 )
 
 // New creates a plain web server without any middleware modules.
-func New() *App {
-	self := new(App)
+func New() *Server {
+	self := new(Server)
 	self.mux = mux.NewRouter()
 	self.configure()
 	self.pool.New = func() interface{} {
-		return new(Context)
+		ctx := new(Context)
+		return ctx
 	}
 	return self
 }
 
 // configure initialize all application related settings before running.
-// App Secret Keys
-func (self *App) configure() {
+// Server Secret Keys
+func (self *Server) configure() {
 	options := internal.Options()
 	options.Load(".env")
 	// ------------------------------------------------
@@ -81,25 +87,26 @@ func (self *App) configure() {
 		for _, key := range keys {
 			bytes = append(bytes, []byte(key))
 		}
-		secrets = securecookie.CodecsFromPairs(bytes...)
+		app.Secrets = securecookie.CodecsFromPairs(bytes...)
 	} else {
 		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
 	// ------------------------------------------------
-	// if templates folder exists, load HTML templates.
+	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
 	if dir := options.String("dir.templates", "templates"); fs.Exists(dir) {
-		loader = template.NewLoader(dir)
-		loader.Load()
+		app.Loader = template.NewLoader(dir)
+		app.Loader.Load()
 	}
 }
 
-// context creates/fetches a rex.Context instance for App server.
+// context creates/fetches a rex.Context instance for Server server.
 //	NOTE mux.pool.Put(ctx) must be called to put back the created context.
-func (self *App) context(w http.ResponseWriter, r *http.Request) *Context {
+func (self *Server) context(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := self.pool.Get().(*Context)
 	ctx.Writer = w
 	ctx.Request = r
+	ctx.configure()
 	return ctx
 }
 
@@ -110,7 +117,7 @@ func (self *App) context(w http.ResponseWriter, r *http.Request) *Context {
 //	* http.Handler
 //	* http.HandlerFunc	=> func(w http.ResponseWriter, r *http.Request)
 //	* rex.HandlerFunc	=> func(ctx *Context)
-func (self *App) register(method, pattern string, handler interface{}) {
+func (self *Server) register(method, pattern string, handler interface{}) {
 	// finds the full function name (with package) as its mappings.
 	var name = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 
@@ -135,55 +142,55 @@ func (self *App) register(method, pattern string, handler interface{}) {
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Get(pattern string, handler interface{}) {
+func (self *Server) Get(pattern string, handler interface{}) {
 	self.register("GET", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Post(pattern string, handler interface{}) {
+func (self *Server) Post(pattern string, handler interface{}) {
 	self.register("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Put(pattern string, handler interface{}) {
+func (self *Server) Put(pattern string, handler interface{}) {
 	self.register("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Delete(pattern string, handler interface{}) {
+func (self *Server) Delete(pattern string, handler interface{}) {
 	self.register("DELETE", pattern, handler)
 }
 
 // Patch is a shortcut for mux.HandleFunc(pattern, handler).Methods("PATCH")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Patch(pattern string, handler interface{}) {
+func (self *Server) Patch(pattern string, handler interface{}) {
 	self.register("PATCH", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *App) Head(pattern string, handler interface{}) {
+func (self *Server) Head(pattern string, handler interface{}) {
 	self.register("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
-func (self *App) Options(pattern string, handler interface{}) {
+func (self *Server) Options(pattern string, handler interface{}) {
 	self.register("OPTIONS", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
-func (self *App) Group(path string) *App {
-	return &App{mux: self.mux.PathPrefix(path).Subrouter()}
+func (self *Server) Group(path string) *Server {
+	return &Server{mux: self.mux.PathPrefix(path).Subrouter()}
 }
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
-func (self *App) FileServer(prefix, dir string) {
+func (self *Server) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
 		Define("url.static", prefix)
 		self.mux.PathPrefix(prefix).Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(abs))))
@@ -194,7 +201,7 @@ func (self *App) FileServer(prefix, dir string) {
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
 // TODO simplify ME.
-func (self *App) Use(modules ...interface{}) {
+func (self *Server) Use(modules ...interface{}) {
 	var mod Module
 	for _, module := range modules {
 		switch module.(type) {
@@ -215,7 +222,7 @@ func (self *App) Use(modules ...interface{}) {
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
-func (self *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var mux http.Handler = self.mux
 	// Activate modules in FIFO order.
 	if len(self.modules) > 0 {
@@ -227,7 +234,7 @@ func (self *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Run starts the application server to serve incoming requests at the given address.
-func (self *App) Run(address string) {
+func (self *Server) Run(address string) {
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		log.Printf("Application server started [%s]", address)
