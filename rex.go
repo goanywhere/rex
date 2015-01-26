@@ -21,7 +21,7 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 /*
-Package rex provides an out-of-box web mux with common middleware modules.
+Package rex provides an out-of-box web server with common middleware modules.
 Example:
 	package main
 
@@ -50,23 +50,16 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
 )
 
 // default rex mux with reasonable middleware modules.
 var (
-	port    int
-	server  = New()
-	Options = internal.Options()
+	port   int
+	server = New()
 )
 
 type H map[string]interface{}
-
-// Define saves primitive values using os environment.
-func Define(key string, value interface{}) error {
-	return Options.Set(key, value)
-}
 
 // Get adds a HTTP GET route to the default server.
 func Get(pattern string, handler interface{}) {
@@ -111,23 +104,25 @@ func Use(modules ...interface{}) {
 func Run() {
 	flag.Parse()
 	if port > 0 {
-		Options.Set("port", port)
+		Define("port", port)
 	}
-	server.Run(fmt.Sprintf(":%d", Options.Int("port")))
+	server.Run(fmt.Sprintf(":%d", Int("port")))
 }
 
 func init() {
+	// common server middleware modules.
 	server.Use(modules.Env)
 	server.Use(modules.XSRF)
-	if Options.Bool("debug") {
+	if Bool("debug") {
 		server.Use(modules.LiveReload)
 	}
 
-	if cwd, err := os.Getwd(); err != nil {
-		log.Fatalf("Failed to retrieve project root: %v", err)
-	} else {
+	// setup fundamental project root.
+	if cwd, err := os.Getwd(); err == nil {
 		root, _ := filepath.Abs(cwd)
-		Options.Set("root", root)
+		Define("root", root)
+	} else {
+		log.Fatalf("Failed to retrieve project root: %v", err)
 	}
 
 	// cmd parameters take the priority.

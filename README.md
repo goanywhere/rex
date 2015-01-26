@@ -65,7 +65,7 @@ What if another page say "contact.html" will share the same header & footer? Oop
 template.Must(template.ParseFiles("contact.html", "header.html", "footer.html"))
 ```
 
-Inheritance? They are pretty much the same, yes, you'll have to do this over & over again like this:
+Inheritance? Pretty much the same, yes, you'll have to do this over & over again:
 
 ```go
 template.Must(template.ParseFiles("layout.html", "index.html", "header.html", "footer.html"))
@@ -115,7 +115,7 @@ func main() {
 
 ## Settings
 
-All settings on Rex can be accessed via `rex.Options`, which essentially stored in `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, it also makes configuration extremly easy & flexible via both command line & application.
+All settings on Rex can be accessed via `rex`, which essentially stored in `os.Environ`. By using this approach you can compile your own settings files into the binary package for deployment without exposing the sensitive settings, it also makes configuration extremly easy & flexible via both command line & application.
 
 ``` go
 package main
@@ -130,6 +130,7 @@ func index (ctx *rex.Context) {
 
 func main() {
     // Override default 5000 port here.
+    // can be accesed via rex.Int("port")
     rex.Define("port", 9394)
 
     rex.Get("/", index)

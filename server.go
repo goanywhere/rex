@@ -39,11 +39,6 @@ import (
 	"github.com/goanywhere/x/fs"
 )
 
-var (
-	loader  *template.Loader
-	secrets []securecookie.Codec
-)
-
 var app struct {
 	Loader  *template.Loader
 	Secrets []securecookie.Codec

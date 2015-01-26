@@ -20,19 +20,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package cache
+package rex
 
-import "time"
+import "github.com/goanywhere/rex/internal"
 
-type Cache interface {
-	// Get value associated with the given key & assign to the given pointer.
-	Get(key string, ptr interface{}) error
+var (
+	options = internal.Options()
 
-	// Set the key/value into the cache with specified time duration.
-	Set(key string, value interface{}, expires time.Duration) error
+	// Define saves primitive values using os environment.
+	Define = options.Set
 
-	// Delete value associated with the given key from cache.
-	Del(key string) error
+	// Bool retrieves boolean value associated with the given key from environ.
+	Bool = options.Bool
 
-	Flush() error
-}
+	// Float retrieves float64 value associated with the given key from environ.
+	Float = options.Float
+
+	// Int retrieves int value associated with the given key from environ.
+	Int = options.Int
+
+	// Int64 retrieves int64 value associated with the given key from environ.
+	Int64 = options.Int64
+
+	// String retrieves string value associated with the given key from environ.
+	String = options.String
+
+	// Strings retrieves string array associated with the given key from environ.
+	Strings = options.Strings
+)

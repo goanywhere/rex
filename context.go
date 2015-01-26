@@ -30,11 +30,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-
-	"github.com/goanywhere/rex/internal"
 )
-
-var options = internal.Options()
 
 type Context struct {
 	Writer  http.ResponseWriter
