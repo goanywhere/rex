@@ -50,7 +50,33 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
+)
+
+var (
+	options = internal.Options()
+
+	// Define saves primitive values using os environment.
+	Define = options.Set
+
+	// Bool retrieves boolean value associated with the given key from environ.
+	Bool = options.Bool
+
+	// Float retrieves float64 value associated with the given key from environ.
+	Float = options.Float
+
+	// Int retrieves int value associated with the given key from environ.
+	Int = options.Int
+
+	// Int64 retrieves int64 value associated with the given key from environ.
+	Int64 = options.Int64
+
+	// String retrieves string value associated with the given key from environ.
+	String = options.String
+
+	// Strings retrieves string array associated with the given key from environ.
+	Strings = options.Strings
 )
 
 // default rex mux with reasonable middleware modules.
