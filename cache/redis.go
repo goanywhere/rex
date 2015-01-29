@@ -49,9 +49,6 @@ type redis struct {
 
 func New() *redis {
 	servers := options.Strings("cache.redis.servers")
-	for index, item := range servers {
-		log.Printf("Redis <%d>: %s", index, item)
-	}
 
 	create := func(rawurl string) *redigo.Pool {
 		pool := new(redigo.Pool)
@@ -97,6 +94,9 @@ func New() *redis {
 	for _, rawurl := range servers {
 		pools = append(pools, create(rawurl))
 	}
+	if len(pools) == 0 {
+		log.Fatalf("Failed to setup Redis: 'rex.cache.redis.servers' missing?")
+	}
 	redis := new(redis)
 	redis.Sharding = internal.NewSharding(len(servers))
 	redis.pools = pools
@@ -105,10 +105,15 @@ func New() *redis {
 
 // Serialization ------------------------------------------------------------
 
-// doutes raw Redis commands with interface & error in return.
+// do raw Redis commands with interface & error in return.
 func (self *redis) do(cmd, key string, args ...interface{}) (interface{}, error) {
-	index := self.Shard(key)
-	conn := self.pools[index].Get()
+	var pool *redigo.Pool
+	if len(self.pools) == 1 {
+		pool = self.pools[0]
+	} else {
+		pool = self.pools[self.Shard(key)]
+	}
+	conn := pool.Get()
 	defer conn.Close()
 	return conn.Do(cmd, append([]interface{}{key}, args...)...)
 }

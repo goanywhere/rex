@@ -125,6 +125,7 @@ func (self *Context) Error(status int, errors ...string) {
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
+// TODO empty loader/html
 func (self *Context) HTML(filename string, data ...map[string]interface{}) {
 	var buffer = new(bytes.Buffer)
 	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
