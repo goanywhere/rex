@@ -112,10 +112,10 @@ func Run() {
 func init() {
 	// common server middleware modules.
 	server.Use(modules.Env)
-	server.Use(modules.XSRF)
-	if Bool("debug") {
-		server.Use(modules.LiveReload)
-	}
+	//server.Use(modules.XSRF)
+	//if Bool("debug") {
+	//server.Use(modules.LiveReload)
+	//}
 
 	// setup fundamental project root.
 	if cwd, err := os.Getwd(); err == nil {

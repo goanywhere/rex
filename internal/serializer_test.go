@@ -20,19 +20,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package internal
 
 import (
-	"net/http"
-	"strings"
+	"testing"
 )
 
-func Env(next http.Handler) http.Handler {
-	var values = options.Values("header")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for key, value := range values {
-			w.Header()[strings.Replace(key, ".", "-", -1)] = []string{value}
-		}
-		next.ServeHTTP(w, r)
-	})
+func BenchmarkSerialize(b *testing.B) {
+	for index := 0; index < b.N; index++ {
+		Serialize(1234567890)
+	}
+}
+
+func BenchmarkDeserialize(b *testing.B) {
+	bits, _ := Serialize("example")
+	var result string
+	for index := 0; index < b.N; index++ {
+		Deserialize(bits, &result)
+	}
 }

@@ -22,7 +22,13 @@
  * ----------------------------------------------------------------------*/
 package cache
 
-import "time"
+import (
+	"time"
+
+	"github.com/goanywhere/rex/internal"
+)
+
+var options = internal.Options()
 
 type Cache interface {
 	// Get value associated with the given key & assign to the given pointer.
@@ -33,6 +39,22 @@ type Cache interface {
 
 	// Delete value associated with the given key from cache.
 	Del(key string) error
+
+	// Increments the number assoicated with the given key by one.
+	// If the key does not exist, it is set to 0 before performing the operation.
+	// An error will be returned if the key contains a value of the wrong type
+	// or contains a string that can not be represented as integer.
+	Incr(key string) error
+
+	// Decrements the number assoicated with the given key by one.
+	// If the key does not exist, it is set to 0 before performing the operation.
+	// An error will be returned if the key contains a value of the wrong type
+	// or contains a string that can not be represented as integer.
+	Decr(key string) error
+
+	Do(key string) (interface{}, error)
+	// Determine if a key exists.
+	Exists(key string) bool
 
 	Flush() error
 }

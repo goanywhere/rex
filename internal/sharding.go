@@ -21,6 +21,9 @@
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
 
+// Mod. Dropbox consistent hash:
+//	https://github.com/dropbox/godropbox/blob/master/hash2/consistent_hash.go
+//
 // A space efficient permutation-based consistent hashing function.  This
 // implementation supports up to a maximum of (1 << 16 - 1), 65535, number
 // of shards.
@@ -54,7 +57,7 @@
 //  2. Now suppose K = 31415 and perm(S, K) = (3, 1, 9, 4, 7, 5, 8, 2, 0, 6).
 //  3. After ignoring S - A, the remaining ids are (3, 1, 4, 2, 0)
 //  4. Therefore, the key belongs to shard 3.
-package web
+package internal
 
 import (
 	"crypto/hmac"
@@ -63,9 +66,13 @@ import (
 	"strings"
 )
 
-const (
-	maxShards = 65535
-)
+const MaxShards = 1<<16 - 1
+
+func NewSharding(shards int) *Sharding {
+	sharding := new(Sharding)
+	sharding.shards = uint16(shards)
+	return sharding
+}
 
 type Sharding struct {
 	shards uint16
@@ -112,10 +119,10 @@ func (self *Sharding) Shard(key string) uint16 {
 	hash := uint32(value) ^ uint32(value>>32)
 
 	var closestShard uint16 = 0
-	var minPosition uint16 = maxShards
+	var minPosition uint16 = MaxShards
 
 	selectClosestShard := func(shard, pos uint16) {
-		pos %= (maxShards - shard)
+		pos %= (MaxShards - shard)
 		if pos < minPosition {
 			closestShard = shard
 			minPosition = pos

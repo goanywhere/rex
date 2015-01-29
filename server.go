@@ -95,16 +95,6 @@ func (self *Server) configure() {
 	}
 }
 
-// context creates/fetches a rex.Context instance for Server server.
-//	NOTE mux.pool.Put(ctx) must be called to put back the created context.
-func (self *Server) context(w http.ResponseWriter, r *http.Request) *Context {
-	ctx := self.pool.Get().(*Context)
-	ctx.Writer = w
-	ctx.Request = r
-	ctx.configure()
-	return ctx
-}
-
 // ---------------------------------------------------------------------------
 //  HTTP Requests Handlers
 // ---------------------------------------------------------------------------
@@ -125,7 +115,9 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 
 	case func(*Context):
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			ctx := self.context(w, r)
+			ctx := self.pool.Get().(*Context)
+			ctx.Writer = w
+			ctx.Request = r
 			defer self.pool.Put(ctx)
 			H(ctx)
 		}).Methods(method).Name(name)
@@ -230,6 +222,7 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Run starts the application server to serve incoming requests at the given address.
 func (self *Server) Run(address string) {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		log.Printf("Application server started [%s]", address)

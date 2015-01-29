@@ -20,19 +20,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package modules
+package internal
 
 import (
-	"net/http"
-	"strings"
+	"testing"
+
+	"github.com/goanywhere/x/uuid"
 )
 
-func Env(next http.Handler) http.Handler {
-	var values = options.Values("header")
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for key, value := range values {
-			w.Header()[strings.Replace(key, ".", "-", -1)] = []string{value}
-		}
-		next.ServeHTTP(w, r)
-	})
+var sharding = NewSharding(100)
+
+func BenchmarkSharding(b *testing.B) {
+	var uid = uuid.V1().String()
+	for index := 0; index < b.N; index++ {
+		sharding.Shard(uid)
+	}
 }

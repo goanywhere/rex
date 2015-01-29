@@ -41,10 +41,10 @@ func Options() *env.Env {
 		options.Set("mode", "debug")
 		options.Set("dir.templates", "templates")
 		// default environmental headers for modules.Env
-		options.Set("header.x.ua.compatible", "deny")
-		options.Set("header.x.frame.options", "nosniff")
-		options.Set("header.x.xss.protection", "1; mode=block")
-		options.Set("header.x.content.type.options", "IE=Edge,chrome=1")
+		options.Set("header.X-UA-Compatible", "deny")
+		options.Set("header.X-Frame-Options", "nosniff")
+		options.Set("header.X-XSS-Protection", "1; mode=block")
+		options.Set("header.X-Content-Type-options", "IE=Edge,chrome=1")
 		// session cookie defaults
 		options.Set("context.cookie.path", "/")
 		options.Set("context.cookie.name", "gsid")
