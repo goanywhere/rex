@@ -33,6 +33,7 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/x/crypto"
 )
 
@@ -46,9 +47,9 @@ type project struct {
 }
 
 func (self *project) create() {
-	prompt("Fetching project template\n")
+	internal.Prompt("Fetching project template\n")
 	var done = make(chan bool)
-	loading(done)
+	internal.Loading(done)
 
 	cmd := exec.Command("git", "clone", "-b", "scaffolds", endpoint, self.name)
 	cmd.Dir = cwd
@@ -76,7 +77,7 @@ func (self *project) create() {
 
 func (self *project) setup() {
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		prompt("Fetching project dependencies\n")
+		internal.Prompt("Fetching project dependencies\n")
 		cmd := exec.Command("npm", "install")
 		cmd.Dir = self.root
 		cmd.Stdout = os.Stdout

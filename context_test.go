@@ -177,6 +177,7 @@ func TestSetCookie(t *testing.T) {
 // ---------------------------------------------------------------------------
 //  HTTP Response Rendering
 // ---------------------------------------------------------------------------
+/*
 func TestContextHTML(t *testing.T) {
 	Convey("Rendering HTML", t, func() {
 
@@ -200,3 +201,4 @@ func TestContextString(t *testing.T) {
 
 	})
 }
+*/

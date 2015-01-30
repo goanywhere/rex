@@ -37,6 +37,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules/livereload"
 	"github.com/goanywhere/x/fs"
 )
@@ -58,7 +59,7 @@ type app struct {
 // to run & optionally compiles static assets using npm.
 func (self *app) build() {
 	var done = make(chan bool)
-	loading(done)
+	internal.Loading(done)
 
 	// * try build the application into rex-bin(.exe)
 	cmd := exec.Command("go", "build", "-o", self.binary)

@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package main
+package internal
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ import (
 // Loading provides a simple dotted loading prompt while
 // processing task. NOTE that task needs to manually notify
 // the prompt once the task is done.
-func loading(done chan bool) {
+func Loading(done chan bool) {
 	var (
 		index      = 0
 		indicators = []string{"-", "\\", "|", "/"}
@@ -55,6 +55,6 @@ func loading(done chan bool) {
 	}()
 }
 
-func prompt(message string, values ...interface{}) {
+func Prompt(message string, values ...interface{}) {
 	fmt.Printf(fmt.Sprintf("* %s", message), values...)
 }
