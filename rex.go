@@ -51,7 +51,6 @@ import (
 	"path/filepath"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/modules"
 )
 
 var (
@@ -137,7 +136,7 @@ func Run() {
 
 func init() {
 	// common server middleware modules.
-	server.Use(modules.Env)
+	//server.Use(modules.Env)
 	//server.Use(modules.XSRF)
 	//if Bool("debug") {
 	//server.Use(modules.LiveReload)

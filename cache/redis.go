@@ -32,17 +32,11 @@ import (
 	"github.com/goanywhere/rex/internal"
 )
 
-var Redis = struct {
+type redis struct {
 	MaxIdle     int
 	MaxActive   int
 	IdleTimeout time.Duration
-}{
-	MaxIdle:     options.Int("cache.redis.maxidle", 10),
-	MaxActive:   options.Int("cache.redis.maxactive", 100),
-	IdleTimeout: time.Duration(options.Int("cache.redis.idletimeout", 180)) * time.Second,
-}
 
-type redis struct {
 	*internal.Sharding
 	pools []*redigo.Pool
 }
@@ -52,9 +46,10 @@ func New() *redis {
 
 	create := func(rawurl string) *redigo.Pool {
 		pool := new(redigo.Pool)
-		pool.MaxIdle = Redis.MaxIdle
-		pool.MaxActive = Redis.MaxActive
-		pool.IdleTimeout = Redis.IdleTimeout
+		pool.MaxIdle = options.Int("cache.redis.maxidle", 10)
+		pool.MaxActive = options.Int("cache.redis.maxactive", 100)
+		pool.IdleTimeout = time.Duration(options.Int("cache.redis.idletimeout", 180)) * time.Second
+
 		pool.Dial = func() (conn redigo.Conn, err error) {
 			var URL *url.URL
 			URL, err = url.Parse(rawurl)
