@@ -52,7 +52,6 @@ type Cache interface {
 	// or contains a string that can not be represented as integer.
 	Decr(key string) error
 
-	Do(key string) (interface{}, error)
 	// Determine if a key exists.
 	Exists(key string) bool
 

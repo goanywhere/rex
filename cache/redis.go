@@ -95,7 +95,7 @@ func New() *redis {
 		pools = append(pools, create(rawurl))
 	}
 	if len(pools) == 0 {
-		log.Fatalf("Failed to setup Redis: 'rex.cache.redis.servers' missing?")
+		log.Fatalf("Failed to setup Redis: 'cache.redis.servers' missing?")
 	}
 	redis := new(redis)
 	redis.Sharding = internal.NewSharding(len(servers))
@@ -103,24 +103,31 @@ func New() *redis {
 	return redis
 }
 
-// Serialization ------------------------------------------------------------
-
-// do raw Redis commands with interface & error in return.
-func (self *redis) do(cmd, key string, args ...interface{}) (interface{}, error) {
+// conn gets connection from pool with the given key with sharding supports.
+func (self *redis) conn(key string) redigo.Conn {
 	var pool *redigo.Pool
 	if len(self.pools) == 1 {
 		pool = self.pools[0]
 	} else {
 		pool = self.pools[self.Shard(key)]
 	}
-	conn := pool.Get()
+	return pool.Get()
+}
+
+// exec raw Redis commands with interface & error in return.
+// commands are automatically sharded using key when there are more than a server.
+func (self *redis) exec(cmd, key string, args ...interface{}) (interface{}, error) {
+	conn := self.conn(key)
 	defer conn.Close()
 	return conn.Do(cmd, append([]interface{}{key}, args...)...)
 }
 
 // Get value associated with the given key & assign to the given pointer.
 func (self *redis) Get(key string, ptr interface{}) error {
-	if reply, err := self.do("GET", key); err == nil {
+	if reply, err := self.exec("GET", key); err == nil {
+		if reply == nil {
+			return redigo.ErrNil
+		}
 		return internal.Deserialize(reply.([]byte), ptr)
 	}
 	return nil
@@ -134,18 +141,18 @@ func (self *redis) Set(key string, value interface{}, expires time.Duration) err
 	}
 
 	if expires > 0 {
-		_, err = self.do("SETEX", key, int32(expires/time.Second), bits)
+		_, err = self.exec("SETEX", key, int32(expires/time.Second), bits)
 	} else {
-		_, err = self.do("SET", key, bits)
+		_, err = self.exec("SET", key, bits)
 	}
 	return err
 }
 
 // Delete value associated with the given key from cache.
 func (self *redis) Del(key string, others ...string) error {
-	_, err := self.do("DEL", key)
+	_, err := self.exec("DEL", key)
 	for _, item := range others {
-		_, err = self.do("DEL", item)
+		_, err = self.exec("DEL", item)
 	}
 	return err
 }
@@ -155,7 +162,7 @@ func (self *redis) Del(key string, others ...string) error {
 // An error will be returned if the key contains a value of the wrong type
 // or contains a string that can not be represented as integer.
 func (self *redis) Incr(key string) error {
-	_, err := self.do("INCR", key)
+	_, err := self.exec("INCR", key)
 	return err
 }
 
@@ -164,22 +171,26 @@ func (self *redis) Incr(key string) error {
 // An error will be returned if the key contains a value of the wrong type
 // or contains a string that can not be represented as integer.
 func (self *redis) Decr(key string) error {
-	_, err := self.do("DECR", key)
+	_, err := self.exec("DECR", key)
 	return err
 }
 
 // Determine if a key exists.
 func (self *redis) Exists(key string) bool {
-	exists, _ := redigo.Bool(self.do("EXISTS", key))
+	exists, _ := redigo.Bool(self.exec("EXISTS", key))
 	return exists
 }
 
-// ---------- Primitive Types Supports ----------
-
-func (self *redis) String(key string) (string, error) {
-	return redigo.String(self.do("GET", key))
-}
-
+// Flush all redis cache servers.
 func (self *redis) Flush() error {
-	return nil
+	var (
+		err  error
+		conn redigo.Conn
+	)
+	for _, pool := range self.pools {
+		conn = pool.Get()
+		_, err = conn.Do("FLUSHDB")
+		conn.Close()
+	}
+	return err
 }
