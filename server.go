@@ -54,8 +54,23 @@ type (
 	// Conventional method to implement custom modules.
 	Module func(http.Handler) http.Handler
 
+	Handler interface {
+		http.Handler
+		Serve(*Context)
+	}
+
 	HandlerFunc func(*Context)
 )
+
+// Standard http.Handler implementation.
+func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	self(NewContext(w, r))
+}
+
+// Serve wraps standard ServeHTTP function with context.
+func (self HandlerFunc) Serve(ctx *Context) {
+	self(ctx)
+}
 
 // New creates a plain web server without any middleware modules.
 func New() *Server {
@@ -95,6 +110,19 @@ func (self *Server) configure() {
 	}
 }
 
+// creates a reusable context for consequent requests.
+func (self *Server) createContext(w http.ResponseWriter, r *http.Request) *Context {
+	ctx := self.pool.Get().(*Context)
+	ctx.Writer = w
+	ctx.Request = r
+	return ctx
+}
+
+// put the created context object into pool for consequent creation.
+func (self *Server) recycleContext(ctx *Context) {
+	defer self.pool.Put(ctx)
+}
+
 // ---------------------------------------------------------------------------
 //  HTTP Requests Handlers
 // ---------------------------------------------------------------------------
@@ -113,13 +141,18 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 	case func(http.ResponseWriter, *http.Request):
 		self.mux.HandleFunc(pattern, H).Methods(method).Name(name)
 
+	case Handler:
+		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+			ctx := self.createContext(w, r)
+			H.Serve(ctx)
+			self.recycleContext(ctx)
+		}).Methods(method).Name(name)
+
 	case func(*Context):
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			ctx := self.pool.Get().(*Context)
-			ctx.Writer = w
-			ctx.Request = r
-			defer self.pool.Put(ctx)
+			ctx := self.createContext(w, r)
 			H(ctx)
+			self.recycleContext(ctx)
 		}).Methods(method).Name(name)
 
 	default:
