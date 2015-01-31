@@ -14,7 +14,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by muxlicable law or agreed to in writing, software
+ *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
@@ -51,6 +51,7 @@ import (
 	"path/filepath"
 
 	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/rex/modules"
 )
 
 var (
@@ -79,10 +80,7 @@ var (
 )
 
 // default rex mux with reasonable middleware modules.
-var (
-	port   int
-	server = New()
-)
+var server = New()
 
 type H map[string]interface{}
 
@@ -121,22 +119,21 @@ func FileServer(prefix, dir string) {
 }
 
 // Use muxends middleware module into the default serving list.
-func Use(modules ...interface{}) {
+func Use(modules ...Module) {
 	server.Use(modules...)
 }
 
 // Serve starts serving the requests at the pre-defined address from settings.
+var port int
+
 func Run() {
 	flag.Parse()
-	if port > 0 {
-		Define("port", port)
-	}
-	server.Run(fmt.Sprintf(":%d", Int("port")))
+	server.Run(fmt.Sprintf(":%d", port))
 }
 
 func init() {
 	// common server middleware modules.
-	//server.Use(modules.Env)
+	server.Use(modules.Env)
 	//server.Use(modules.XSRF)
 	//if Bool("debug") {
 	//server.Use(modules.LiveReload)
@@ -151,5 +148,5 @@ func init() {
 	}
 
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", 0, "port to run the application server")
+	flag.IntVar(&port, "port", 5000, "port to run the application server")
 }
