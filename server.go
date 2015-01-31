@@ -55,20 +55,14 @@ type (
 	Module func(http.Handler) http.Handler
 
 	Handler interface {
-		http.Handler
-		Serve(*Context)
+		ServeHTTP(*Context)
 	}
 
 	HandlerFunc func(*Context)
 )
 
-// Standard http.Handler implementation.
-func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self(NewContext(w, r))
-}
-
 // Serve wraps standard ServeHTTP function with context.
-func (self HandlerFunc) Serve(ctx *Context) {
+func (self HandlerFunc) ServeHTTP(ctx *Context) {
 	self(ctx)
 }
 
@@ -144,15 +138,15 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 	case Handler:
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 			ctx := self.createContext(w, r)
-			H.Serve(ctx)
-			self.recycleContext(ctx)
+			defer self.recycleContext(ctx)
+			H.ServeHTTP(ctx)
 		}).Methods(method).Name(name)
 
 	case func(*Context):
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 			ctx := self.createContext(w, r)
+			defer self.recycleContext(ctx)
 			H(ctx)
-			self.recycleContext(ctx)
 		}).Methods(method).Name(name)
 
 	default:
@@ -220,25 +214,8 @@ func (self *Server) FileServer(prefix, dir string) {
 }
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
-// TODO simplify ME.
-func (self *Server) Use(modules ...interface{}) {
-	var mod Module
-	for _, module := range modules {
-		switch module.(type) {
-		// Standard http.Handler module.
-		case func(http.Handler) http.Handler:
-			mod = module.(func(http.Handler) http.Handler)
-
-		case func(map[string]interface{}) func(http.Handler) http.Handler:
-			// http.Handler with module options (using default Options).
-			var options = make(map[string]interface{})
-			mod = module.(func(map[string]interface{}) func(http.Handler) http.Handler)(options)
-
-		default:
-			log.Fatalf("Unknown module type (%v) passed in.", module)
-		}
-		self.modules = append(self.modules, mod)
-	}
+func (self *Server) Use(modules ...Module) {
+	self.modules = append(self.modules, modules...)
 }
 
 // ServeHTTP: Implementation of "http.Handler" interface.
