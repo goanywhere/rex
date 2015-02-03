@@ -34,27 +34,30 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gorilla/sessions"
+	"github.com/gorilla/securecookie"
 )
 
+type cookie struct {
+	Path   string
+	Domain string
+	// MaxAge=0 means no 'Max-Age' attribute specified.
+	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'.
+	// MaxAge>0 means Max-Age attribute present and given in seconds.
+	MaxAge   int
+	Secure   bool
+	HttpOnly bool
+}
+
 type Context struct {
+	Options *cookie
 	Writer  http.ResponseWriter
 	Request *http.Request
 
 	size   int
 	status int
 
-	IsNew   bool
-	Options struct {
-		Path   string
-		Domain string
-		// MaxAge=0 means no 'Max-Age' attribute specified.
-		// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'.
-		// MaxAge>0 means Max-Age attribute present and given in seconds.
-		MaxAge   int
-		Secure   bool
-		HttpOnly bool
-	}
+	dirty  bool
+	values map[string]interface{}
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -67,30 +70,45 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // ----------------------------------------
 // Session Supports
 // ----------------------------------------
-func (self *Context) session() *sessions.Session {
-	name := options.String("session.cookie.name")
-	if session, err := app.Store.Get(self.Request, name); err == nil {
-		return session
-	} else {
-		log.Fatalf("Failed to create session: %v", err)
+func (self *Context) session() map[string]interface{} {
+	if self.values == nil {
+		self.values = make(map[string]interface{})
+		name := options.String("session.cookie.name")
+		values := self.Cookie(name)
+		if values != "" {
+			securecookie.DecodeMulti(name, values, &self.values, app.codecs...)
+		}
 	}
-	return nil
+	return self.values
 }
 
-func (self *Context) Id() string {
-	return ""
-}
-
+// Get value associated with the given key from encrypted cookie.
 func (self *Context) Get(key string) interface{} {
-	return self.session().Values[key]
+	return self.session()[key]
 }
 
+// Set the key/value into the encrypted cookie.
 func (self *Context) Set(key string, value interface{}) {
-	self.session().Values[key] = value
+	self.session()[key] = value
 }
 
+// Save the key/value into the encrypted cookie.
 func (self *Context) Save() error {
-	return self.session().Save(self.Request, self.Writer)
+	name := options.String("session.cookie.name")
+	values, err := securecookie.EncodeMulti(name, self.values, app.codecs...)
+	if err != nil {
+		return err
+	}
+	cookie := new(http.Cookie)
+	cookie.Name = name
+	cookie.Value = values
+	cookie.Path = options.String("session.cookie.path")
+	cookie.Domain = options.String("session.cookie.domain")
+	cookie.MaxAge = options.Int("session.cookie.maxage")
+	cookie.Secure = options.Bool("session.cookie.secure")
+	cookie.HttpOnly = options.Bool("session.cookie.httponly")
+	self.SetCookie(cookie)
+	return nil
 }
 
 // Cookie returns the cookie value previously set.

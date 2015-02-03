@@ -32,7 +32,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
+	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/template"
@@ -40,8 +40,8 @@ import (
 )
 
 var app struct {
-	HTML  *template.Loader
-	Store *sessions.CookieStore
+	HTML   *template.Loader
+	codecs []securecookie.Codec
 }
 
 type (
@@ -72,8 +72,7 @@ func New() *Server {
 	self.mux = mux.NewRouter()
 	self.configure()
 	self.pool.New = func() interface{} {
-		ctx := new(Context)
-		return ctx
+		return new(Context)
 	}
 	return self
 }
@@ -91,7 +90,7 @@ func (self *Server) configure() {
 		for _, key := range keys {
 			bytes = append(bytes, []byte(key))
 		}
-		app.Store = sessions.NewCookieStore(bytes...)
+		app.codecs = securecookie.CodecsFromPairs(bytes...)
 	} else {
 		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
