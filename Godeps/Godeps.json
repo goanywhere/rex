@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/goanywhere/rex",
 	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
@@ -8,13 +11,33 @@
 			"Rev": "a14c5b47c7efa4ff80cc42e1079a34b4756f2311"
 		},
 		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "785e0ca9319196b94fd61abd4c9eab5c11777377"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "785e0ca9319196b94fd61abd4c9eab5c11777377"
+		},
+		{
 			"ImportPath": "github.com/go-fsnotify/fsnotify",
 			"Comment": "v1.1.0",
 			"Rev": "f582d920d11386e8ae15227bb5933a8f9b4c3dec"
 		},
 		{
-			"ImportPath": "github.com/goanywhere/x",
-			"Rev": "72fdb57fa48c0c9e3756e144f64f6234789ef185"
+			"ImportPath": "github.com/goanywhere/x/crypto",
+			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+		},
+		{
+			"ImportPath": "github.com/goanywhere/x/env",
+			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+		},
+		{
+			"ImportPath": "github.com/goanywhere/x/fs",
+			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+		},
+		{
+			"ImportPath": "github.com/goanywhere/x/uuid",
+			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -23,6 +46,10 @@
 		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "f0559d009e6943011cd1ba6eb16195cf5e0ed326"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",

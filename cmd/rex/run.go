@@ -144,7 +144,6 @@ func (self *app) Start() {
 }
 
 // Run creates an executable application package with livereload supports.
-// FIXME env port is not passed into Server Mux.
 func Run(ctx *cli.Context) {
 	port = ctx.Int("port")
 

@@ -32,7 +32,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/template"
@@ -40,8 +40,8 @@ import (
 )
 
 var app struct {
-	Loader  *template.Loader
-	Secrets []securecookie.Codec
+	HTML  *template.Loader
+	Store *sessions.CookieStore
 }
 
 type (
@@ -91,7 +91,7 @@ func (self *Server) configure() {
 		for _, key := range keys {
 			bytes = append(bytes, []byte(key))
 		}
-		app.Secrets = securecookie.CodecsFromPairs(bytes...)
+		app.Store = sessions.NewCookieStore(bytes...)
 	} else {
 		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
@@ -99,8 +99,8 @@ func (self *Server) configure() {
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
 	if dir := options.String("dir.templates", "templates"); fs.Exists(dir) {
-		app.Loader = template.NewLoader(dir)
-		app.Loader.Load()
+		app.HTML = template.NewLoader(dir)
+		app.HTML.Load()
 	}
 }
 
@@ -207,7 +207,8 @@ func (self *Server) Group(path string) *Server {
 func (self *Server) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
 		Define("url.static", prefix)
-		self.mux.PathPrefix(prefix).Handler(http.StripPrefix(prefix, http.FileServer(http.Dir(abs))))
+		server := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
+		self.mux.PathPrefix(prefix).Handler(server)
 	} else {
 		log.Fatalf("Failed to setup file server: %v", err)
 	}

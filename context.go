@@ -33,6 +33,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+
+	"github.com/gorilla/sessions"
 )
 
 type Context struct {
@@ -59,22 +61,36 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.Writer = w
 	ctx.Request = r
-	ctx.configure()
 	return ctx
 }
 
-// Session Supports -----------------------------------------------------------------
-
-func (self *Context) configure() {
-	self.Options.Path = options.String("context.cookie.path")
-	self.Options.Domain = options.String("context.cookie.domain")
-	self.Options.MaxAge = int(options.Int("context.cookie.maxage"))
-	self.Options.Secure = options.Bool("context.cookie.secure")
-	self.Options.HttpOnly = options.Bool("context.cookie.httponly")
+// ----------------------------------------
+// Session Supports
+// ----------------------------------------
+func (self *Context) session() *sessions.Session {
+	name := options.String("session.cookie.name")
+	if session, err := app.Store.Get(self.Request, name); err == nil {
+		return session
+	} else {
+		log.Fatalf("Failed to create session: %v", err)
+	}
+	return nil
 }
 
 func (self *Context) Id() string {
 	return ""
+}
+
+func (self *Context) Get(key string) interface{} {
+	return self.session().Values[key]
+}
+
+func (self *Context) Set(key string, value interface{}) {
+	self.session().Values[key] = value
+}
+
+func (self *Context) Save() error {
+	return self.session().Save(self.Request, self.Writer)
 }
 
 // Cookie returns the cookie value previously set.
@@ -85,19 +101,6 @@ func (self *Context) Cookie(name string) (value string) {
 		}
 	}
 	return
-}
-
-// SetCookie sends the new cookie value to ResponseWriter.
-func (self *Context) SetCookie2(name string, value string) {
-	cookie := new(http.Cookie)
-	cookie.Name = name
-	cookie.Value = value
-	cookie.Path = self.Options.Path
-	cookie.Domain = self.Options.Domain
-	cookie.MaxAge = self.Options.MaxAge
-	cookie.Secure = self.Options.Secure
-	cookie.HttpOnly = self.Options.HttpOnly
-	http.SetCookie(self.Writer, cookie)
 }
 
 // SetCookie writes cookie to ResponseWriter.
@@ -132,9 +135,9 @@ func (self *Context) HTML(filename string, data ...map[string]interface{}) {
 
 	var err error
 	if len(data) == 0 {
-		err = app.Loader.Get(filename).Execute(buffer, nil)
+		err = app.HTML.Get(filename).Execute(buffer, nil)
 	} else {
-		err = app.Loader.Get(filename).Execute(buffer, data[0])
+		err = app.HTML.Get(filename).Execute(buffer, data[0])
 	}
 
 	if err != nil {
