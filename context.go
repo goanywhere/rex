@@ -33,23 +33,23 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/gorilla/securecookie"
+
+	"github.com/goanywhere/rex/internal"
 )
 
-type cookie struct {
-	Path   string
-	Domain string
-	// MaxAge=0 means no 'Max-Age' attribute specified.
-	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'.
-	// MaxAge>0 means Max-Age attribute present and given in seconds.
-	MaxAge   int
-	Secure   bool
-	HttpOnly bool
+var cookie = internal.Cookie{
+	Path:     options.String("session.cookie.path"),
+	Domain:   options.String("session.cookie.domain"),
+	MaxAge:   options.Int("session.cookie.maxage"),
+	Secure:   options.Bool("session.cookie.secure"),
+	HttpOnly: options.Bool("session.cookie.httponly"),
 }
 
 type Context struct {
-	Options *cookie
+	Options internal.Cookie
 	Writer  http.ResponseWriter
 	Request *http.Request
 
@@ -64,12 +64,14 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.Writer = w
 	ctx.Request = r
+	ctx.Options = cookie
 	return ctx
 }
 
 // ----------------------------------------
 // Session Supports
 // ----------------------------------------
+// Fetches the secured cookie session from http request.
 func (self *Context) session() map[string]interface{} {
 	if self.values == nil {
 		self.values = make(map[string]interface{})
@@ -90,39 +92,48 @@ func (self *Context) Get(key string) interface{} {
 // Set the key/value into the encrypted cookie.
 func (self *Context) Set(key string, value interface{}) {
 	self.session()[key] = value
+	self.dirty = true
 }
 
 // Save the key/value into the encrypted cookie.
 func (self *Context) Save() error {
+	if !self.dirty {
+		return nil
+	}
 	name := options.String("session.cookie.name")
 	values, err := securecookie.EncodeMulti(name, self.values, app.codecs...)
 	if err != nil {
 		return err
 	}
-	cookie := new(http.Cookie)
-	cookie.Name = name
-	cookie.Value = values
-	cookie.Path = options.String("session.cookie.path")
-	cookie.Domain = options.String("session.cookie.domain")
-	cookie.MaxAge = options.Int("session.cookie.maxage")
-	cookie.Secure = options.Bool("session.cookie.secure")
-	cookie.HttpOnly = options.Bool("session.cookie.httponly")
-	self.SetCookie(cookie)
+	self.SetCookie(name, values)
+	self.dirty = false
 	return nil
 }
 
 // Cookie returns the cookie value previously set.
-func (self *Context) Cookie(name string) (value string) {
+func (self *Context) Cookie(name string) string {
 	if cookie, err := self.Request.Cookie(name); err == nil {
-		if cookie.Value != "" {
-			value = cookie.Value
-		}
+		return cookie.Value
 	}
-	return
+	return ""
 }
 
 // SetCookie writes cookie to ResponseWriter.
-func (self *Context) SetCookie(cookie *http.Cookie) {
+func (self *Context) SetCookie(key, value string) {
+	cookie := &http.Cookie{
+		Name:     key,
+		Value:    value,
+		Path:     self.Options.Path,
+		Domain:   self.Options.Domain,
+		MaxAge:   self.Options.MaxAge,
+		Secure:   self.Options.Secure,
+		HttpOnly: self.Options.HttpOnly,
+	}
+	if cookie.MaxAge > 0 {
+		cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
+	} else if cookie.MaxAge < 0 {
+		cookie.Expires = time.Unix(1, 0)
+	}
 	http.SetCookie(self.Writer, cookie)
 }
 

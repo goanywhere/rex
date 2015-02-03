@@ -72,7 +72,7 @@ func New() *Server {
 	self.mux = mux.NewRouter()
 	self.configure()
 	self.pool.New = func() interface{} {
-		return new(Context)
+		return NewContext(nil, nil)
 	}
 	return self
 }

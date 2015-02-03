@@ -33,6 +33,17 @@ var (
 	options *env.Env
 )
 
+type Cookie struct {
+	Path   string
+	Domain string
+	// MaxAge=0 means no 'Max-Age' attribute specified.
+	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'.
+	// MaxAge>0 means Max-Age attribute present and given in seconds.
+	MaxAge   int
+	Secure   bool
+	HttpOnly bool
+}
+
 func Options() *env.Env {
 	once.Do(func() {
 		options = env.New("rex")
@@ -45,11 +56,11 @@ func Options() *env.Env {
 		options.Set("header.X-XSS-Protection", "1; mode=block")
 		options.Set("header.X-Content-Type-options", "IE=Edge,chrome=1")
 		// session cookie defaults
-		options.Set("session.cookie.domain", "")
-		options.Set("session.cookie.httponly", true)
-		options.Set("session.cookie.name", "gsid")
+		options.Set("session.cookie.name", "session")
 		options.Set("session.cookie.path", "/")
+		options.Set("session.cookie.domain", "")
 		options.Set("session.cookie.secure", false)
+		options.Set("session.cookie.httponly", true)
 		options.Set("session.cookie.maxage", 3600*24*7)
 	})
 	return options
