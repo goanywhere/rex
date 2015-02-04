@@ -76,9 +76,8 @@ func (self *Context) session() map[string]interface{} {
 	if self.values == nil {
 		self.values = make(map[string]interface{})
 		name := options.String("session.cookie.name")
-		values := self.Cookie(name)
-		if values != "" {
-			securecookie.DecodeMulti(name, values, &self.values, app.codecs...)
+		if raw := self.Cookie(name); raw != "" {
+			securecookie.DecodeMulti(name, raw, &self.values, app.codecs...)
 		}
 	}
 	return self.values
@@ -158,22 +157,19 @@ func (self *Context) Error(status int, errors ...string) {
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
 // TODO empty loader/html
-func (self *Context) HTML(filename string, data ...map[string]interface{}) {
-	var buffer = new(bytes.Buffer)
-	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-
-	var err error
-	if len(data) == 0 {
-		err = app.HTML.Get(filename).Execute(buffer, nil)
-	} else {
-		err = app.HTML.Get(filename).Execute(buffer, data[0])
+func (self *Context) HTML(filename string, values ...map[string]interface{}) {
+	var (
+		buffer = new(bytes.Buffer)
+		data   map[string]interface{}
+	)
+	if len(data) > 0 {
+		data = values[0]
 	}
-
-	if err != nil {
-		self.Error(http.StatusInternalServerError)
+	if e := app.HTML.Get(filename).Execute(buffer, data); e != nil {
+		self.Error(http.StatusInternalServerError, e.Error())
 		return
 	}
-
+	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
 	self.Writer.Write(buffer.Bytes())
 }
 
@@ -227,8 +223,7 @@ func (self *Context) CloseNotify() <-chan bool {
  * Implementations of http.Flusher
  * ----------------------------------------------------------------------*/
 func (self *Context) Flush() {
-	flusher, ok := self.Writer.(http.Flusher)
-	if ok {
+	if flusher, ok := self.Writer.(http.Flusher); ok {
 		flusher.Flush()
 	}
 }

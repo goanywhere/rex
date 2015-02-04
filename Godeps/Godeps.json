@@ -1,23 +1,7 @@
 {
 	"ImportPath": "github.com/goanywhere/rex",
 	"GoVersion": "go1.4",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
-		{
-			"ImportPath": "github.com/codegangsta/cli",
-			"Comment": "1.2.0-50-ga14c5b4",
-			"Rev": "a14c5b47c7efa4ff80cc42e1079a34b4756f2311"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "785e0ca9319196b94fd61abd4c9eab5c11777377"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "785e0ca9319196b94fd61abd4c9eab5c11777377"
-		},
 		{
 			"ImportPath": "github.com/go-fsnotify/fsnotify",
 			"Comment": "v1.1.0",
@@ -25,19 +9,15 @@
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/crypto",
-			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/env",
-			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/fs",
-			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
-		},
-		{
-			"ImportPath": "github.com/goanywhere/x/uuid",
-			"Rev": "9cc1e0b1524fe63ffc5b641d260c5268d0c91d68"
+			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
