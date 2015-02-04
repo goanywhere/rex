@@ -61,9 +61,10 @@ func (self *Loader) Exists(name string) bool {
 }
 
 // Get retrieves the parsed template from preloaded pool.
-func (self *Loader) Get(name string) *template.Template {
+func (self *Loader) Get(name string) (*template.Template, bool) {
 	self.Load()
-	return self.templates[name]
+	template, exists := self.templates[name]
+	return template, exists
 }
 
 // Load loads & parses all templates under the root.

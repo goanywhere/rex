@@ -56,8 +56,7 @@ type Context struct {
 	size   int
 	status int
 
-	dirty  bool
-	values map[string]interface{}
+	session *session
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -72,44 +71,23 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // Session Supports
 // ----------------------------------------
 // Fetches the secured cookie session from http request.
-func (self *Context) session() map[string]interface{} {
-	if self.values == nil {
-		self.values = make(map[string]interface{})
+func (self *Context) Session() *session {
+	if self.session == nil {
+		self.session = new(session)
+		self.session.values = make(map[string]interface{})
 		name := options.String("session.cookie.name")
 		if raw := self.Cookie(name); raw != "" {
-			securecookie.DecodeMulti(name, raw, &self.values, app.codecs...)
+			securecookie.DecodeMulti(name, raw, &self.session.values, app.codecs...)
 		}
 	}
-	return self.values
+	return self.session
 }
 
-// Get value associated with the given key from encrypted cookie.
-func (self *Context) Get(key string) interface{} {
-	return self.session()[key]
-}
+// ----------------------------------------
+// Cookie & Secure Cookie Supports
+// ----------------------------------------
 
-// Set the key/value into the encrypted cookie.
-func (self *Context) Set(key string, value interface{}) {
-	self.session()[key] = value
-	self.dirty = true
-}
-
-// Save the key/value into the encrypted cookie.
-func (self *Context) Save() error {
-	if !self.dirty {
-		return nil
-	}
-	name := options.String("session.cookie.name")
-	values, err := securecookie.EncodeMulti(name, self.values, app.codecs...)
-	if err != nil {
-		return err
-	}
-	self.SetCookie(name, values)
-	self.dirty = false
-	return nil
-}
-
-// Cookie returns the cookie value previously set.
+// Cookie fetches the value associated with the given name from request cookie.
 func (self *Context) Cookie(name string) string {
 	if cookie, err := self.Request.Cookie(name); err == nil {
 		return cookie.Value
@@ -117,10 +95,10 @@ func (self *Context) Cookie(name string) string {
 	return ""
 }
 
-// SetCookie writes cookie to ResponseWriter.
-func (self *Context) SetCookie(key, value string) {
+// SetCookie adds a Set-Cookie header to response with default options.
+func (self *Context) SetCookie(name, value string) {
 	cookie := &http.Cookie{
-		Name:     key,
+		Name:     name,
 		Value:    value,
 		Path:     self.Options.Path,
 		Domain:   self.Options.Domain,
@@ -135,6 +113,32 @@ func (self *Context) SetCookie(key, value string) {
 	}
 	http.SetCookie(self.Writer, cookie)
 }
+
+// SignedCookie decodes the signed values associated with the given name from request cookie.
+func (self *Context) SignedCookie(name string, value interface{}) error {
+	if raw := self.Cookie(name); raw != "" {
+		return securecookie.DecodeMulti(name, raw, value, app.codecs...)
+	}
+	return nil
+}
+
+// SetSignedCookie encode the raw value securely and adds a Set-Cookie header to response.
+func (self *Context) SetSignedCookie(name string, value interface{}) error {
+	if raw, err := securecookie.EncodeMulti(name, value, app.codecs...); err == nil {
+		cookie := &http.Cookie{
+			Name:  name,
+			Value: raw,
+		}
+		http.SetCookie(self.Writer, cookie)
+	} else {
+		return err
+	}
+	return nil
+}
+
+// ----------------------------------------
+// HTTP Utilities
+// ----------------------------------------
 
 // IsAjax checks if the incoming request is AJAX request.
 func (self *Context) IsAjax() bool {
@@ -156,21 +160,26 @@ func (self *Context) Error(status int, errors ...string) {
 }
 
 // HTML renders cached HTML templates via `bytes.Buffer` to response.
-// TODO empty loader/html
-func (self *Context) HTML(filename string, values ...map[string]interface{}) {
-	var (
-		buffer = new(bytes.Buffer)
-		data   map[string]interface{}
-	)
-	if len(data) > 0 {
-		data = values[0]
-	}
-	if e := app.HTML.Get(filename).Execute(buffer, data); e != nil {
+func (self *Context) Render(filename string, values ...map[string]interface{}) {
+	if template, exists := app.HTML.Get(filename); exists {
+		var (
+			buffer = new(bytes.Buffer)
+			data   map[string]interface{}
+		)
+		if len(data) > 0 {
+			data = values[0]
+		}
+		if e := template.Execute(buffer, data); e != nil {
+			self.Error(http.StatusInternalServerError, e.Error())
+			return
+		}
+		self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
+		self.Writer.Write(buffer.Bytes())
+	} else {
+		e := fmt.Errorf("Template <%s> does not exists", filename)
 		self.Error(http.StatusInternalServerError, e.Error())
 		return
 	}
-	self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-	self.Writer.Write(buffer.Bytes())
 }
 
 // JSON renders JSON data to response.
