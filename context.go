@@ -33,6 +33,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"time"
 
 	"github.com/gorilla/securecookie"
@@ -45,7 +46,8 @@ type Context struct {
 	size   int
 	status int
 
-	session *session
+	//session supports
+	values map[string]interface{}
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -59,16 +61,37 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // Session Supports
 // ----------------------------------------
 // Fetches the secured cookie session from http request.
-func (self *Context) Session() *session {
-	if self.session == nil {
-		self.session = new(session)
-		self.session.values = make(map[string]interface{})
+func (self *Context) session() map[string]interface{} {
+	if self.values == nil {
+		self.values = make(map[string]interface{})
 		name := settings.String("session.cookie.name")
 		if raw := self.Cookie(name); raw != "" {
-			securecookie.DecodeMulti(name, raw, &self.session.values, app.codecs...)
+			securecookie.DecodeMulti(name, raw, &self.values, app.codecs...)
 		}
 	}
-	return self.session
+	return self.values
+}
+
+// Get fetches the signed value associated with the given name from request session.
+func (self *Context) Get(key string, ptr interface{}) {
+	if value := self.session()[key]; value != nil {
+		if reflect.TypeOf(ptr).Kind() == reflect.Ptr {
+			elem := reflect.ValueOf(ptr).Elem()
+			elem.Set(reflect.ValueOf(value))
+		}
+	}
+}
+
+// Set adds the raw session value to request session.
+// New session values for consequent requests must be saved via Context.Save() in advance.
+func (self *Context) Set(key string, value interface{}) {
+	self.session()[key] = value
+}
+
+// Save encodes the raw session values securely and adds a Set-Cookie header to response.
+func (self *Context) Save() error {
+	key := settings.String("session.cookie.name")
+	return self.SetSignedCookie(key, self.values)
 }
 
 // ----------------------------------------
@@ -108,9 +131,9 @@ func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
 }
 
 // SignedCookie decodes the signed values associated with the given name from request cookie.
-func (self *Context) SignedCookie(name string, value interface{}) error {
+func (self *Context) SignedCookie(name string, ptr interface{}) error {
 	if raw := self.Cookie(name); raw != "" {
-		return securecookie.DecodeMulti(name, raw, value, app.codecs...)
+		return securecookie.DecodeMulti(name, raw, ptr, app.codecs...)
 	}
 	return nil
 }
@@ -155,7 +178,7 @@ func (self *Context) Render(filename string, values ...map[string]interface{}) {
 			buffer = new(bytes.Buffer)
 			data   map[string]interface{}
 		)
-		if len(data) > 0 {
+		if len(values) > 0 {
 			data = values[0]
 		}
 		if e := template.Execute(buffer, data); e != nil {
@@ -172,10 +195,10 @@ func (self *Context) Render(filename string, values ...map[string]interface{}) {
 }
 
 // JSON renders JSON data to response.
-func (self *Context) JSON(v interface{}) {
-	if data, e := json.Marshal(v); e == nil {
+func (self *Context) JSON(value interface{}) {
+	if bytes, e := json.Marshal(value); e == nil {
 		self.Writer.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
-		self.Writer.Write(data)
+		self.Writer.Write(bytes)
 	} else {
 		log.Printf("Failed to render JSON: %v", e)
 		self.Error(http.StatusInternalServerError, e.Error())
@@ -189,10 +212,10 @@ func (self *Context) String(format string, values ...interface{}) {
 }
 
 // XML renders XML data to response.
-func (self *Context) XML(v interface{}) {
-	if data, e := xml.Marshal(v); e == nil {
+func (self *Context) XML(value interface{}) {
+	if bytes, e := xml.Marshal(value); e == nil {
 		self.Writer.Header()["Content-Type"] = []string{"application/xml; charset=utf-8"}
-		self.Writer.Write(data)
+		self.Writer.Write(bytes)
 	} else {
 		log.Printf("Failed to render XML: %v", e)
 		self.Error(http.StatusInternalServerError, e.Error())

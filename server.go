@@ -91,12 +91,9 @@ func (self *Server) configure() {
 			bytes = append(bytes, []byte(key))
 		}
 		app.codecs = securecookie.CodecsFromPairs(bytes...)
+	} else {
+		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
-	/*
-		else {
-			log.Fatalf("Failed to setup application: secret key(s) missing")
-		}
-	*/
 	// ------------------------------------------------
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------

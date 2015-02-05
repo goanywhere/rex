@@ -28,6 +28,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/securecookie"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -131,6 +132,65 @@ func TestContextId(t *testing.T) {
 */
 
 // ---------------------------------------------------------------------------
+//  Session Supports
+// ---------------------------------------------------------------------------
+func TestGet(t *testing.T) {
+	Convey("context#Get", t, func() {
+		name := settings.String("session.cookie.name")
+		values := make(map[string]interface{})
+		values["number"] = 123
+
+		raw, _ := securecookie.EncodeMulti(name, values, app.codecs...)
+		cookie := &http.Cookie{Name: name, Value: raw, Path: "/"}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var value int
+			ctx := NewContext(w, r)
+			ctx.Get("number", &value)
+			ctx.String("%d", value)
+		}))
+		defer server.Close()
+
+		client := new(http.Client)
+		request, _ := http.NewRequest("GET", server.URL, nil)
+		request.AddCookie(cookie)
+
+		response, _ := client.Do(request)
+		defer response.Body.Close()
+
+		body, _ := ioutil.ReadAll(response.Body)
+		So(string(body), ShouldEqual, "123")
+	})
+}
+
+func TestSave(t *testing.T) {
+	Convey("context#Save", t, func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := NewContext(w, r)
+			ctx.Set("number", 123)
+			ctx.Save()
+			return
+		}))
+		defer server.Close()
+
+		if response, err := http.Get(server.URL); err == nil {
+
+			So(len(response.Cookies()), ShouldEqual, 1)
+
+			if len(response.Cookies()) == 1 {
+				cookie := response.Cookies()[0]
+
+				var values map[string]interface{}
+				securecookie.DecodeMulti(cookie.Name, cookie.Value, &values, app.codecs...)
+
+				So(len(values), ShouldEqual, 1)
+				So(values["number"].(int), ShouldEqual, 123)
+			}
+		}
+	})
+}
+
+// ---------------------------------------------------------------------------
 //  HTTP Cookies
 // ---------------------------------------------------------------------------
 func TestCookie(t *testing.T) {
@@ -168,6 +228,57 @@ func TestSetCookie(t *testing.T) {
 			cookie := response.Cookies()[0]
 			So(cookie.Name, ShouldEqual, "number")
 			So(cookie.Value, ShouldEqual, "123")
+		}
+	})
+}
+
+func TestSignedCookie(t *testing.T) {
+	Convey("context#SignedCookie", t, func() {
+		raw, _ := securecookie.EncodeMulti("number", 123, app.codecs...)
+		cookie := &http.Cookie{Name: "number", Value: raw, Path: "/"}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var value int
+			ctx := NewContext(w, r)
+			ctx.SignedCookie("number", &value)
+			ctx.String("%d", value)
+		}))
+		defer server.Close()
+
+		client := new(http.Client)
+		request, _ := http.NewRequest("GET", server.URL, nil)
+		request.AddCookie(cookie)
+
+		response, _ := client.Do(request)
+		defer response.Body.Close()
+
+		body, _ := ioutil.ReadAll(response.Body)
+		So(string(body), ShouldEqual, "123")
+	})
+}
+
+func TestSetSignedCookie(t *testing.T) {
+	Convey("context#SetSignedCookie", t, func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			options := new(http.Cookie)
+			options.Path = "/"
+			options.MaxAge = 180
+			ctx := NewContext(w, r)
+			ctx.SetSignedCookie("number", 123, options)
+			return
+		}))
+		defer server.Close()
+
+		if response, err := http.Get(server.URL); err == nil {
+
+			So(len(response.Cookies()), ShouldEqual, 1)
+
+			if len(response.Cookies()) == 1 {
+				cookie := response.Cookies()[0]
+				var value int
+				securecookie.DecodeMulti(cookie.Name, cookie.Value, &value, app.codecs...)
+				So(value, ShouldEqual, 123)
+			}
 		}
 	})
 }
