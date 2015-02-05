@@ -28,7 +28,7 @@ import (
 )
 
 func Env(next http.Handler) http.Handler {
-	var values = options.Values("header")
+	var values = settings.Values("header")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for key, value := range values {
 			w.Header()[strings.Replace(key, ".", "-", -1)] = []string{value}

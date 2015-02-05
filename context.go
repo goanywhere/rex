@@ -36,20 +36,9 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
-
-	"github.com/goanywhere/rex/internal"
 )
 
-var cookie = internal.Cookie{
-	Path:     options.String("session.cookie.path"),
-	Domain:   options.String("session.cookie.domain"),
-	MaxAge:   options.Int("session.cookie.maxage"),
-	Secure:   options.Bool("session.cookie.secure"),
-	HttpOnly: options.Bool("session.cookie.httponly"),
-}
-
 type Context struct {
-	Options internal.Cookie
 	Writer  http.ResponseWriter
 	Request *http.Request
 
@@ -63,7 +52,6 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.Writer = w
 	ctx.Request = r
-	ctx.Options = cookie
 	return ctx
 }
 
@@ -75,7 +63,7 @@ func (self *Context) Session() *session {
 	if self.session == nil {
 		self.session = new(session)
 		self.session.values = make(map[string]interface{})
-		name := options.String("session.cookie.name")
+		name := settings.String("session.cookie.name")
 		if raw := self.Cookie(name); raw != "" {
 			securecookie.DecodeMulti(name, raw, &self.session.values, app.codecs...)
 		}
@@ -96,16 +84,21 @@ func (self *Context) Cookie(name string) string {
 }
 
 // SetCookie adds a Set-Cookie header to response with default options.
-func (self *Context) SetCookie(name, value string) {
-	cookie := &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     self.Options.Path,
-		Domain:   self.Options.Domain,
-		MaxAge:   self.Options.MaxAge,
-		Secure:   self.Options.Secure,
-		HttpOnly: self.Options.HttpOnly,
+func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
+	var cookie *http.Cookie
+	if len(options) > 0 {
+		cookie = options[0]
+	} else {
+		cookie = new(http.Cookie)
+		cookie.Path = settings.String("session.cookie.path")
+		cookie.Domain = settings.String("session.cookie.domain")
+		cookie.MaxAge = settings.Int("session.cookie.maxage")
+		cookie.Secure = settings.Bool("session.cookie.secure")
+		cookie.HttpOnly = settings.Bool("session.cookie.httponly")
 	}
+	cookie.Name = name
+	cookie.Value = value
+	// IE 6/7/8 Compatible Mode.
 	if cookie.MaxAge > 0 {
 		cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
 	} else if cookie.MaxAge < 0 {
@@ -123,13 +116,9 @@ func (self *Context) SignedCookie(name string, value interface{}) error {
 }
 
 // SetSignedCookie encode the raw value securely and adds a Set-Cookie header to response.
-func (self *Context) SetSignedCookie(name string, value interface{}) error {
+func (self *Context) SetSignedCookie(name string, value interface{}, options ...*http.Cookie) error {
 	if raw, err := securecookie.EncodeMulti(name, value, app.codecs...); err == nil {
-		cookie := &http.Cookie{
-			Name:  name,
-			Value: raw,
-		}
-		http.SetCookie(self.Writer, cookie)
+		self.SetCookie(name, raw, options...)
 	} else {
 		return err
 	}

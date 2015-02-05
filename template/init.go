@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	FuncMap template.FuncMap
-	options = internal.Options()
+	FuncMap  template.FuncMap
+	settings = internal.Settings()
 )
 
 func init() {

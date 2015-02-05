@@ -25,6 +25,6 @@ package template
 import "strings"
 
 func static(path string) string {
-	var url = options.String("url.static")
+	var url = settings.String("url.static")
 	return strings.Join([]string{strings.TrimRight(url, "/"), strings.TrimLeft(path, "/")}, "/")
 }

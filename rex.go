@@ -55,28 +55,28 @@ import (
 )
 
 var (
-	options = internal.Options()
+	settings = internal.Settings()
 
 	// Define saves primitive values using os environment.
-	Define = options.Set
+	Define = settings.Set
 
 	// Bool retrieves boolean value associated with the given key from environ.
-	Bool = options.Bool
+	Bool = settings.Bool
 
 	// Float retrieves float64 value associated with the given key from environ.
-	Float = options.Float
+	Float = settings.Float
 
 	// Int retrieves int value associated with the given key from environ.
-	Int = options.Int
+	Int = settings.Int
 
 	// Int64 retrieves int64 value associated with the given key from environ.
-	Int64 = options.Int64
+	Int64 = settings.Int64
 
 	// String retrieves string value associated with the given key from environ.
-	String = options.String
+	String = settings.String
 
 	// Strings retrieves string array associated with the given key from environ.
-	Strings = options.Strings
+	Strings = settings.Strings
 )
 
 // default rex mux with reasonable middleware modules.

@@ -42,13 +42,13 @@ type redis struct {
 }
 
 func New() *redis {
-	servers := options.Strings("cache.redis.servers")
+	servers := settings.Strings("cache.redis.servers")
 
 	create := func(rawurl string) *redigo.Pool {
 		pool := new(redigo.Pool)
-		pool.MaxIdle = options.Int("cache.redis.maxidle", 10)
-		pool.MaxActive = options.Int("cache.redis.maxactive", 100)
-		pool.IdleTimeout = time.Duration(options.Int("cache.redis.idletimeout", 180)) * time.Second
+		pool.MaxIdle = settings.Int("cache.redis.maxidle", 10)
+		pool.MaxActive = settings.Int("cache.redis.maxactive", 100)
+		pool.IdleTimeout = time.Duration(settings.Int("cache.redis.idletimeout", 180)) * time.Second
 
 		pool.Dial = func() (conn redigo.Conn, err error) {
 			var URL *url.URL

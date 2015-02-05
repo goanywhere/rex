@@ -28,7 +28,7 @@ import (
 	"github.com/goanywhere/rex/internal"
 )
 
-var options = internal.Options()
+var settings = internal.Settings()
 
 type Cache interface {
 	// Get value associated with the given key & assign to the given pointer.

@@ -24,4 +24,4 @@ package modules
 
 import "github.com/goanywhere/rex/internal"
 
-var options = internal.Options()
+var settings = internal.Settings()

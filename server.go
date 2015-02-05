@@ -80,24 +80,27 @@ func New() *Server {
 // configure initialize all application related settings before running.
 // Server Secret Keys
 func (self *Server) configure() {
-	options := internal.Options()
-	options.Load(".env")
+	settings := internal.Settings()
+	settings.Load(".env")
 	// ------------------------------------------------
 	// if secret keys exists, create codecs.
 	// ------------------------------------------------
-	if keys := options.Strings("secret.keys"); len(keys) > 0 {
+	if keys := settings.Strings("secret.keys"); len(keys) > 0 {
 		var bytes [][]byte
 		for _, key := range keys {
 			bytes = append(bytes, []byte(key))
 		}
 		app.codecs = securecookie.CodecsFromPairs(bytes...)
-	} else {
-		log.Fatalf("Failed to setup application: secret key(s) missing")
 	}
+	/*
+		else {
+			log.Fatalf("Failed to setup application: secret key(s) missing")
+		}
+	*/
 	// ------------------------------------------------
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
-	if dir := options.String("dir.templates", "templates"); fs.Exists(dir) {
+	if dir := settings.String("dir.templates", "templates"); fs.Exists(dir) {
 		app.HTML = template.NewLoader(dir)
 		app.HTML.Load()
 	}
@@ -204,8 +207,9 @@ func (self *Server) Group(path string) *Server {
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
 func (self *Server) FileServer(prefix, dir string) {
+	settings := internal.Settings()
 	if abs, err := filepath.Abs(dir); err == nil {
-		Define("url.static", prefix)
+		settings.Set("url.static", prefix)
 		server := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
 		self.mux.PathPrefix(prefix).Handler(server)
 	} else {
