@@ -25,14 +25,12 @@ package rex
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
-	"encoding/xml"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"reflect"
 	"time"
 
@@ -46,7 +44,7 @@ type Context struct {
 	size   int
 	status int
 
-	//session supports
+	buffer *bytes.Buffer
 	values map[string]interface{}
 }
 
@@ -54,27 +52,18 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.Writer = w
 	ctx.Request = r
+	ctx.buffer = new(bytes.Buffer)
+	ctx.values = make(map[string]interface{})
 	return ctx
 }
 
 // ----------------------------------------
-// Session Supports
+// Context Values for Rendering
 // ----------------------------------------
-// Fetches the secured cookie session from http request.
-func (self *Context) session() map[string]interface{} {
-	if self.values == nil {
-		self.values = make(map[string]interface{})
-		name := settings.String("session.cookie.name")
-		if raw := self.Cookie(name); raw != "" {
-			securecookie.DecodeMulti(name, raw, &self.values, app.codecs...)
-		}
-	}
-	return self.values
-}
 
 // Get fetches the signed value associated with the given name from request session.
 func (self *Context) Get(key string, ptr interface{}) {
-	if value := self.session()[key]; value != nil {
+	if value := self.values[key]; value != nil {
 		if reflect.TypeOf(ptr).Kind() == reflect.Ptr {
 			elem := reflect.ValueOf(ptr).Elem()
 			elem.Set(reflect.ValueOf(value))
@@ -85,13 +74,7 @@ func (self *Context) Get(key string, ptr interface{}) {
 // Set adds the raw session value to request session.
 // New session values for consequent requests must be saved via Context.Save() in advance.
 func (self *Context) Set(key string, value interface{}) {
-	self.session()[key] = value
-}
-
-// Save encodes the raw session values securely and adds a Set-Cookie header to response.
-func (self *Context) Save() error {
-	key := settings.String("session.cookie.name")
-	return self.SetSignedCookie(key, self.values)
+	self.values[key] = value
 }
 
 // ----------------------------------------
@@ -130,16 +113,16 @@ func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
 	http.SetCookie(self.Writer, cookie)
 }
 
-// SignedCookie decodes the signed values associated with the given name from request cookie.
-func (self *Context) SignedCookie(name string, ptr interface{}) error {
+// SecureCookie decodes the signed values associated with the given name from request cookie.
+func (self *Context) SecureCookie(name string, ptr interface{}) error {
 	if raw := self.Cookie(name); raw != "" {
 		return securecookie.DecodeMulti(name, raw, ptr, app.codecs...)
 	}
 	return nil
 }
 
-// SetSignedCookie encode the raw value securely and adds a Set-Cookie header to response.
-func (self *Context) SetSignedCookie(name string, value interface{}, options ...*http.Cookie) error {
+// SetSecureCookie encode the raw value securely and adds a Set-Cookie header to response.
+func (self *Context) SetSecureCookie(name string, value interface{}, options ...*http.Cookie) error {
 	if raw, err := securecookie.EncodeMulti(name, value, app.codecs...); err == nil {
 		self.SetCookie(name, raw, options...)
 	} else {
@@ -171,36 +154,33 @@ func (self *Context) Error(status int, errors ...string) {
 	}
 }
 
-// HTML renders cached HTML templates via `bytes.Buffer` to response.
-func (self *Context) Render(filename string, values ...map[string]interface{}) {
+// Render constructs the final output using html/template.
+// If the object is a string, context fetches it from pre-defined
+// templates folder & renders it using context values, its content
+// type is determinated using file's extensions (html|xml); otherwise
+// JSON encoder will be used to render.
+func (self *Context) Render(filename string) {
+	switch filepath.Ext(filename) {
+	case ".json":
+		self.Writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	case ".xml":
+		self.Writer.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+	default:
+		self.Writer.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	}
+
 	if template, exists := app.HTML.Get(filename); exists {
-		var (
-			buffer = new(bytes.Buffer)
-			data   map[string]interface{}
-		)
-		if len(values) > 0 {
-			data = values[0]
-		}
-		if e := template.Execute(buffer, data); e != nil {
+		if e := template.Execute(self.buffer, self.values); e == nil {
+			self.Writer.Write(self.buffer.Bytes())
+			self.buffer.Reset()
+			for k, _ := range self.values {
+				delete(self.values, k)
+			}
+		} else {
 			self.Error(http.StatusInternalServerError, e.Error())
-			return
 		}
-		self.Writer.Header()["Content-Type"] = []string{"text/html; charset=utf-8"}
-		self.Writer.Write(buffer.Bytes())
 	} else {
 		e := fmt.Errorf("Template <%s> does not exists", filename)
-		self.Error(http.StatusInternalServerError, e.Error())
-		return
-	}
-}
-
-// JSON renders JSON data to response.
-func (self *Context) JSON(value interface{}) {
-	if bytes, e := json.Marshal(value); e == nil {
-		self.Writer.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
-		self.Writer.Write(bytes)
-	} else {
-		log.Printf("Failed to render JSON: %v", e)
 		self.Error(http.StatusInternalServerError, e.Error())
 	}
 }
@@ -209,17 +189,6 @@ func (self *Context) JSON(value interface{}) {
 func (self *Context) String(format string, values ...interface{}) {
 	self.Writer.Header()["Content-Type"] = []string{"text/plain; charset=utf-8"}
 	self.Writer.Write([]byte(fmt.Sprintf(format, values...)))
-}
-
-// XML renders XML data to response.
-func (self *Context) XML(value interface{}) {
-	if bytes, e := xml.Marshal(value); e == nil {
-		self.Writer.Header()["Content-Type"] = []string{"application/xml; charset=utf-8"}
-		self.Writer.Write(bytes)
-	} else {
-		log.Printf("Failed to render XML: %v", e)
-		self.Error(http.StatusInternalServerError, e.Error())
-	}
 }
 
 /* ----------------------------------------------------------------------

@@ -232,15 +232,15 @@ func TestSetCookie(t *testing.T) {
 	})
 }
 
-func TestSignedCookie(t *testing.T) {
-	Convey("context#SignedCookie", t, func() {
+func TestSecureCookie(t *testing.T) {
+	Convey("context#SecureCookie", t, func() {
 		raw, _ := securecookie.EncodeMulti("number", 123, app.codecs...)
 		cookie := &http.Cookie{Name: "number", Value: raw, Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var value int
 			ctx := NewContext(w, r)
-			ctx.SignedCookie("number", &value)
+			ctx.SecureCookie("number", &value)
 			ctx.String("%d", value)
 		}))
 		defer server.Close()
@@ -257,14 +257,14 @@ func TestSignedCookie(t *testing.T) {
 	})
 }
 
-func TestSetSignedCookie(t *testing.T) {
-	Convey("context#SetSignedCookie", t, func() {
+func TestSetSecureCookie(t *testing.T) {
+	Convey("context#SetSecureCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			options := new(http.Cookie)
 			options.Path = "/"
 			options.MaxAge = 180
 			ctx := NewContext(w, r)
-			ctx.SetSignedCookie("number", 123, options)
+			ctx.SetSecureCookie("number", 123, options)
 			return
 		}))
 		defer server.Close()

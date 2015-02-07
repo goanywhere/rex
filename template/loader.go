@@ -28,13 +28,15 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/goanywhere/x/fs"
 )
 
-var ignores = regexp.MustCompile(`(include|layout)s?`)
+var (
+	regexIgnores   = regexp.MustCompile(`(include|layout)s?`)
+	regexDocuments = regexp.MustCompile(`(\.html|\.json|\.xml)$`)
+)
 
 type Loader struct {
 	sync.RWMutex
@@ -62,7 +64,6 @@ func (self *Loader) Exists(name string) bool {
 
 // Get retrieves the parsed template from preloaded pool.
 func (self *Loader) Get(name string) (*template.Template, bool) {
-	self.Load()
 	template, exists := self.templates[name]
 	return template, exists
 }
@@ -77,10 +78,10 @@ func (self *Loader) Load() (pages int) {
 
 		err := filepath.Walk(self.root, func(path string, info os.FileInfo, err error) error {
 			// NOTE ignore folders for partial HTMLs: layout(s) & include(s).
-			if info.IsDir() && ignores.MatchString(info.Name()) {
+			if info.IsDir() && regexIgnores.MatchString(info.Name()) {
 				return filepath.SkipDir
 			}
-			if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
+			if !info.IsDir() && regexDocuments.MatchString(info.Name()) {
 				if name, e := filepath.Rel(self.root, path); e == nil {
 					self.templates[name] = self.page(name).parse()
 					pages++
@@ -91,7 +92,7 @@ func (self *Loader) Load() (pages int) {
 			return err
 		})
 		if err != nil {
-			log.Fatalf("Failed to list HTML templates: %v", err)
+			log.Fatalf("Failed to list page templates: %v", err)
 		}
 
 		self.loaded = true
