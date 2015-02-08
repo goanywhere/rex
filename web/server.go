@@ -55,14 +55,21 @@ type (
 	Module func(http.Handler) http.Handler
 
 	Handler interface {
-		ServeHTTP(*Context)
+		http.Handler
+		Serve(ctx *Context)
 	}
 
 	HandlerFunc func(*Context)
 )
 
 // Serve wraps standard ServeHTTP function with context.
-func (self HandlerFunc) ServeHTTP(ctx *Context) {
+func (self HandlerFunc) Serve(ctx *Context) {
+	self(ctx)
+}
+
+// HandlerFunc serves as net/http's http.HandlerFunc with web.Context supports.
+func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := NewContext(w, r)
 	self(ctx)
 }
 
@@ -114,7 +121,7 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 			ctx := self.createContext(w, r)
 			defer self.recycleContext(ctx)
-			H.ServeHTTP(ctx)
+			H.Serve(ctx)
 		}).Methods(method).Name(name)
 
 	case func(*Context):

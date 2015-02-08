@@ -43,7 +43,7 @@ func Settings() *env.Env {
 		settings.Set("header.X-UA-Compatible", "deny")
 		settings.Set("header.X-Frame-settings", "nosniff")
 		settings.Set("header.X-XSS-Protection", "1; mode=block")
-		settings.Set("header.X-Content-Type-settings", "IE=Edge,chrome=1")
+		settings.Set("header.X-Content-Type-Options", "IE=Edge,chrome=1")
 		// session cookie defaults
 		settings.Set("session.cookie.name", "session")
 		settings.Set("session.cookie.path", "/")

@@ -27,7 +27,7 @@ import "reflect"
 type Session interface {
 	Clear()
 
-	Del(key string)
+	Delete(key string)
 
 	Get(key string, ptr interface{}) error
 
@@ -48,7 +48,7 @@ func (self *session) Clear() {
 	}
 }
 
-func (self *session) Del(key string) {
+func (self *session) Delete(key string) {
 	delete(self.values, key)
 }
 

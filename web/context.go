@@ -68,8 +68,8 @@ func (self *Context) Clear() {
 	}
 }
 
-// Del removes a context value assoicated with the given key.
-func (self *Context) Del(key string) {
+// Delete removes a context value assoicated with the given key.
+func (self *Context) Delete(key string) {
 	delete(self.values, key)
 }
 
@@ -184,8 +184,8 @@ func (self *Context) Flush() {
 // Render constructs the final output using html/template.
 // ContentType is determined by extension of the given filename.
 // Supported Format/ContentType: HTML | JSON | XML.
-func (self *Context) Render(filename string) {
-	switch filepath.Ext(filename) {
+func (self *Context) Render(template string) {
+	switch filepath.Ext(template) {
 	case ".html":
 		self.Header().Set(ContentType.Name, ContentType.HTML)
 	case ".json":
@@ -193,18 +193,18 @@ func (self *Context) Render(filename string) {
 	case ".xml":
 		self.Header().Set(ContentType.Name, ContentType.XML)
 	default:
-		log.Fatalf("Unsupported file type: %s", filename)
+		log.Fatalf("Unsupported file type: %s", template)
 	}
 
-	if template, exists := documents.Get(filename); exists {
-		if err := template.Execute(self.buffer, self.values); err == nil {
+	if document, exists := documents.Get(template); exists {
+		if err := document.Execute(self.buffer, self.values); err == nil {
 			self.Flush()
 		} else {
 			self.Error(http.StatusInternalServerError, err.Error())
 		}
 	} else {
 		self.Error(http.StatusInternalServerError,
-			fmt.Sprintf("Template <%s> does not exists", filename))
+			fmt.Sprintf("Template <%s> does not exists", template))
 	}
 }
 
