@@ -20,9 +20,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package web
 
 import (
+	"bytes"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -36,11 +37,10 @@ import (
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/template"
-	"github.com/goanywhere/x/fs"
 )
 
 var app struct {
-	HTML   *template.Loader
+	docs   *template.Loader
 	codecs []securecookie.Codec
 }
 
@@ -70,43 +70,19 @@ func (self HandlerFunc) ServeHTTP(ctx *Context) {
 func New() *Server {
 	self := new(Server)
 	self.mux = mux.NewRouter()
-	self.configure()
 	self.pool.New = func() interface{} {
-		return NewContext(nil, nil)
+		ctx := new(Context)
+		ctx.buffer = new(bytes.Buffer)
+		ctx.values = make(map[string]interface{})
+		return ctx
 	}
 	return self
-}
-
-// configure initialize all application related settings before running.
-// Server Secret Keys
-func (self *Server) configure() {
-	settings := internal.Settings()
-	settings.Load(".env")
-	// ------------------------------------------------
-	// if secret keys exists, create codecs.
-	// ------------------------------------------------
-	if keys := settings.Strings("secret.keys"); len(keys) > 0 {
-		var bytes [][]byte
-		for _, key := range keys {
-			bytes = append(bytes, []byte(key))
-		}
-		app.codecs = securecookie.CodecsFromPairs(bytes...)
-	} else {
-		log.Fatalf("Failed to setup application: secret key(s) missing")
-	}
-	// ------------------------------------------------
-	// templates folder exists => load HTML templates.
-	// ------------------------------------------------
-	if dir := settings.String("dir.templates", "templates"); fs.Exists(dir) {
-		app.HTML = template.NewLoader(dir)
-		app.HTML.Load()
-	}
 }
 
 // creates a reusable context for consequent requests.
 func (self *Server) createContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := self.pool.Get().(*Context)
-	ctx.Writer = w
+	ctx.ResponseWriter = w
 	ctx.Request = r
 	return ctx
 }

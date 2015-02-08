@@ -20,27 +20,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package web
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/goanywhere/x/crypto"
 	"github.com/gorilla/securecookie"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 // ---------------------------------------------------------------------------
 //  Enhancements for native http.ResponseWriter
 // ---------------------------------------------------------------------------
-/*
 func TestContextStatus(t *testing.T) {
-	Define("secret.keys", crypto.Random(64))
 	Convey("Response Status Code", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: w, Request: r}
+			ctx := NewContext(w, r)
 			ctx.String("200 Response")
 		}))
 		defer server.Close()
@@ -50,8 +51,8 @@ func TestContextStatus(t *testing.T) {
 		}
 
 		server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: w, Request: r}
-			ctx.Writer.WriteHeader(http.StatusNotFound)
+			ctx := NewContext(w, r)
+			ctx.WriteHeader(http.StatusNotFound)
 			ctx.String("404 Response")
 		}))
 		defer server.Close()
@@ -62,11 +63,10 @@ func TestContextStatus(t *testing.T) {
 }
 
 func TestContextSize(t *testing.T) {
-	Define("secret.keys", crypto.Random(64))
 	Convey("Response Size", t, func() {
 		value := "Hello 中文測試"
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := &Context{Writer: w, Request: r}
+			ctx := NewContext(w, r)
 			ctx.String(value)
 		}))
 		defer server.Close()
@@ -81,7 +81,6 @@ func TestContextSize(t *testing.T) {
 }
 
 func TestContextWritten(t *testing.T) {
-	Define("secret.keys", crypto.Random(64))
 	Convey("Response's Written Flag", t, func() {
 		var flag bool
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +94,6 @@ func TestContextWritten(t *testing.T) {
 		}
 	})
 }
-*/
 
 // ---------------------------------------------------------------------------
 //  HTTP Request Context Data
@@ -134,20 +132,21 @@ func TestContextId(t *testing.T) {
 // ---------------------------------------------------------------------------
 //  Session Supports
 // ---------------------------------------------------------------------------
-func TestGet(t *testing.T) {
-	Convey("context#Get", t, func() {
+func TestSession(t *testing.T) {
+	Convey("context#Session", t, func() {
 		name := settings.String("session.cookie.name")
 		values := make(map[string]interface{})
 		values["number"] = 123
 
-		raw, _ := securecookie.EncodeMulti(name, values, app.codecs...)
+		raw, _ := securecookie.EncodeMulti(name, values, secrets...)
 		cookie := &http.Cookie{Name: name, Value: raw, Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var value int
 			ctx := NewContext(w, r)
-			ctx.Get("number", &value)
-			ctx.String("%d", value)
+			session := ctx.Session()
+			session.Get("number", &value)
+			ctx.Write([]byte(fmt.Sprintf("%d", value)))
 		}))
 		defer server.Close()
 
@@ -163,12 +162,13 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestSave(t *testing.T) {
-	Convey("context#Save", t, func() {
+func TestSessionSave(t *testing.T) {
+	Convey("context#SessionSave", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.Set("number", 123)
-			ctx.Save()
+			session := ctx.Session()
+			session.Set("number", 123)
+			session.Save()
 			return
 		}))
 		defer server.Close()
@@ -181,7 +181,7 @@ func TestSave(t *testing.T) {
 				cookie := response.Cookies()[0]
 
 				var values map[string]interface{}
-				securecookie.DecodeMulti(cookie.Name, cookie.Value, &values, app.codecs...)
+				securecookie.DecodeMulti(cookie.Name, cookie.Value, &values, secrets...)
 
 				So(len(values), ShouldEqual, 1)
 				So(values["number"].(int), ShouldEqual, 123)
@@ -199,7 +199,7 @@ func TestCookie(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.String(ctx.Cookie(cookie.Name))
+			ctx.Write([]byte(ctx.Cookie(cookie.Name)))
 		}))
 		defer server.Close()
 
@@ -233,15 +233,17 @@ func TestSetCookie(t *testing.T) {
 }
 
 func TestSecureCookie(t *testing.T) {
+	settings.Set("secret.keys", crypto.Random(64))
+	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SecureCookie", t, func() {
-		raw, _ := securecookie.EncodeMulti("number", 123, app.codecs...)
+		raw, _ := securecookie.EncodeMulti("number", 123, secrets...)
 		cookie := &http.Cookie{Name: "number", Value: raw, Path: "/"}
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var value int
 			ctx := NewContext(w, r)
 			ctx.SecureCookie("number", &value)
-			ctx.String("%d", value)
+			ctx.Write([]byte(fmt.Sprintf("%d", value)))
 		}))
 		defer server.Close()
 
@@ -258,6 +260,8 @@ func TestSecureCookie(t *testing.T) {
 }
 
 func TestSetSecureCookie(t *testing.T) {
+	settings.Set("secret.keys", crypto.Random(64))
+	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SetSecureCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			options := new(http.Cookie)
@@ -276,7 +280,7 @@ func TestSetSecureCookie(t *testing.T) {
 			if len(response.Cookies()) == 1 {
 				cookie := response.Cookies()[0]
 				var value int
-				securecookie.DecodeMulti(cookie.Name, cookie.Value, &value, app.codecs...)
+				securecookie.DecodeMulti(cookie.Name, cookie.Value, &value, secrets...)
 				So(value, ShouldEqual, 123)
 			}
 		}
@@ -286,28 +290,3 @@ func TestSetSecureCookie(t *testing.T) {
 // ---------------------------------------------------------------------------
 //  HTTP Response Rendering
 // ---------------------------------------------------------------------------
-/*
-func TestContextHTML(t *testing.T) {
-	Convey("Rendering HTML", t, func() {
-
-	})
-}
-
-func TestContextJSON(t *testing.T) {
-	Convey("Rendering JSON", t, func() {
-
-	})
-}
-
-func TestContextXML(t *testing.T) {
-	Convey("Rendering XML", t, func() {
-
-	})
-}
-
-func TestContextString(t *testing.T) {
-	Convey("Rendering String", t, func() {
-
-	})
-}
-*/

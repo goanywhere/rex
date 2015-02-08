@@ -52,6 +52,7 @@ import (
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
+	"github.com/goanywhere/rex/web"
 )
 
 var (
@@ -80,7 +81,7 @@ var (
 )
 
 // default rex mux with reasonable middleware modules.
-var server = New()
+var server = web.New()
 
 type H map[string]interface{}
 
@@ -110,7 +111,7 @@ func Head(pattern string, handler http.HandlerFunc) {
 }
 
 // Group creates a new muxlication group in default Mux with the given path.
-func Group(path string) *Server {
+func Group(path string) *web.Server {
 	return server.Group(path)
 }
 
@@ -119,7 +120,7 @@ func FileServer(prefix, dir string) {
 }
 
 // Use muxends middleware module into the default serving list.
-func Use(modules ...Module) {
+func Use(modules ...web.Module) {
 	server.Use(modules...)
 }
 

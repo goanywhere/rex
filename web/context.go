@@ -20,14 +20,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package web
 
 import (
-	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
-	"net"
+	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -38,19 +36,20 @@ import (
 )
 
 type Context struct {
-	Writer  http.ResponseWriter
+	http.ResponseWriter
 	Request *http.Request
 
 	size   int
 	status int
 
-	buffer *bytes.Buffer
-	values map[string]interface{}
+	session Session
+	buffer  *bytes.Buffer
+	values  map[string]interface{}
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
-	ctx.Writer = w
+	ctx.ResponseWriter = w
 	ctx.Request = r
 	ctx.buffer = new(bytes.Buffer)
 	ctx.values = make(map[string]interface{})
@@ -60,8 +59,19 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // ----------------------------------------
 // Context Values for Rendering
 // ----------------------------------------
+// Clear removes all context values.
+func (self *Context) Clear() {
+	for k, _ := range self.values {
+		delete(self.values, k)
+	}
+}
 
-// Get fetches the signed value associated with the given name from request session.
+// Del removes a context value assoicated with the given key.
+func (self *Context) Del(key string) {
+	delete(self.values, key)
+}
+
+// Get retrieves the value with associated key from context values.
 func (self *Context) Get(key string, ptr interface{}) {
 	if value := self.values[key]; value != nil {
 		if reflect.TypeOf(ptr).Kind() == reflect.Ptr {
@@ -71,15 +81,27 @@ func (self *Context) Get(key string, ptr interface{}) {
 	}
 }
 
-// Set adds the raw session value to request session.
-// New session values for consequent requests must be saved via Context.Save() in advance.
+// Set adds the value with associated key into context to be rendered.
 func (self *Context) Set(key string, value interface{}) {
 	self.values[key] = value
 }
 
 // ----------------------------------------
-// Cookie & Secure Cookie Supports
+// Session & (Secure) Cookie Supports
 // ----------------------------------------
+// Session fetches the securecookie based session from incoming request.
+func (self *Context) Session() Session {
+	if self.session == nil {
+		name := settings.String("session.cookie.name")
+		session := &session{
+			ctx:    self,
+			values: make(map[string]interface{}),
+		}
+		self.SecureCookie(name, &session.values)
+		self.session = session
+	}
+	return self.session
+}
 
 // Cookie fetches the value associated with the given name from request cookie.
 func (self *Context) Cookie(name string) string {
@@ -110,20 +132,20 @@ func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
 	} else if cookie.MaxAge < 0 {
 		cookie.Expires = time.Unix(1, 0)
 	}
-	http.SetCookie(self.Writer, cookie)
+	http.SetCookie(self, cookie)
 }
 
 // SecureCookie decodes the signed values associated with the given name from request cookie.
 func (self *Context) SecureCookie(name string, ptr interface{}) error {
 	if raw := self.Cookie(name); raw != "" {
-		return securecookie.DecodeMulti(name, raw, ptr, app.codecs...)
+		return securecookie.DecodeMulti(name, raw, ptr, secrets...)
 	}
 	return nil
 }
 
 // SetSecureCookie encode the raw value securely and adds a Set-Cookie header to response.
 func (self *Context) SetSecureCookie(name string, value interface{}, options ...*http.Cookie) error {
-	if raw, err := securecookie.EncodeMulti(name, value, app.codecs...); err == nil {
+	if raw, err := securecookie.EncodeMulti(name, value, secrets...); err == nil {
 		self.SetCookie(name, raw, options...)
 	} else {
 		return err
@@ -148,105 +170,79 @@ func (self *Context) Query() url.Values {
 // Error raises a HTTP error response according to the given status code.
 func (self *Context) Error(status int, errors ...string) {
 	if len(errors) > 0 {
-		http.Error(self.Writer, errors[0], status)
+		http.Error(self, errors[0], status)
 	} else {
-		http.Error(self.Writer, http.StatusText(status), status)
+		http.Error(self, http.StatusText(status), status)
+	}
+}
+
+// // Flush sends any buffered data to the client & clear all context values.
+func (self *Context) Flush() {
+	if self.buffer.Len() > 0 {
+		self.Write(self.buffer.Bytes())
+		self.buffer.Reset()
+		self.Clear()
 	}
 }
 
 // Render constructs the final output using html/template.
-// If the object is a string, context fetches it from pre-defined
-// templates folder & renders it using context values, its content
-// type is determinated using file's extensions (html|xml); otherwise
-// JSON encoder will be used to render.
+// ContentType is determined by extension of the given filename.
+// Supported Format/ContentType: HTML | JSON | XML.
 func (self *Context) Render(filename string) {
 	switch filepath.Ext(filename) {
+	case ".html":
+		self.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	case ".json":
-		self.Writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		self.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	case ".xml":
-		self.Writer.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+		self.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 	default:
-		self.Writer.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		log.Fatalf("Unsupported file type: %s", filename)
 	}
 
-	if template, exists := app.HTML.Get(filename); exists {
-		if e := template.Execute(self.buffer, self.values); e == nil {
-			self.Writer.Write(self.buffer.Bytes())
-			self.buffer.Reset()
-			for k, _ := range self.values {
-				delete(self.values, k)
-			}
+	if template, exists := documents.Get(filename); exists {
+		if err := template.Execute(self.buffer, self.values); err == nil {
+			self.Flush()
 		} else {
-			self.Error(http.StatusInternalServerError, e.Error())
+			self.Error(http.StatusInternalServerError, err.Error())
 		}
 	} else {
-		e := fmt.Errorf("Template <%s> does not exists", filename)
-		self.Error(http.StatusInternalServerError, e.Error())
+		self.Error(http.StatusInternalServerError,
+			fmt.Sprintf("Template <%s> does not exists", filename))
 	}
 }
 
-// String writes plain text back to the HTTP response.
 func (self *Context) String(format string, values ...interface{}) {
-	self.Writer.Header()["Content-Type"] = []string{"text/plain; charset=utf-8"}
-	self.Writer.Write([]byte(fmt.Sprintf(format, values...)))
+	self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	self.ResponseWriter.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
-/* ----------------------------------------------------------------------
- * Implementations of http.Hijacker
- * ----------------------------------------------------------------------*/
-func (self *Context) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	hijacker, ok := self.Writer.(http.Hijacker)
-	if !ok {
-		return nil, nil, errors.New("ResponseWriter doesn't support the Hijacker interface")
-	}
-	return hijacker.Hijack()
+// Header returns the header map that will be sent by WriteHeader.
+// Changing the header after a call to WriteHeader (or Write) has
+// no effect.
+func (self *Context) Header() http.Header {
+	return self.ResponseWriter.Header()
 }
 
-/* ----------------------------------------------------------------------
- * Implementations of http.CloseNotifier
- * ----------------------------------------------------------------------*/
-func (self *Context) CloseNotify() <-chan bool {
-	return self.Writer.(http.CloseNotifier).CloseNotify()
-}
-
-/* ----------------------------------------------------------------------
- * Implementations of http.Flusher
- * ----------------------------------------------------------------------*/
-func (self *Context) Flush() {
-	if flusher, ok := self.Writer.(http.Flusher); ok {
-		flusher.Flush()
-	}
-}
-
-/* ----------------------------------------------------------------------
- * Implementations of http.ResponseWriter
- * ----------------------------------------------------------------------*/
-func (self *Context) WriteHeader(status int) {
-	if status >= 100 && status < 512 {
-		self.status = status
-		self.Writer.WriteHeader(status)
-	}
-}
-
-// Write: Implementation of http.ResponseWriter#Write
-func (self *Context) Write(data []byte) (size int, err error) {
-	size, err = self.Writer.Write(data)
+// Write writes the data to the connection as part of an HTTP reply.
+// If WriteHeader has not yet been called, Write calls WriteHeader(http.StatusOK)
+// before writing the data.  If the Header does not contain a
+// Content-Type line, Write adds a Content-Type set to the result of passing
+// the initial 512 bytes of written data to DetectContentType.
+func (self *Context) Write(bytes []byte) (size int, err error) {
+	size, err = self.ResponseWriter.Write(bytes)
 	self.size += size
 	return
 }
 
-/* ----------------------------------------------------------------------
- * Implementations of rex.Writer interface.
- * ----------------------------------------------------------------------*/
-func (self *Context) Size() int {
-	return self.size
-}
-
-// Status returns current status code of the Context.
-func (self *Context) Status() int {
-	return self.status
-}
-
-func (self *Context) Written() bool {
-	return self.status != 0 || self.size > 0
+// WriteHeader sends an HTTP response header with status code.
+// If WriteHeader is not called explicitly, the first call to Write
+// will trigger an implicit WriteHeader(http.StatusOK).
+// Thus explicit calls to WriteHeader are mainly used to
+// send error codes.
+func (self *Context) WriteHeader(status int) {
+	if status >= 100 && status < 512 {
+		self.status = status
+		self.ResponseWriter.WriteHeader(status)
+	}
 }
