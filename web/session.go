@@ -27,7 +27,7 @@ import "reflect"
 type Session interface {
 	Clear()
 
-	Delete(key string)
+	Del(key string)
 
 	Get(key string, ptr interface{}) error
 
@@ -48,7 +48,7 @@ func (self *session) Clear() {
 	}
 }
 
-func (self *session) Delete(key string) {
+func (self *session) Del(key string) {
 	delete(self.values, key)
 }
 
@@ -68,6 +68,5 @@ func (self *session) Set(key string, value interface{}) {
 
 func (self *session) Save() error {
 	name := settings.String("session.cookie.name")
-	self.ctx.SetSecureCookie(name, self.values)
-	return nil
+	return self.ctx.SetSecureCookie(name, self.values)
 }

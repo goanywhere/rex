@@ -24,6 +24,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,6 +37,8 @@ import (
 
 	. "github.com/goanywhere/rex/internal"
 )
+
+var encoder *json.Encoder
 
 type Context struct {
 	http.ResponseWriter
@@ -69,7 +72,7 @@ func (self *Context) Clear() {
 }
 
 // Delete removes a context value assoicated with the given key.
-func (self *Context) Delete(key string) {
+func (self *Context) Del(key string) {
 	delete(self.values, key)
 }
 
@@ -181,30 +184,53 @@ func (self *Context) Flush() {
 	}
 }
 
-// Render constructs the final output using html/template.
-// ContentType is determined by extension of the given filename.
-// Supported Format/ContentType: HTML | JSON | XML.
-func (self *Context) Render(template string) {
-	switch filepath.Ext(template) {
-	case ".html":
-		self.Header().Set(ContentType.Name, ContentType.HTML)
-	case ".json":
-		self.Header().Set(ContentType.Name, ContentType.JSON)
-	case ".xml":
-		self.Header().Set(ContentType.Name, ContentType.XML)
+// Render constructs the final output using html/template & json.
+// ContentType is determined by extension of the given object.
+// if the object if string, context try parsing its extension
+// to determined the content type (HTML|JSON|XML), otherwise, the basic
+//	format:
+//		{"status": <status code>, "response": <response data>}
+// json dict will be used, this is to ensure the json output is always
+// a dictionary due to security concern.
+func (self *Context) Render(object interface{}) {
+	var err error
+
+	switch T := object.(type) {
+	case string:
+		switch filepath.Ext(T) {
+		case ".html":
+			self.Header().Set(ContentType.Name, ContentType.HTML)
+
+		case ".json":
+			self.Header().Set(ContentType.Name, ContentType.JSON)
+
+		case ".xml":
+			self.Header().Set(ContentType.Name, ContentType.XML)
+
+		default:
+			log.Fatalf("Unsupported file type: %s", T)
+		}
+		if document, exists := documents.Get(T); exists {
+			err = document.Execute(self.buffer, self.values)
+		} else {
+			err = fmt.Errorf("Template <%s> does not exists", T)
+		}
+
 	default:
-		log.Fatalf("Unsupported file type: %s", template)
+		self.Header().Set(ContentType.Name, ContentType.JSON)
+		if self.status == 0 {
+			self.values["status"] = http.StatusOK
+		} else {
+			self.values["status"] = self.status
+		}
+		self.values["response"] = object
+		err = json.NewEncoder(self.buffer).Encode(self.values)
 	}
 
-	if document, exists := documents.Get(template); exists {
-		if err := document.Execute(self.buffer, self.values); err == nil {
-			self.Flush()
-		} else {
-			self.Error(http.StatusInternalServerError, err.Error())
-		}
+	if err == nil {
+		self.Flush()
 	} else {
-		self.Error(http.StatusInternalServerError,
-			fmt.Sprintf("Template <%s> does not exists", template))
+		self.Error(http.StatusInternalServerError, err.Error())
 	}
 }
 
