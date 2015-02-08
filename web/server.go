@@ -132,7 +132,7 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 		}).Methods(method).Name(name)
 
 	default:
-		log.Fatalf("Unknown handler type (%v) passed in.", H)
+		log.Fatalf("Unsupported handler (%s) passed in.", name)
 	}
 }
 

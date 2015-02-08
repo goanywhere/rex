@@ -95,13 +95,14 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
 }
 
-func json (ctx *rex.Context) {
+func json (ctx *web.Context) {
     ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
 }
 
@@ -122,9 +123,10 @@ package main
 
 import (
     "github.com/goanywhere/rex"
+    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *rex.Context) {
+func index (ctx *web.Context) {
     ctx.Render("index.html")
 }
 
@@ -185,8 +187,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Common Modules
 - [X] Cache Framework
 - [ ] Better Logging
-- [ ] i18n Supports
-- [ ] Form Validations
+- [ ] Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration
 - [ ] Stable API
