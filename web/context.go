@@ -33,6 +33,8 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
+
+	. "github.com/goanywhere/rex/internal"
 )
 
 type Context struct {
@@ -156,12 +158,6 @@ func (self *Context) SetSecureCookie(name string, value interface{}, options ...
 // ----------------------------------------
 // HTTP Utilities
 // ----------------------------------------
-
-// IsAjax checks if the incoming request is AJAX request.
-func (self *Context) IsAjax() bool {
-	return self.Request.Header.Get("X-Requested-With") == "XMLHttpRequest"
-}
-
 // Query returns the URL query values.
 func (self *Context) Query() url.Values {
 	return self.Request.URL.Query()
@@ -191,11 +187,11 @@ func (self *Context) Flush() {
 func (self *Context) Render(filename string) {
 	switch filepath.Ext(filename) {
 	case ".html":
-		self.Header().Set("Content-Type", "text/html; charset=UTF-8")
+		self.Header().Set(ContentType.Name, ContentType.HTML)
 	case ".json":
-		self.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		self.Header().Set(ContentType.Name, ContentType.JSON)
 	case ".xml":
-		self.Header().Set("Content-Type", "application/xml; charset=UTF-8")
+		self.Header().Set(ContentType.Name, ContentType.XML)
 	default:
 		log.Fatalf("Unsupported file type: %s", filename)
 	}
@@ -213,7 +209,7 @@ func (self *Context) Render(filename string) {
 }
 
 func (self *Context) String(format string, values ...interface{}) {
-	self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	self.Header().Set(ContentType.Name, ContentType.Text)
 	self.ResponseWriter.Write([]byte(fmt.Sprintf(format, values...)))
 }
 
