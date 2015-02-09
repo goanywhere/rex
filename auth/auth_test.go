@@ -53,6 +53,14 @@ func TestVerify(t *testing.T) {
 	})
 }
 
+func BenchmarkHash(b *testing.B) {
+	src := "I'mAPlainSecret"
+	key := "secretkey@example.com"
+	for index := 0; index < b.N; index++ {
+		Hash(src, key)
+	}
+}
+
 func BenchmarkEncrypt(b *testing.B) {
 	src := "I'mAPlainSecret"
 	key := "secretkey@example.com"

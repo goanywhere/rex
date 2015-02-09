@@ -33,7 +33,8 @@ import (
 
 var settings = internal.Settings()
 
-func hash(src, key string) []byte {
+// Hash creates secret hashed string for the source using the given key.
+func Hash(src, key string) []byte {
 	hash := hmac.New(sha1.New, []byte(key))
 	hash.Write([]byte(src))
 	return hash.Sum(nil)
@@ -43,7 +44,7 @@ func hash(src, key string) []byte {
 // Source secret is hahsed with the given key before actual bcrypting.
 func Encrypt(src, key string) (secret string) {
 	cost := settings.Int("auth.encryption.cost", bcrypt.DefaultCost)
-	bytes, err := bcrypt.GenerateFromPassword(hash(src, key), cost)
+	bytes, err := bcrypt.GenerateFromPassword(Hash(src, key), cost)
 	if err == nil {
 		secret = string(bytes)
 	}
@@ -53,7 +54,7 @@ func Encrypt(src, key string) (secret string) {
 // Verify checks that if the given hash matches the given source secret.
 // Source secret is hahsed with the given key before actual bcrypting.
 func Verify(src, secret, key string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(secret), hash(src, key))
+	err := bcrypt.CompareHashAndPassword([]byte(secret), Hash(src, key))
 	if err == nil {
 		return true
 	}
