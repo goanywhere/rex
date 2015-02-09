@@ -24,7 +24,7 @@ package auth
 
 import (
 	"crypto/hmac"
-	"crypto/md5"
+	"crypto/sha1"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -34,7 +34,7 @@ import (
 var settings = internal.Settings()
 
 func hash(src, key string) []byte {
-	hash := hmac.New(md5.New, []byte(key))
+	hash := hmac.New(sha1.New, []byte(key))
 	hash.Write([]byte(src))
 	return hash.Sum(nil)
 }
