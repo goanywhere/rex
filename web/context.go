@@ -179,9 +179,14 @@ func (self *Context) Error(status int, errors ...string) {
 func (self *Context) Flush() {
 	if self.buffer.Len() > 0 {
 		self.Write(self.buffer.Bytes())
-		self.buffer.Reset()
-		self.Clear()
+		self.Reset()
 	}
+}
+
+// Reset clears context's buffer & values.
+func (self *Context) Reset() {
+	self.buffer.Reset()
+	self.Clear()
 }
 
 // Render constructs the final output using html/template & json.
@@ -231,6 +236,7 @@ func (self *Context) Render(object interface{}) {
 		self.Flush()
 	} else {
 		self.Error(http.StatusInternalServerError, err.Error())
+		self.Reset()
 	}
 }
 

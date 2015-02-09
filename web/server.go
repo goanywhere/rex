@@ -33,16 +33,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/template"
 )
-
-var app struct {
-	docs   *template.Loader
-	codecs []securecookie.Codec
-}
 
 type (
 	Server struct {
