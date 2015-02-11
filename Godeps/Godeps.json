@@ -9,15 +9,15 @@
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/crypto",
-			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
+			"Rev": "a8abeebbcb4dd3aa2ec59beb6d201a604a891afe"
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/env",
-			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
+			"Rev": "a8abeebbcb4dd3aa2ec59beb6d201a604a891afe"
 		},
 		{
 			"ImportPath": "github.com/goanywhere/x/fs",
-			"Rev": "ce2fc54a2d934fbc22819015c20de07c90c6685c"
+			"Rev": "a8abeebbcb4dd3aa2ec59beb6d201a604a891afe"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
