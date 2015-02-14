@@ -31,14 +31,13 @@ import (
 	"net/url"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/gorilla/securecookie"
 
 	. "github.com/goanywhere/rex/internal"
 )
-
-var encoder *json.Encoder
 
 type Context struct {
 	http.ResponseWriter
@@ -183,6 +182,23 @@ func (self *Context) Flush() {
 	}
 }
 
+// RemoteAddr fetches the real remote address of incoming HTTP request.
+func (self *Context) RemoteAddr() string {
+	var address string
+
+	if raw := self.Request.Header.Get("X-Forwarded-For"); raw != "" {
+		index := strings.Index(raw, ", ")
+		if index == -1 {
+			index = len(raw)
+		}
+		address = raw[:index]
+	} else if raw := self.Request.Header.Get("X-Real-IP"); raw != "" {
+		address = raw
+	}
+
+	return address
+}
+
 // Reset clears context's buffer & values.
 func (self *Context) Reset() {
 	self.buffer.Reset()
@@ -194,7 +210,7 @@ func (self *Context) Reset() {
 // if the object if string, context try parsing its extension
 // to determined the content type (HTML|JSON|XML), otherwise, the basic
 //	format:
-//		{"status": <status code>, "response": <response data>}
+//		{"status": <status code>, "data": <response data>}
 // json dict will be used, this is to ensure the json output is always
 // a dictionary due to security concern.
 func (self *Context) Render(object interface{}) {
@@ -228,7 +244,7 @@ func (self *Context) Render(object interface{}) {
 		} else {
 			self.values["status"] = self.status
 		}
-		self.values["response"] = object
+		self.values["data"] = object
 		err = json.NewEncoder(self.buffer).Encode(self.values)
 	}
 
