@@ -103,7 +103,7 @@ func index (ctx *web.Context) {
 }
 
 func json (ctx *web.Context) {
-    ctx.JSON(rex.H{"data": "Hello Rex", "success": true})
+    ctx.Render(rex.H{"success": true, "response": "This is a JSON Response"})
 }
 
 func main() {
@@ -159,9 +159,9 @@ Since a module is just the standard http.Handler, writing a custom module is als
 ``` go
 app.Use(func(next http.Handler) http.Handler {
     return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-        rex.Debug("Custom Module Started")
+        log.Printf("Custom Middleware Module Started")
         next.ServeHTTP(writer, request)
-        rex.Debug("Custom Module Ended")
+        log.Printf("Custom Middleware Module Ended")
     })
 })
 ```
@@ -186,6 +186,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Template Functions
 - [X] Common Modules
 - [X] Cache Framework
+- [X] Authentication Framework
 - [ ] Better Logging
 - [ ] Validations
 - [ ] Project Wiki
