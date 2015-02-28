@@ -192,6 +192,7 @@ func (self *Context) RemoteAddr() string {
 			index = len(raw)
 		}
 		address = raw[:index]
+
 	} else if raw := self.Request.Header.Get("X-Real-IP"); raw != "" {
 		address = raw
 	}

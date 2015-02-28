@@ -129,6 +129,8 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 	}
 }
 
+func (self *Server) Add(pattern string, resource interface{}) {}
+
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Get(pattern string, handler interface{}) {

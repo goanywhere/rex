@@ -91,8 +91,10 @@ func LiveReload(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == livereload.URL.WebSocket {
 			livereload.ServeWebSocket(w, r)
+
 		} else if r.URL.Path == livereload.URL.JavaScript {
 			livereload.ServeJavaScript(w, r)
+
 		} else {
 			writer := &writer{w, r.Host}
 			next.ServeHTTP(writer, r)
