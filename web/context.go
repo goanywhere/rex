@@ -24,16 +24,14 @@ package web
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/securecookie"
 
 	. "github.com/goanywhere/rex/internal"
@@ -48,7 +46,6 @@ type Context struct {
 
 	session Session
 	buffer  *bytes.Buffer
-	values  map[string]interface{}
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -56,38 +53,30 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx.ResponseWriter = w
 	ctx.Request = r
 	ctx.buffer = new(bytes.Buffer)
-	ctx.values = make(map[string]interface{})
 	return ctx
 }
 
 // ----------------------------------------
 // Context Values for Rendering
 // ----------------------------------------
-// Clear removes all context values.
+// Clear removes all values stored for the request.
 func (self *Context) Clear() {
-	for k, _ := range self.values {
-		delete(self.values, k)
-	}
+	context.Clear(self.Request)
 }
 
-// Delete removes a context value assoicated with the given key.
+// Del removes value stored with associated key for the request.
 func (self *Context) Del(key string) {
-	delete(self.values, key)
+	context.Delete(self.Request, key)
 }
 
-// Get retrieves the value with associated key from context values.
-func (self *Context) Get(key string, ptr interface{}) {
-	if value := self.values[key]; value != nil {
-		if reflect.TypeOf(ptr).Kind() == reflect.Ptr {
-			elem := reflect.ValueOf(ptr).Elem()
-			elem.Set(reflect.ValueOf(value))
-		}
-	}
+// Get retrieves value stored for the request with associated key.
+func (self *Context) Get(key string) interface{} {
+	return context.Get(self.Request, key)
 }
 
-// Set adds the value with associated key into context to be rendered.
+// Set stores value with associated key for the request.
 func (self *Context) Set(key string, value interface{}) {
-	self.values[key] = value
+	context.Set(self.Request, key, value)
 }
 
 // ----------------------------------------
@@ -174,8 +163,8 @@ func (self *Context) Error(status int, errors ...string) {
 	}
 }
 
-// // Flush sends any buffered data to the client & clear all context values.
-func (self *Context) Flush() {
+// // flush sends any buffered data to the client & clear all context values.
+func (self *Context) flush() {
 	if self.buffer.Len() > 0 {
 		self.Write(self.buffer.Bytes())
 		self.Reset()
@@ -214,6 +203,7 @@ func (self *Context) Reset() {
 //		{"status": <status code>, "data": <response data>}
 // json dict will be used, this is to ensure the json output is always
 // a dictionary due to security concern.
+/*
 func (self *Context) Render(object interface{}) {
 	var err error
 
@@ -251,6 +241,39 @@ func (self *Context) Render(object interface{}) {
 
 	if err == nil {
 		self.Flush()
+	} else {
+		self.Error(http.StatusInternalServerError, err.Error())
+		self.Reset()
+	}
+}
+*/
+
+// Render constructs the HTML/XML page using html/template.
+// ContentType is determined by extension of the given template.
+func (self *Context) Render(template string, values ...interface{}) {
+	var err error
+
+	switch filepath.Ext(template) {
+	case ".xml":
+		self.Header().Set(ContentType.Name, ContentType.XML)
+
+	default:
+		self.Header().Set(ContentType.Name, ContentType.HTML)
+	}
+
+	if page, exists := templates.Get(template); exists {
+		if len(values) == 0 {
+			err = page.Execute(self.buffer, nil)
+		} else {
+			err = page.Execute(self.buffer, values[0])
+		}
+	} else {
+		err = fmt.Errorf("Template <%s> does not exists", template)
+	}
+
+	if err == nil {
+		self.flush()
+
 	} else {
 		self.Error(http.StatusInternalServerError, err.Error())
 		self.Reset()

@@ -73,7 +73,6 @@ func New() *Server {
 	self.pool.New = func() interface{} {
 		ctx := new(Context)
 		ctx.buffer = new(bytes.Buffer)
-		ctx.values = make(map[string]interface{})
 		return ctx
 	}
 	return self

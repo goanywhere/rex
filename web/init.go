@@ -40,7 +40,7 @@ var (
 	secrets []securecookie.Codec
 
 	// application page templates (Settings: dir.templates)
-	documents *template.Loader
+	templates *template.Loader
 )
 
 func createSecrets(keys ...string) {
@@ -68,7 +68,7 @@ func init() {
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
 	if dir := settings.String("dir.templates", "templates"); fs.Exists(dir) {
-		documents = template.NewLoader(dir)
-		documents.Load()
+		templates = template.NewLoader(dir)
+		templates.Load()
 	}
 }
