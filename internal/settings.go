@@ -36,22 +36,21 @@ var (
 func Settings() *env.Env {
 	once.Do(func() {
 		settings = env.New("rex")
-		settings.Set("debug", true)
-		settings.Set("mode", "debug")
-		settings.Set("dir.templates", "templates")
+		settings.Set(DEBUG, true)
+		settings.Set(DIR_TEMPLATES, "templates")
 		// default environmental headers for modules.Env
-		settings.Set("header.X-UA-Compatible", "deny")
-		settings.Set("header.X-Frame-settings", "nosniff")
-		settings.Set("header.X-XSS-Protection", "1; mode=block")
-		settings.Set("header.X-Content-Type-Options", "IE=Edge,chrome=1")
-		settings.Set("header.Strict-Transport-Security", "max-age=31536000; includeSubdomains; preload")
+		settings.Set(HTTP_HEADER_X_UA_Compatible, "deny")
+		settings.Set(HTTP_HEADER_X_Frame_Settings, "nosniff")
+		settings.Set(HTTP_HEADER_X_XSS_Protection, "1; mode=block")
+		settings.Set(HTTP_HEADER_X_Content_Type_Options, "IE=Edge,chrome=1")
+		settings.Set(HTTP_HEADER_Strict_Transport_Security, "max-age=31536000; includeSubdomains; preload")
 		// session cookie defaults
-		settings.Set("session.cookie.name", "session")
-		settings.Set("session.cookie.path", "/")
-		settings.Set("session.cookie.domain", "")
-		settings.Set("session.cookie.secure", false)
-		settings.Set("session.cookie.httponly", true)
-		settings.Set("session.cookie.maxage", 3600*24*7)
+		settings.Set(SESSION_COOKIE_NAME, "session")
+		settings.Set(SESSION_COOKIE_PATH, "/")
+		settings.Set(SESSION_COOKIE_DOMAIN, "")
+		settings.Set(SESSION_COOKIE_SECURE, false)
+		settings.Set(SESSION_COOKIE_HTTPONLY, true)
+		settings.Set(SESSION_COOKIE_MAXAGE, 3600*24*7)
 	})
 	return settings
 }

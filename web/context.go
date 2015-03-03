@@ -24,6 +24,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -85,7 +86,7 @@ func (self *Context) Set(key string, value interface{}) {
 // Session fetches the securecookie based session from incoming request.
 func (self *Context) Session() Session {
 	if self.session == nil {
-		name := settings.String("session.cookie.name")
+		name := settings.String("SESSION_COOKIE_NAME")
 		session := &session{
 			ctx:    self,
 			values: make(map[string]interface{}),
@@ -111,11 +112,11 @@ func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
 		cookie = options[0]
 	} else {
 		cookie = new(http.Cookie)
-		cookie.Path = settings.String("session.cookie.path")
-		cookie.Domain = settings.String("session.cookie.domain")
-		cookie.MaxAge = settings.Int("session.cookie.maxage")
-		cookie.Secure = settings.Bool("session.cookie.secure")
-		cookie.HttpOnly = settings.Bool("session.cookie.httponly")
+		cookie.Path = settings.String("SESSION_COOKIE_PATH")
+		cookie.Domain = settings.String("SESSION_COOKIE_DOMAIN")
+		cookie.MaxAge = settings.Int("SESSION_COOKIE_MAXAGE")
+		cookie.Secure = settings.Bool("SESSION_COOKIE_SECURE")
+		cookie.HttpOnly = settings.Bool("SESSION_COOKIE_HTTPONLY")
 	}
 	cookie.Name = name
 	cookie.Value = value
@@ -163,11 +164,11 @@ func (self *Context) Error(status int, errors ...string) {
 	}
 }
 
-// // flush sends any buffered data to the client & clear all context values.
+// flush sends any buffered data to the client & clear all context values.
 func (self *Context) flush() {
 	if self.buffer.Len() > 0 {
 		self.Write(self.buffer.Bytes())
-		self.Reset()
+		self.buffer.Reset()
 	}
 }
 
@@ -189,71 +190,32 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Reset clears context's buffer & values.
-func (self *Context) Reset() {
-	self.buffer.Reset()
-	self.Clear()
-}
-
-// Render constructs the final output using html/template & json.
-// ContentType is determined by extension of the given object.
-// if the object if string, context try parsing its extension
-// to determined the content type (HTML|JSON|XML), otherwise, the basic
-//	format:
-//		{"status": <status code>, "data": <response data>}
-// json dict will be used, this is to ensure the json output is always
-// a dictionary due to security concern.
-/*
-func (self *Context) Render(object interface{}) {
-	var err error
-
-	switch T := object.(type) {
+// Render constructs the object values for string & JSON object.
+func (self *Context) Render(values interface{}) {
+	switch T := values.(type) {
 	case string:
-		switch filepath.Ext(T) {
-		case ".html":
-			self.Header().Set(ContentType.Name, ContentType.HTML)
-
-		case ".json":
-			self.Header().Set(ContentType.Name, ContentType.JSON)
-
-		case ".xml":
-			self.Header().Set(ContentType.Name, ContentType.XML)
-
-		default:
-			log.Fatalf("Unsupported file type: %s", T)
-		}
-		if document, exists := documents.Get(T); exists {
-			err = document.Execute(self.buffer, self.values)
-		} else {
-			err = fmt.Errorf("Template <%s> does not exists", T)
-		}
+		self.Header().Set(ContentType.Name, ContentType.Text)
+		self.Write([]byte(T))
 
 	default:
 		self.Header().Set(ContentType.Name, ContentType.JSON)
-		if self.status == 0 {
-			self.values["status"] = http.StatusOK
-		} else {
-			self.values["status"] = self.status
-		}
-		self.values["data"] = object
-		err = json.NewEncoder(self.buffer).Encode(self.values)
-	}
+		err := json.NewEncoder(self.buffer).Encode(values)
 
-	if err == nil {
-		self.Flush()
-	} else {
-		self.Error(http.StatusInternalServerError, err.Error())
-		self.Reset()
+		if err == nil {
+			self.flush()
+
+		} else {
+			self.Error(http.StatusInternalServerError, err.Error())
+		}
 	}
 }
-*/
 
-// Render constructs the HTML/XML page using html/template.
+// RenderTemplate constructs the HTML/XML page using html/template.
 // ContentType is determined by extension of the given template.
-func (self *Context) Render(template string, values ...interface{}) {
+func (self *Context) RenderTemplate(filename string, values ...interface{}) {
 	var err error
 
-	switch filepath.Ext(template) {
+	switch filepath.Ext(filename) {
 	case ".xml":
 		self.Header().Set(ContentType.Name, ContentType.XML)
 
@@ -261,14 +223,14 @@ func (self *Context) Render(template string, values ...interface{}) {
 		self.Header().Set(ContentType.Name, ContentType.HTML)
 	}
 
-	if page, exists := templates.Get(template); exists {
+	if template, exists := templates.Get(filename); exists {
 		if len(values) == 0 {
-			err = page.Execute(self.buffer, nil)
+			err = template.Execute(self.buffer, nil)
 		} else {
-			err = page.Execute(self.buffer, values[0])
+			err = template.Execute(self.buffer, values[0])
 		}
 	} else {
-		err = fmt.Errorf("Template <%s> does not exists", template)
+		err = fmt.Errorf("Template <%s> does not exists", filename)
 	}
 
 	if err == nil {
@@ -276,20 +238,7 @@ func (self *Context) Render(template string, values ...interface{}) {
 
 	} else {
 		self.Error(http.StatusInternalServerError, err.Error())
-		self.Reset()
 	}
-}
-
-func (self *Context) String(format string, values ...interface{}) {
-	self.Header().Set(ContentType.Name, ContentType.Text)
-	self.ResponseWriter.Write([]byte(fmt.Sprintf(format, values...)))
-}
-
-// Header returns the header map that will be sent by WriteHeader.
-// Changing the header after a call to WriteHeader (or Write) has
-// no effect.
-func (self *Context) Header() http.Header {
-	return self.ResponseWriter.Header()
 }
 
 // Write writes the data to the connection as part of an HTTP reply.

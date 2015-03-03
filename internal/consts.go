@@ -22,6 +22,25 @@
  * ----------------------------------------------------------------------*/
 package internal
 
+// Settings Keys
+const (
+	DEBUG         = "DEBUG"
+	DIR_TEMPLATES = "DIR_TEMPLATES"
+
+	HTTP_HEADER_X_UA_Compatible           = "HTTP_HEADER_X_UA_Compatible"
+	HTTP_HEADER_X_Frame_Settings          = "HTTP_HEADER_X_Frame_Settings"
+	HTTP_HEADER_X_XSS_Protection          = "HTTP_HEADER_X_XSS_Protection"
+	HTTP_HEADER_X_Content_Type_Options    = "HTTP_HEADER_X_Content_Type_Options"
+	HTTP_HEADER_Strict_Transport_Security = "HTTP_HEADER_Strict_Transport_Security"
+
+	SESSION_COOKIE_NAME     = "SESSION_COOKIE_NAME"
+	SESSION_COOKIE_PATH     = "SESSION_COOKIE_PATH"
+	SESSION_COOKIE_DOMAIN   = "SESSION_COOKIE_DOMAIN"
+	SESSION_COOKIE_SECURE   = "SESSION_COOKIE_SECURE"
+	SESSION_COOKIE_HTTPONLY = "SESSION_COOKIE_HTTPONLY"
+	SESSION_COOKIE_MAXAGE   = "SESSION_COOKIE_MAXAGE"
+)
+
 var ContentType = struct {
 	Name string
 	HTML string

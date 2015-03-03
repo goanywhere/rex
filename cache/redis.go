@@ -42,13 +42,13 @@ type redis struct {
 }
 
 func New() *redis {
-	servers := settings.Strings("cache.redis.servers")
+	servers := settings.Strings("CACHE_REDIS_SERVERS")
 
 	create := func(rawurl string) *redigo.Pool {
 		pool := new(redigo.Pool)
-		pool.MaxIdle = settings.Int("cache.redis.maxidle", 10)
-		pool.MaxActive = settings.Int("cache.redis.maxactive", 100)
-		pool.IdleTimeout = time.Duration(settings.Int("cache.redis.idletimeout", 180)) * time.Second
+		pool.MaxIdle = settings.Int("CACHE_REDIS_MAXIDLE", 10)
+		pool.MaxActive = settings.Int("CACHE_REDIS_MAXACTIVE", 100)
+		pool.IdleTimeout = time.Duration(settings.Int("CACHE_REDIS_IDLETIMEOUT", 180)) * time.Second
 
 		pool.Dial = func() (conn redigo.Conn, err error) {
 			var URL *url.URL
@@ -90,7 +90,7 @@ func New() *redis {
 		pools = append(pools, create(rawurl))
 	}
 	if len(pools) == 0 {
-		log.Fatalf("Failed to setup Redis: 'cache.redis.servers' missing?")
+		log.Fatalf("Failed to setup Redis: 'CACHE_REDIS_SERVERS' missing?")
 	}
 	redis := new(redis)
 	redis.Sharding = internal.NewSharding(len(servers))

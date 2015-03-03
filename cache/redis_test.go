@@ -33,7 +33,7 @@ import (
 
 func TestCacheGet(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache", t, func() {
 		var name string
@@ -44,7 +44,7 @@ func TestCacheGet(t *testing.T) {
 
 func TestCacheSet(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Set", t, func() {
 		var test string
@@ -56,7 +56,7 @@ func TestCacheSet(t *testing.T) {
 
 func TestCacheDel(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Del", t, func() {
 		var test string
@@ -74,7 +74,7 @@ func TestCacheDel(t *testing.T) {
 
 func TestCacheIncr(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Incr", t, func() {
 		cache.Set("age", 100, time.Second*30)
@@ -87,7 +87,7 @@ func TestCacheIncr(t *testing.T) {
 
 func TestCacheDecr(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Decr", t, func() {
 		cache.Set("age", 100, time.Second*30)
@@ -100,7 +100,7 @@ func TestCacheDecr(t *testing.T) {
 
 func TestCacheExists(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Exists", t, func() {
 		So(cache.Exists("NotFound"), ShouldBeFalse)
@@ -109,7 +109,7 @@ func TestCacheExists(t *testing.T) {
 
 func TestCacheFlush(t *testing.T) {
 	settings := internal.Settings()
-	settings.Set("cache.redis.servers", []string{"redis://127.0.0.1:6379"})
+	settings.Set("CACHE_REDIS_SERVERS", []string{"redis://127.0.0.1:6379"})
 	cache := New()
 	Convey("Redis Cache Flush", t, func() {
 		cache.Set("age", 100, time.Second*30)

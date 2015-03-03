@@ -62,12 +62,12 @@ func init() {
 	// ------------------------------------------------
 	// if secret keys exists, create codecs.
 	// ------------------------------------------------
-	createSecrets(settings.Strings("secret.keys")...)
+	createSecrets(settings.Strings("SECRET_KEYS")...)
 
 	// ------------------------------------------------
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
-	if dir := settings.String("dir.templates", "templates"); fs.Exists(dir) {
+	if dir := settings.String("DIR_TEMPLATES", "templates"); fs.Exists(dir) {
 		templates = template.NewLoader(dir)
 		templates.Load()
 	}

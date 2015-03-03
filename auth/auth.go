@@ -43,7 +43,7 @@ func Hash(src, key string) []byte {
 // Encrypt creates a new password hash using a strong one-way bcrypt algorithm.
 // Source secret is hahsed with the given key before actual bcrypting.
 func Encrypt(src, key string) (secret string) {
-	cost := settings.Int("auth.encryption.cost", bcrypt.DefaultCost)
+	cost := settings.Int("AUTH_ENCRYPTION_COST", bcrypt.DefaultCost)
 	bytes, err := bcrypt.GenerateFromPassword(Hash(src, key), cost)
 	if err == nil {
 		secret = string(bytes)

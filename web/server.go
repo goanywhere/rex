@@ -183,7 +183,7 @@ func (self *Server) Group(path string) *Server {
 func (self *Server) FileServer(prefix, dir string) {
 	settings := internal.Settings()
 	if abs, err := filepath.Abs(dir); err == nil {
-		settings.Set("url.static", prefix)
+		settings.Set("URL_STATIC", prefix)
 		server := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
 		self.mux.PathPrefix(prefix).Handler(server)
 	} else {

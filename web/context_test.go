@@ -42,7 +42,7 @@ func TestContextStatus(t *testing.T) {
 	Convey("Response Status Code", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.String("200 Response")
+			ctx.Render("200 Response")
 		}))
 		defer server.Close()
 
@@ -53,7 +53,7 @@ func TestContextStatus(t *testing.T) {
 		server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
 			ctx.WriteHeader(http.StatusNotFound)
-			ctx.String("404 Response")
+			ctx.Render("404 Response")
 		}))
 		defer server.Close()
 		if response, err := http.Get(server.URL); err == nil {
@@ -67,7 +67,7 @@ func TestContextSize(t *testing.T) {
 		value := "Hello 中文測試"
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.String(value)
+			ctx.Render(value)
 		}))
 		defer server.Close()
 
@@ -85,7 +85,7 @@ func TestContextWritten(t *testing.T) {
 		var flag bool
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.String("Hello World")
+			ctx.Render("Hello World")
 		}))
 		defer server.Close()
 
@@ -103,7 +103,7 @@ func TestContextId(t *testing.T) {
 	Convey("Unique Context Id", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := NewContext(w, r)
-			ctx.String(ctx.Id())
+			ctx.Render(ctx.Id())
 		}))
 		defer server.Close()
 
@@ -134,7 +134,7 @@ func TestContextId(t *testing.T) {
 // ---------------------------------------------------------------------------
 func TestSession(t *testing.T) {
 	Convey("context#Session", t, func() {
-		name := settings.String("session.cookie.name")
+		name := settings.String("SESSION_COOKIE_NAME")
 		values := make(map[string]interface{})
 		values["number"] = 123
 
@@ -233,7 +233,7 @@ func TestSetCookie(t *testing.T) {
 }
 
 func TestSecureCookie(t *testing.T) {
-	settings.Set("secret.keys", crypto.Random(64))
+	settings.Set("SECRET_KEYS", crypto.Random(64))
 	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SecureCookie", t, func() {
 		raw, _ := securecookie.EncodeMulti("number", 123, secrets...)
@@ -260,7 +260,7 @@ func TestSecureCookie(t *testing.T) {
 }
 
 func TestSetSecureCookie(t *testing.T) {
-	settings.Set("secret.keys", crypto.Random(64))
+	settings.Set("SECRET_KEYS", crypto.Random(64))
 	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SetSecureCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

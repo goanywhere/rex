@@ -28,10 +28,10 @@ import (
 )
 
 func Env(next http.Handler) http.Handler {
-	var values = settings.Values("header")
+	var values = settings.Values("HTTP_HEADER")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for key, value := range values {
-			w.Header()[strings.Replace(key, ".", "-", -1)] = []string{value}
+			w.Header()[strings.Replace(key, "_", "-", -1)] = []string{value}
 		}
 		next.ServeHTTP(w, r)
 	})
