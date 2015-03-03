@@ -33,18 +33,20 @@ import (
 
 var settings = internal.Settings()
 
-// Hash creates secret hashed string for the source using the given key.
-func Hash(src, key string) []byte {
-	hash := hmac.New(sha1.New, []byte(key))
-	hash.Write([]byte(src))
-	return hash.Sum(nil)
+// hash creates secret hashed string for the source using the given key.
+func hash(src string) []byte {
+	if secret := settings.String("AUTH_SECRET_KEY"); secret != "" {
+		hash := hmac.New(sha1.New, []byte(secret))
+		hash.Write([]byte(src))
+		return hash.Sum(nil)
+	}
+	return []byte(src)
 }
 
 // Encrypt creates a new password hash using a strong one-way bcrypt algorithm.
-// Source secret is hahsed with the given key before actual bcrypting.
-func Encrypt(src, key string) (secret string) {
-	cost := settings.Int("AUTH_ENCRYPTION_COST", bcrypt.DefaultCost)
-	bytes, err := bcrypt.GenerateFromPassword(Hash(src, key), cost)
+// Source secret is hashed with the given key (if set) before actual bcrypting.
+func Encrypt(src string) (secret string) {
+	bytes, err := bcrypt.GenerateFromPassword(hash(src), bcrypt.DefaultCost)
 	if err == nil {
 		secret = string(bytes)
 	}
@@ -52,9 +54,9 @@ func Encrypt(src, key string) (secret string) {
 }
 
 // Verify checks that if the given hash matches the given source secret.
-// Source secret is hahsed with the given key before actual bcrypting.
-func Verify(src, secret, key string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(secret), Hash(src, key))
+// Source secret is hashed with the given key (if set) before actual bcrypting.
+func Verify(src, secret string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(secret), hash(src))
 	if err == nil {
 		return true
 	}

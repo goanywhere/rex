@@ -30,50 +30,50 @@ import (
 
 func TestEncrypt(t *testing.T) {
 	src := "I'mAPlainSecret"
-	key := "secretkey@example.com"
+	settings.Set("AUTH_SECRET_KEY", "secretkey@example.com")
 	Convey("auth.Encrypt Test", t, func() {
-		secret := Encrypt(src, key)
+		secret := Encrypt(src)
 		So(len(secret), ShouldEqual, 60)
-		So(secret, ShouldNotEqual, Encrypt(src, key))
-		So(secret, ShouldNotEqual, Encrypt(src, key))
-		So(secret, ShouldNotEqual, Encrypt(src, key))
-		So(secret, ShouldNotEqual, Encrypt(src, key))
-		So(secret, ShouldNotEqual, Encrypt(src, key))
+		So(secret, ShouldNotEqual, Encrypt(src))
+		So(secret, ShouldNotEqual, Encrypt(src))
+		So(secret, ShouldNotEqual, Encrypt(src))
+		So(secret, ShouldNotEqual, Encrypt(src))
+		So(secret, ShouldNotEqual, Encrypt(src))
 	})
 }
 
 func TestVerify(t *testing.T) {
 	src := "I'mAPlainSecret"
-	key := "secretkey@example.com"
+	//key := "secretkey@example.com"
 	Convey("auth.Verify Test", t, func() {
 		for index := 0; index < 10; index++ {
-			secret := Encrypt(src, key)
-			So(Verify(src, secret, key), ShouldBeTrue)
+			secret := Encrypt(src)
+			So(Verify(src, secret), ShouldBeTrue)
 		}
 	})
 }
 
 func BenchmarkHash(b *testing.B) {
 	src := "I'mAPlainSecret"
-	key := "secretkey@example.com"
+	settings.Set("AUTH_SECRET_KEY", "secretkey@example.com")
 	for index := 0; index < b.N; index++ {
-		Hash(src, key)
+		hash(src)
 	}
 }
 
 func BenchmarkEncrypt(b *testing.B) {
 	src := "I'mAPlainSecret"
-	key := "secretkey@example.com"
+	settings.Set("AUTH_SECRET_KEY", "secretkey@example.com")
 	for index := 0; index < b.N; index++ {
-		Encrypt(src, key)
+		Encrypt(src)
 	}
 }
 
 func BenchmarkVerify(b *testing.B) {
 	src := "I'mAPlainSecret"
-	key := "secretkey@example.com"
-	secret := Encrypt(src, key)
+	settings.Set("AUTH_SECRET_KEY", "secretkey@example.com")
+	secret := Encrypt(src)
 	for index := 0; index < b.N; index++ {
-		Verify(src, secret, key)
+		Verify(src, secret)
 	}
 }
