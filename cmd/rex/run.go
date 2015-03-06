@@ -25,7 +25,6 @@ package main
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -34,6 +33,7 @@ import (
 	"runtime"
 	"syscall"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/go-fsnotify/fsnotify"
 

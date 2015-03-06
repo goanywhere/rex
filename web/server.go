@@ -24,7 +24,6 @@ package web
 
 import (
 	"bytes"
-	"log"
 	"net/http"
 	"path/filepath"
 	"reflect"
@@ -32,6 +31,7 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 
 	"github.com/goanywhere/rex/internal"

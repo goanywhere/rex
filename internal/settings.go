@@ -35,7 +35,7 @@ var (
 
 func Settings() *env.Env {
 	once.Do(func() {
-		settings = env.New("rex")
+		settings = env.New()
 		settings.Set(DEBUG, true)
 		settings.Set(DIR_TEMPLATES, "templates")
 		// default environmental headers for modules.Env

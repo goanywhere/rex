@@ -23,10 +23,10 @@
 package cache
 
 import (
-	"log"
 	"net/url"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	redigo "github.com/garyburd/redigo/redis"
 
 	"github.com/goanywhere/rex/internal"

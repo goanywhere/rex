@@ -25,10 +25,11 @@ package template
 import (
 	"html/template"
 	"io/ioutil"
-	"log"
 	"path"
 	"regexp"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (

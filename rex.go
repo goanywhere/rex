@@ -32,7 +32,7 @@ Example:
 	)
 
 	func index(ctx *rex.Context) {
-		ctx.String("Hello World")
+		ctx.Render("Hello World")
 	}
 
 	func main() {
@@ -45,10 +45,11 @@ package rex
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"

@@ -25,13 +25,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
 	"github.com/goanywhere/rex/internal"

@@ -187,7 +187,6 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Common Modules
 - [X] Cache Framework
 - [X] Authentication Framework
-- [ ] Better Logging
 - [ ] Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration

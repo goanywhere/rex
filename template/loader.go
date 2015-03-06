@@ -24,12 +24,12 @@ package template
 
 import (
 	"html/template"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/goanywhere/x/fs"
 )
 

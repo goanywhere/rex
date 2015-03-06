@@ -23,8 +23,7 @@
 package web
 
 import (
-	"log"
-
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
