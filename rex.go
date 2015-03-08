@@ -132,9 +132,8 @@ func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
 	server.Use(modules.Env)
-	if Bool("DEBUG") {
-		server.Use(modules.LiveReload)
-	}
+	server.Use(modules.LiveReload)
+
 	flag.Parse()
 	server.Run(fmt.Sprintf(":%d", port))
 }

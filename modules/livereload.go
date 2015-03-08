@@ -87,6 +87,10 @@ func (self *writer) Write(data []byte) (size int, e error) {
 }
 
 func LiveReload(next http.Handler) http.Handler {
+	// ONLY run this under debug mode.
+	if !settings.Bool("DEBUG") {
+		return next
+	}
 	livereload.Start()
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == livereload.URL.WebSocket {
