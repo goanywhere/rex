@@ -129,17 +129,17 @@ func Use(modules ...web.Module) {
 var port int
 
 func Run() {
+	// common server middleware modules.
+	//server.Use(modules.XSRF)
+	server.Use(modules.Env)
+	if Bool("DEBUG") {
+		server.Use(modules.LiveReload)
+	}
 	flag.Parse()
 	server.Run(fmt.Sprintf(":%d", port))
 }
 
 func init() {
-	// common server middleware modules.
-	server.Use(modules.Env)
-	//server.Use(modules.XSRF)
-	//if Bool("debug") {
-	//server.Use(modules.LiveReload)
-	//}
 
 	// setup fundamental project root.
 	if cwd, err := os.Getwd(); err == nil {
