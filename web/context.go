@@ -25,6 +25,7 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -194,13 +195,21 @@ func (self *Context) RemoteAddr() string {
 // Render constructs final response data to the client side.
 // If Context.Layout is given, HTML page will be constructed
 // using built-in html/template package, data will be encoded
-// using JSON otherwise.
+// using JSON (default) | XML (Specified by ContentType Header)
+// encoder otherwise.
 func (self *Context) Render(v interface{}) {
 	var e error
 
 	if self.Layout == "" {
-		self.Header().Set(ContentType.Name, ContentType.JSON)
-		e = json.NewEncoder(self.buffer).Encode(v)
+		if ctype := self.Header().Get(ContentType.Name); strings.Contains(ctype, "xml") {
+			e = xml.NewEncoder(self.buffer).Encode(v)
+
+		} else {
+			if ctype == "" {
+				self.Header().Set(ContentType.Name, ContentType.JSON)
+			}
+			e = json.NewEncoder(self.buffer).Encode(v)
+		}
 
 	} else {
 		if template, exists := templates.Get(self.Layout); exists {
@@ -215,7 +224,6 @@ func (self *Context) Render(v interface{}) {
 	} else {
 		self.Error(http.StatusInternalServerError, e.Error())
 	}
-
 }
 
 // Write writes the data to the connection as part of an HTTP reply.
