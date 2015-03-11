@@ -37,7 +37,7 @@ func Settings() *env.Env {
 	once.Do(func() {
 		settings = env.New()
 		settings.Set(DEBUG, true)
-		settings.Set(DIR_TEMPLATES, "templates")
+		settings.Set("TEMPLATES", "views")
 		// default environmental headers for modules.Env
 		settings.Set(HTTP_HEADER_X_UA_Compatible, "deny")
 		settings.Set(HTTP_HEADER_X_Frame_Settings, "nosniff")

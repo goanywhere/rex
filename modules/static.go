@@ -20,8 +20,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package template
+package modules
 
-import "html/template"
+import (
+	"log"
+	"net/http"
+	"path/filepath"
+)
 
-var FuncMap = make(template.FuncMap)
+func Static(dir string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if abs, err := filepath.Abs(dir); err == nil {
+				static := http.FileServer(http.Dir(abs))
+				static.ServeHTTP(w, r)
+			} else {
+				log.Fatalf("Failed to setup file server: %v", err)
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}

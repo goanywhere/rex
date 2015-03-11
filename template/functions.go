@@ -22,9 +22,9 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import "strings"
-
+/*
 func static(path string) string {
 	var url = settings.String("URL_STATIC", "/static/")
 	return strings.Join([]string{strings.TrimRight(url, "/"), strings.TrimLeft(path, "/")}, "/")
 }
+*/

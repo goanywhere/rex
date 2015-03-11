@@ -24,8 +24,7 @@ package internal
 
 // Settings Keys
 const (
-	DEBUG         = "DEBUG"
-	DIR_TEMPLATES = "DIR_TEMPLATES"
+	DEBUG = "DEBUG"
 
 	HTTP_HEADER_X_UA_Compatible           = "HTTP_HEADER_X_UA_Compatible"
 	HTTP_HEADER_X_Frame_Settings          = "HTTP_HEADER_X_Frame_Settings"

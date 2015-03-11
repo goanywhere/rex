@@ -66,7 +66,7 @@ func init() {
 	// ------------------------------------------------
 	// templates folder exists => load HTML templates.
 	// ------------------------------------------------
-	if dir := settings.String("DIR_TEMPLATES", "templates"); fs.Exists(dir) {
+	if dir := settings.String("TEMPLATES"); fs.Exists(dir) {
 		templates = template.NewLoader(dir)
 		templates.Load()
 	}
