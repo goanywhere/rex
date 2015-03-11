@@ -99,11 +99,12 @@ import (
 )
 
 func index (ctx *web.Context) {
-    ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
+    ctx.Layout = "index.html"
+    ctx.Render(rex.H{"Name": "Hello"})  // Context.Render has the extends/include tag supports by default.
 }
 
 func json (ctx *web.Context) {
-    ctx.Render(rex.H{"success": true, "response": "This is a JSON Response"})
+    ctx.Render(rex.H{"Success": true, "Response": "This is a JSON Response"})
 }
 
 func main() {
@@ -127,7 +128,8 @@ import (
 )
 
 func index (ctx *web.Context) {
-    ctx.Render("index.html")
+    ctx.Layout = "index.html"
+    ctx.Render(nil)
 }
 
 func main() {
