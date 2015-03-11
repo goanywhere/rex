@@ -28,7 +28,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -41,6 +40,7 @@ import (
 type Context struct {
 	http.ResponseWriter
 	Request *http.Request
+	Layout  string
 
 	size   int
 	status int
@@ -164,9 +164,10 @@ func (self *Context) Error(status int, errors ...string) {
 	}
 }
 
-// flush sends any buffered data to the client & clear all context values.
-func (self *Context) flush() {
+// Flush sends any buffered data to the client & clear all context values.
+func (self *Context) Flush() {
 	if self.buffer.Len() > 0 {
+		self.Layout = ""
 		self.Write(self.buffer.Bytes())
 		self.buffer.Reset()
 	}
@@ -190,55 +191,31 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Render constructs the object values for string & JSON object.
-func (self *Context) Render(values interface{}) {
-	switch T := values.(type) {
-	case string:
-		self.Header().Set(ContentType.Name, ContentType.Text)
-		self.Write([]byte(T))
+// Render constructs final response data to the client side.
+// If Context.Layout is given, HTML page will be constructed
+// using built-in html/template package, data will be encoded
+// using JSON otherwise.
+func (self *Context) Render(v interface{}) {
+	var e error
 
-	default:
+	if self.Layout == "" {
 		self.Header().Set(ContentType.Name, ContentType.JSON)
-		err := json.NewEncoder(self.buffer).Encode(values)
-
-		if err == nil {
-			self.flush()
-
-		} else {
-			self.Error(http.StatusInternalServerError, err.Error())
-		}
-	}
-}
-
-// RenderTemplate constructs the HTML/XML page using html/template.
-// ContentType is determined by extension of the given template.
-func (self *Context) RenderTemplate(filename string, values ...interface{}) {
-	var err error
-
-	switch filepath.Ext(filename) {
-	case ".xml":
-		self.Header().Set(ContentType.Name, ContentType.XML)
-
-	default:
-		self.Header().Set(ContentType.Name, ContentType.HTML)
-	}
-
-	if template, exists := templates.Get(filename); exists {
-		if len(values) == 0 {
-			err = template.Execute(self.buffer, nil)
-		} else {
-			err = template.Execute(self.buffer, values[0])
-		}
-	} else {
-		err = fmt.Errorf("Template <%s> does not exists", filename)
-	}
-
-	if err == nil {
-		self.flush()
+		e = json.NewEncoder(self.buffer).Encode(v)
 
 	} else {
-		self.Error(http.StatusInternalServerError, err.Error())
+		if template, exists := templates.Get(self.Layout); exists {
+			e = template.Execute(self.buffer, v)
+		} else {
+			e = fmt.Errorf("Template <%s> does not exists", self.Layout)
+		}
 	}
+
+	if e == nil {
+		self.Flush()
+	} else {
+		self.Error(http.StatusInternalServerError, e.Error())
+	}
+
 }
 
 // Write writes the data to the connection as part of an HTTP reply.
