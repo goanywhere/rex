@@ -212,6 +212,8 @@ func (self *Context) Render(v interface{}) {
 		}
 
 	} else {
+		self.Header().Set(ContentType.Name, ContentType.HTML)
+
 		if template, exists := templates.Get(self.Layout); exists {
 			e = template.Execute(self.buffer, v)
 		} else {
