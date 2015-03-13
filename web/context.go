@@ -235,8 +235,12 @@ func (self *Context) Render(filename string, v ...interface{}) {
 	self.Header().Set(ContentType.Name, ContentType.HTML)
 
 	if template, exists := templates.Get(filename); exists {
-		self.error = template.Execute(self.buffer, v)
+		if len(v) == 0 {
+			self.error = template.Execute(self.buffer, nil)
 
+		} else {
+			self.error = template.Execute(self.buffer, v[0])
+		}
 	} else {
 		self.error = fmt.Errorf("Template <%s> does not exists", filename)
 	}
