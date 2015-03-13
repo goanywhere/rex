@@ -22,6 +22,13 @@
  * ----------------------------------------------------------------------*/
 package template
 
-import "html/template"
+import (
+	"html/template"
 
-var FuncMap = make(template.FuncMap)
+	"github.com/goanywhere/rex/internal"
+)
+
+var (
+	FuncMap  = make(template.FuncMap)
+	settings = internal.Settings()
+)

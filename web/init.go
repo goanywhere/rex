@@ -23,6 +23,10 @@
 package web
 
 import (
+	"path"
+	"path/filepath"
+	"runtime"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/securecookie"
 
@@ -57,17 +61,26 @@ func createSecrets(keys ...string) {
 // configure initialize all application related settings before running.
 // Server Secret Keys
 func init() {
-	settings.Load(".env")
+	// ------------------------------------------------
+	// setup fundamental project root.
+	// ------------------------------------------------
+	_, filename, _, _ := runtime.Caller(2)
+	if root, err := filepath.Abs(path.Dir(filename)); err == nil {
+		settings.Set("root", root)
+		// custom settings
+		settings.Load(filepath.Join(root, ".env"))
+		// ------------------------------------------------
+		// templates folder exists => load HTML templates.
+		// ------------------------------------------------
+		if dir := filepath.Join(root, settings.String("TEMPLATES")); fs.Exists(dir) {
+			templates = template.NewLoader(dir)
+			templates.Load()
+		}
+	} else {
+		log.Fatalf("Failed to retrieve project root: %v", err)
+	}
 	// ------------------------------------------------
 	// if secret keys exists, create codecs.
 	// ------------------------------------------------
 	createSecrets(settings.Strings("SECRET_KEYS")...)
-
-	// ------------------------------------------------
-	// templates folder exists => load HTML templates.
-	// ------------------------------------------------
-	if dir := settings.String("TEMPLATES"); fs.Exists(dir) {
-		templates = template.NewLoader(dir)
-		templates.Load()
-	}
 }

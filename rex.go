@@ -46,10 +46,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
-
-	log "github.com/Sirupsen/logrus"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
@@ -139,15 +135,6 @@ func Run() {
 }
 
 func init() {
-
-	// setup fundamental project root.
-	if cwd, err := os.Getwd(); err == nil {
-		root, _ := filepath.Abs(cwd)
-		Define("root", root)
-	} else {
-		log.Fatalf("Failed to retrieve project root: %v", err)
-	}
-
 	// cmd parameters take the priority.
 	flag.IntVar(&port, "port", 5000, "port to run the application server")
 }

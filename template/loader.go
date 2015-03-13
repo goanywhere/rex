@@ -48,7 +48,7 @@ type Loader struct {
 
 func NewLoader(path string) *Loader {
 	loader := new(Loader)
-	loader.root, _ = filepath.Abs(path)
+	loader.root = path
 	loader.templates = make(map[string]*template.Template)
 	return loader
 }
@@ -96,6 +96,7 @@ func (self *Loader) Load() (pages int) {
 		}
 
 		self.loaded = true
+		log.Debugf("%s templates loaded", pages)
 	}
 	return
 }
