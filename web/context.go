@@ -41,13 +41,13 @@ import (
 type Context struct {
 	http.ResponseWriter
 	Request *http.Request
-	Layout  string
 
 	size   int
 	status int
 
-	session Session
+	error   error
 	buffer  *bytes.Buffer
+	session Session
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -167,10 +167,15 @@ func (self *Context) Error(status int, errors ...string) {
 
 // Flush sends any buffered data to the client & clear all context values.
 func (self *Context) Flush() {
-	if self.buffer.Len() > 0 {
-		self.Layout = ""
-		self.Write(self.buffer.Bytes())
-		self.buffer.Reset()
+	defer func() { self.error = nil }()
+
+	if self.error == nil {
+		if self.buffer.Len() > 0 {
+			self.Write(self.buffer.Bytes())
+			self.buffer.Reset()
+		}
+	} else {
+		self.Error(http.StatusInternalServerError, self.error.Error())
 	}
 }
 
@@ -192,40 +197,51 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Render constructs final response data to the client side.
-// If Context.Layout is given, HTML page will be constructed
-// using built-in html/template package, data will be encoded
-// using JSON (default) | XML (Specified by ContentType Header)
-// encoder otherwise.
-func (self *Context) Render(v interface{}) {
-	var e error
+// Send constructs response body using the given object, the object can be string or object.
+// If the parameter is a string, rex sets the "Content-Type" to "text/plain" along with the data.
+// Otherwise the given object will be encoded with JSON (Content-Type: "application/json")
+// unless the "Content-Type" is set as "application/xml" (XML encoder will be used if so).
+func (self *Context) Send(v interface{}) {
 
-	if self.Layout == "" {
+	switch T := v.(type) {
+	case string:
+		self.Header().Set(ContentType.Name, ContentType.Text)
+		self.Write([]byte(T))
+
+	default:
 		if ctype := self.Header().Get(ContentType.Name); strings.Contains(ctype, "xml") {
-			e = xml.NewEncoder(self.buffer).Encode(v)
+			self.error = xml.NewEncoder(self.buffer).Encode(v)
 
 		} else {
 			if ctype == "" {
 				self.Header().Set(ContentType.Name, ContentType.JSON)
 			}
-			e = json.NewEncoder(self.buffer).Encode(v)
-		}
-
-	} else {
-		self.Header().Set(ContentType.Name, ContentType.HTML)
-
-		if template, exists := templates.Get(self.Layout); exists {
-			e = template.Execute(self.buffer, v)
-		} else {
-			e = fmt.Errorf("Template <%s> does not exists", self.Layout)
+			self.error = json.NewEncoder(self.buffer).Encode(v)
 		}
 	}
+	self.Flush()
+}
 
-	if e == nil {
-		self.Flush()
+// Render constructs HTML page using html/template to the client side.
+// Package template (rex/template) brings shortcuts for using standard "html/template",
+// in addtions to the standard (& vanilla) way, it also add some helper tags like
+//
+//	{% extends "layouts/base.html" %}
+//
+//	{% include "partial/header.html" %}
+//
+//to make you template rendering much more easier.
+func (self *Context) Render(filename string, v ...interface{}) {
+	self.Header().Set(ContentType.Name, ContentType.HTML)
+
+	if template, exists := templates.Get(filename); exists {
+		self.error = template.Execute(self.buffer, v)
+
 	} else {
-		self.Error(http.StatusInternalServerError, e.Error())
+		self.error = fmt.Errorf("Template <%s> does not exists", filename)
 	}
+
+	self.Flush()
 }
 
 // Write writes the data to the connection as part of an HTTP reply.

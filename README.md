@@ -78,7 +78,7 @@ Rex's solution? Simple, in addition to the standard tags, we introduce two "new"
 ```go
 import "github.com/goanywhere/rex/template"
 
-loader := template.NewLoader("templates")
+loader := template.NewLoader("views")
 template := loader.Parse("index.html")
 ```
 
@@ -98,13 +98,12 @@ import (
     "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *web.Context) {
-    ctx.Layout = "index.html"
-    ctx.Render(rex.H{"Name": "Hello"})  // Context.Render has the extends/include tag supports by default.
+func index(ctx *web.Context) {
+    ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
 }
 
-func json (ctx *web.Context) {
-    ctx.Render(rex.H{"Success": true, "Response": "This is a JSON Response"})
+func json(ctx *web.Context) {
+    ctx.Send(rex.H{"Success": true, "Response": "This is a JSON Response"})
 }
 
 func main() {
@@ -128,8 +127,7 @@ import (
 )
 
 func index (ctx *web.Context) {
-    ctx.Layout = "index.html"
-    ctx.Render(nil)
+    ctx.Render("index.html")
 }
 
 func main() {
