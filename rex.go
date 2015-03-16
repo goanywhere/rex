@@ -44,7 +44,6 @@ package rex
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 
 	"github.com/goanywhere/rex/internal"
@@ -131,7 +130,7 @@ func Run() {
 	server.Use(modules.LiveReload)
 
 	flag.Parse()
-	server.Run(fmt.Sprintf(":%d", port))
+	server.Run(port)
 }
 
 func init() {

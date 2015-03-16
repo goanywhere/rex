@@ -35,7 +35,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/go-fsnotify/fsnotify"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules/livereload"
@@ -44,7 +43,7 @@ import (
 
 var (
 	port      int
-	watchList = regexp.MustCompile(`\.(go|html|css|js|jsx|less|sass|scss)$`)
+	watchList = regexp.MustCompile(`\.(go|html)$`)
 )
 
 type app struct {
@@ -68,17 +67,6 @@ func (self *app) build() {
 		log.Fatalf("Failed to compile the application: %v", e)
 	}
 
-	// * run (build) script if we have npm & package.json.
-	if e := exec.Command("npm", "-v").Run(); e == nil {
-		if fs.Exists(filepath.Join(self.dir, "package.json")) {
-			cmd := exec.Command("npm", "run-script", self.task)
-			cmd.Dir = self.dir
-			out, e := cmd.CombinedOutput()
-			if e != nil {
-				log.Fatalf("Failed to run npm script\n%s", string(out))
-			}
-		}
-	}
 	done <- true
 }
 
@@ -135,12 +123,13 @@ func (self *app) Start() {
 	self.build()
 	gorun <- true
 
-	wd := fs.Watchdog(self.dir)
-	wd.Ignore("build", "dist")
-	wd.Add(watchList, func(event *fsnotify.Event) {
+	watcher := fs.NewWatcher(self.dir)
+	log.Infof("Start watching: %s", self.dir)
+	watcher.Add(watchList, func(filepath string) {
+		log.Infof("%s updated", filepath)
 		self.rerun(gorun)
 	})
-	wd.Start()
+	watcher.Start()
 }
 
 // Run creates an executable application package with livereload supports.

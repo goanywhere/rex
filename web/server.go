@@ -24,6 +24,7 @@ package web
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"reflect"
@@ -209,14 +210,14 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Run starts the application server to serve incoming requests at the given address.
-func (self *Server) Run(address string) {
+func (self *Server) Run(port int) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		log.Printf("Application server started [%s]", address)
+		log.Printf("Application server is listening [%d]", port)
 	}()
-	if err := http.ListenAndServe(address, self); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), self); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)
 	}
 }
