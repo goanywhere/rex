@@ -23,6 +23,7 @@
 package web
 
 import (
+	"html/template"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -31,19 +32,19 @@ import (
 	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/template"
 
 	"github.com/goanywhere/x/fs"
 )
 
 var (
+	FuncMap  = make(template.FuncMap)
 	settings = internal.Settings()
 
 	// application secret keys
 	secrets []securecookie.Codec
 
 	// application page templates (Settings: dir.templates)
-	templates *template.Loader
+	templates *TemplateLoader
 )
 
 func createSecrets(keys ...string) {
@@ -73,7 +74,7 @@ func init() {
 		// templates folder exists => load HTML templates.
 		// ------------------------------------------------
 		if dir := filepath.Join(root, settings.String("TEMPLATES")); fs.Exists(dir) {
-			templates = template.NewLoader(dir)
+			templates = NewTemplateLoader(dir)
 			templates.Load()
 		}
 	} else {

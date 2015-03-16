@@ -135,13 +135,14 @@ func (self *app) Start() {
 // Run creates an executable application package with livereload supports.
 func Run(ctx *cli.Context) {
 	port = ctx.Int("port")
+	path := ctx.String("path")
 
-	pkg, err := build.ImportDir(cwd, build.AllowBinary)
+	pkg, err := build.ImportDir(path, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {
 		log.Fatalf("No buildable Go source files found")
 	}
 	app := new(app)
-	app.dir = cwd
+	app.dir = path
 	app.binary = filepath.Join(os.TempDir(), "rex-bin")
 	if runtime.GOOS == "windows" {
 		app.binary += ".exe"

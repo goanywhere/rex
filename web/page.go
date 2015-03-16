@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package template
+package web
 
 import (
 	"html/template"
@@ -38,8 +38,8 @@ var (
 )
 
 type page struct {
-	name   string  // name of the page under laoder's root path.
-	loader *Loader // file loader.
+	name   string          // name of the page under laoder's root path.
+	loader *TemplateLoader // file loader.
 }
 
 // Ancesters finds all ancestors absolute path using jinja's syntax

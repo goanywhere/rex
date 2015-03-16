@@ -20,25 +20,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package template
+package web
 
 import (
 	"html/template"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/goanywhere/x/fs"
 )
 
-var (
-	regexIgnores   = regexp.MustCompile(`(include|layout)s?`)
-	regexDocuments = regexp.MustCompile(`(\.html|\.json|\.xml)$`)
-)
+var regexIgnores = regexp.MustCompile(`(include|layout)s?`)
 
-type Loader struct {
+type TemplateLoader struct {
 	sync.RWMutex
 
 	root      string
@@ -46,15 +44,15 @@ type Loader struct {
 	templates map[string]*template.Template
 }
 
-func NewLoader(path string) *Loader {
-	loader := new(Loader)
+func NewTemplateLoader(path string) *TemplateLoader {
+	loader := new(TemplateLoader)
 	loader.root = path
 	loader.templates = make(map[string]*template.Template)
 	return loader
 }
 
 // Exists checks if the given filename exists under the root.
-func (self *Loader) Exists(name string) bool {
+func (self *TemplateLoader) Exists(name string) bool {
 	abspath := filepath.Join(self.root, name)
 	if _, err := os.Stat(abspath); os.IsNotExist(err) {
 		return false
@@ -63,7 +61,7 @@ func (self *Loader) Exists(name string) bool {
 }
 
 // Get retrieves the parsed template from preloaded pool.
-func (self *Loader) Get(name string) (*template.Template, bool) {
+func (self *TemplateLoader) Get(name string) (*template.Template, bool) {
 	template, exists := self.templates[name]
 	return template, exists
 }
@@ -71,7 +69,7 @@ func (self *Loader) Get(name string) (*template.Template, bool) {
 // Load loads & parses all templates under the root.
 // This should be called ASAP since it will cache all
 // parsed templates & cause panic if there's any error occured.
-func (self *Loader) Load() (pages int) {
+func (self *TemplateLoader) Load() (pages int) {
 	if fs.Exists(self.root) && !self.loaded {
 		self.Lock()
 		defer self.Unlock()
@@ -81,7 +79,7 @@ func (self *Loader) Load() (pages int) {
 			if info.IsDir() && regexIgnores.MatchString(info.Name()) {
 				return filepath.SkipDir
 			}
-			if !info.IsDir() && regexDocuments.MatchString(info.Name()) {
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
 				if name, e := filepath.Rel(self.root, path); e == nil {
 					self.templates[name] = self.page(name).parse()
 					pages++
@@ -102,7 +100,7 @@ func (self *Loader) Load() (pages int) {
 }
 
 // internal page helper.
-func (self *Loader) page(name string) *page {
+func (self *TemplateLoader) page(name string) *page {
 	page := new(page)
 	page.name = name
 	page.loader = self
@@ -110,7 +108,7 @@ func (self *Loader) page(name string) *page {
 }
 
 // Reset clears the cached pages.
-func (self *Loader) Reset() {
+func (self *TemplateLoader) Reset() {
 	self.Lock()
 	defer self.Unlock()
 	for k := range self.templates {

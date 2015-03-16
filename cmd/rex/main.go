@@ -55,9 +55,9 @@ var commands = []cli.Command{
 				Usage: "port to run the application server",
 			},
 			cli.StringFlag{
-				Name:  "task",
-				Value: "build",
-				Usage: "task script for npm (http://npmjs.com/)",
+				Name:  "path",
+				Value: ".",
+				Usage: "path to run the application server",
 			},
 		},
 	},

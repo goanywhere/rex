@@ -32,4 +32,4 @@ in addtions to the standard (& vanilla) way, it also add some helper tags like
 to make you template rendering much more easier.
 */
 
-package template
+package web
