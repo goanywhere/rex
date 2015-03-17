@@ -33,6 +33,7 @@ import (
 
 	"github.com/goanywhere/rex/internal"
 
+	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
 
@@ -67,13 +68,15 @@ func init() {
 	// ------------------------------------------------
 	_, filename, _, _ := runtime.Caller(2)
 	if root, err := filepath.Abs(path.Dir(filename)); err == nil {
-		settings.Set("root", root)
+		settings.Root = root
 		// custom settings
-		settings.Load(filepath.Join(root, ".env"))
+		env.Load(filepath.Join(root, ".env"))
+		env.Map(settings)
+		env.Map(settings.Cookie)
 		// ------------------------------------------------
 		// templates folder exists => load HTML templates.
 		// ------------------------------------------------
-		if dir := filepath.Join(root, settings.String("TEMPLATES")); fs.Exists(dir) {
+		if dir := filepath.Join(root, settings.Views); fs.Exists(dir) {
 			templates = NewTemplateLoader(dir)
 			templates.Load()
 		}
@@ -83,5 +86,5 @@ func init() {
 	// ------------------------------------------------
 	// if secret keys exists, create codecs.
 	// ------------------------------------------------
-	createSecrets(settings.Strings("SECRET_KEYS")...)
+	createSecrets(settings.SecretKeys...)
 }

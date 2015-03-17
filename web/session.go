@@ -67,6 +67,5 @@ func (self *session) Set(key string, value interface{}) {
 }
 
 func (self *session) Save() error {
-	name := settings.String("SESSION_COOKIE_NAME")
-	return self.ctx.SetSecureCookie(name, self.values)
+	return self.ctx.SetSecureCookie(settings.Cookie.Name, self.values)
 }

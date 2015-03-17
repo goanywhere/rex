@@ -51,30 +51,7 @@ import (
 	"github.com/goanywhere/rex/web"
 )
 
-var (
-	settings = internal.Settings()
-
-	// Define saves primitive values using os environment.
-	Define = settings.Set
-
-	// Bool retrieves boolean value associated with the given key from environ.
-	Bool = settings.Bool
-
-	// Float retrieves float64 value associated with the given key from environ.
-	Float = settings.Float
-
-	// Int retrieves int value associated with the given key from environ.
-	Int = settings.Int
-
-	// Int64 retrieves int64 value associated with the given key from environ.
-	Int64 = settings.Int64
-
-	// String retrieves string value associated with the given key from environ.
-	String = settings.String
-
-	// Strings retrieves string array associated with the given key from environ.
-	Strings = settings.Strings
-)
+var Settings = internal.Settings()
 
 // default rex mux with reasonable middleware modules.
 var server = web.New()
@@ -135,5 +112,5 @@ func Run() {
 
 func init() {
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", 5000, "port to run the application server")
+	flag.IntVar(&port, "port", Settings.Port, "port to run the application server")
 }

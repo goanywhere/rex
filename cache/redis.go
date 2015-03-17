@@ -30,6 +30,7 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 
 	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/x/env"
 )
 
 type redis struct {
@@ -42,13 +43,13 @@ type redis struct {
 }
 
 func New() *redis {
-	servers := settings.Strings("CACHE_REDIS_SERVERS")
+	servers := env.Strings("CACHE_REDIS_SERVERS")
 
 	create := func(rawurl string) *redigo.Pool {
 		pool := new(redigo.Pool)
-		pool.MaxIdle = settings.Int("CACHE_REDIS_MAXIDLE", 10)
-		pool.MaxActive = settings.Int("CACHE_REDIS_MAXACTIVE", 100)
-		pool.IdleTimeout = time.Duration(settings.Int("CACHE_REDIS_IDLETIMEOUT", 180)) * time.Second
+		pool.MaxIdle = env.Int("CACHE_REDIS_MAXIDLE", 10)
+		pool.MaxActive = env.Int("CACHE_REDIS_MAXACTIVE", 100)
+		pool.IdleTimeout = time.Duration(env.Int("CACHE_REDIS_IDLETIMEOUT", 180)) * time.Second
 
 		pool.Dial = func() (conn redigo.Conn, err error) {
 			var URL *url.URL

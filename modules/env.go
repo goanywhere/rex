@@ -24,14 +24,29 @@ package modules
 
 import (
 	"net/http"
+	"os"
 	"strings"
 )
 
 func Env(next http.Handler) http.Handler {
-	var values = settings.Values("HTTP_HEADER")
+	var namespace = "HTTP_"
+	// default environmental headers for modules.Env
+	var defaults = make(map[string]string)
+	defaults["X-UA-Compatible"] = "deny"
+	defaults["X-Frame-Settings"] = "nosniff"
+	defaults["X-Content-Type_Options"] = "IE=Edge,chrome=1"
+	defaults["Strict-Transport-Security"] = "max-age=31536000; includeSubdomains; preload"
+
+	for _, line := range os.Environ() {
+		if strings.HasPrefix(line, namespace) {
+			kv := strings.SplitN(strings.TrimPrefix(line, namespace), "=", 2)
+			defaults[strings.Replace(kv[0], "_", "-", -1)] = kv[1]
+		}
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		for key, value := range values {
-			w.Header()[strings.Replace(key, "_", "-", -1)] = []string{value}
+		for key, value := range defaults {
+			w.Header().Set(key, value)
 		}
 		next.ServeHTTP(w, r)
 	})

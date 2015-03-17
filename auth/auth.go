@@ -29,13 +29,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/x/env"
 )
 
 var settings = internal.Settings()
 
 // hash creates secret hashed string for the source using the given key.
 func hash(src string) []byte {
-	if secret := settings.String("AUTH_SECRET_KEY"); secret != "" {
+	if secret := env.String("SECRET_KEY"); secret != "" {
 		hash := hmac.New(sha1.New, []byte(secret))
 		hash.Write([]byte(src))
 		return hash.Sum(nil)

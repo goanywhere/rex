@@ -22,35 +22,47 @@
  * ----------------------------------------------------------------------*/
 package internal
 
-import (
-	"sync"
+import "sync"
 
-	"github.com/goanywhere/x/env"
-)
+type cookie struct {
+	Name     string `env:"COOKIE_NAME"`
+	Path     string `env:"COOKIE_PATH"`
+	Domain   string `env:"COOKIE_DOMAIN"`
+	Secure   bool   `env:"COOKIE_SECURE"`
+	HttpOnly bool   `env:"COOKIE_HTTPONLY"`
+	MaxAge   int    `env:"COOKIE_MAXAGE"`
+}
+
+type settings struct {
+	Cookie *cookie
+
+	Root       string
+	Debug      bool     `env:"DEBUG"`
+	Port       int      `env:"PORT"`
+	Views      string   `env:"VIEWS"`
+	SecretKey  string   `env:"SECRET_KEY"`
+	SecretKeys []string `env:"SECRET_KEYS"`
+}
 
 var (
-	once     sync.Once
-	settings *env.Env
+	once   sync.Once
+	config *settings
 )
 
-func Settings() *env.Env {
+func Settings() *settings {
 	once.Do(func() {
-		settings = env.New()
-		settings.Set(DEBUG, true)
-		settings.Set("TEMPLATES", "views")
-		// default environmental headers for modules.Env
-		settings.Set(HTTP_HEADER_X_UA_Compatible, "deny")
-		settings.Set(HTTP_HEADER_X_Frame_Settings, "nosniff")
-		settings.Set(HTTP_HEADER_X_XSS_Protection, "1; mode=block")
-		settings.Set(HTTP_HEADER_X_Content_Type_Options, "IE=Edge,chrome=1")
-		settings.Set(HTTP_HEADER_Strict_Transport_Security, "max-age=31536000; includeSubdomains; preload")
+		config = new(settings)
 		// session cookie defaults
-		settings.Set(SESSION_COOKIE_NAME, "session")
-		settings.Set(SESSION_COOKIE_PATH, "/")
-		settings.Set(SESSION_COOKIE_DOMAIN, "")
-		settings.Set(SESSION_COOKIE_SECURE, false)
-		settings.Set(SESSION_COOKIE_HTTPONLY, true)
-		settings.Set(SESSION_COOKIE_MAXAGE, 3600*24*7)
+		config.Debug = true
+		config.Port = 5000
+		config.Views = "views"
+		config.Cookie = new(cookie)
+		config.Cookie.Name = "session"
+		config.Cookie.Path = "/"
+		config.Cookie.Domain = ""
+		config.Cookie.Secure = false
+		config.Cookie.HttpOnly = true
+		config.Cookie.MaxAge = 3600 * 24 * 7
 	})
-	return settings
+	return config
 }

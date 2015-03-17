@@ -34,8 +34,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-
-	"github.com/goanywhere/rex/internal"
 )
 
 type (
@@ -182,9 +180,7 @@ func (self *Server) Group(path string) *Server {
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
 func (self *Server) FileServer(prefix, dir string) {
-	settings := internal.Settings()
 	if abs, err := filepath.Abs(dir); err == nil {
-		settings.Set("URL_STATIC", prefix)
 		server := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
 		self.mux.PathPrefix(prefix).Handler(server)
 	} else {
