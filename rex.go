@@ -51,7 +51,12 @@ import (
 	"github.com/goanywhere/rex/web"
 )
 
-var Settings = internal.Settings()
+var (
+	settings = internal.Settings()
+
+	// Serve starts serving the requests at the pre-defined address from settings.
+	Port = settings.Port
+)
 
 // default rex mux with reasonable middleware modules.
 var server = web.New()
@@ -97,9 +102,6 @@ func Use(modules ...web.Module) {
 	server.Use(modules...)
 }
 
-// Serve starts serving the requests at the pre-defined address from settings.
-var port int
-
 func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
@@ -107,10 +109,10 @@ func Run() {
 	server.Use(modules.LiveReload)
 
 	flag.Parse()
-	server.Run(port)
+	server.Run(Port)
 }
 
 func init() {
 	// cmd parameters take the priority.
-	flag.IntVar(&port, "port", Settings.Port, "port to run the application server")
+	flag.IntVar(&Port, "port", Port, "port to run the application server")
 }

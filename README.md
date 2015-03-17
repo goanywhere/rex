@@ -132,8 +132,7 @@ func index (ctx *web.Context) {
 
 func main() {
     // Override default 5000 port here.
-    // can be accesed via rex.Int("port")
-    rex.Define("port", 9394)
+    rex.Port = 9394
 
     rex.Get("/", index)
     rex.Run()
