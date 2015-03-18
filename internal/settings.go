@@ -24,17 +24,17 @@ package internal
 
 import "sync"
 
-type cookie struct {
-	Name     string `env:"COOKIE_NAME"`
-	Path     string `env:"COOKIE_PATH"`
-	Domain   string `env:"COOKIE_DOMAIN"`
-	Secure   bool   `env:"COOKIE_SECURE"`
-	HttpOnly bool   `env:"COOKIE_HTTPONLY"`
-	MaxAge   int    `env:"COOKIE_MAXAGE"`
+type session struct {
+	Name     string `env:"SESSION_COOKIE_NAME"`
+	Path     string `env:"SESSION_COOKIE_PATH"`
+	Domain   string `env:"SESSION_COOKIE_DOMAIN"`
+	Secure   bool   `env:"SESSION_COOKIE_SECURE"`
+	HttpOnly bool   `env:"SESSION_COOKIE_HTTPONLY"`
+	MaxAge   int    `env:"SESSION_COOKIE_MAXAGE"`
 }
 
 type settings struct {
-	Cookie *cookie
+	Session *session
 
 	Root       string
 	Debug      bool     `env:"DEBUG"`
@@ -56,13 +56,13 @@ func Settings() *settings {
 		config.Debug = true
 		config.Port = 5000
 		config.Views = "views"
-		config.Cookie = new(cookie)
-		config.Cookie.Name = "session"
-		config.Cookie.Path = "/"
-		config.Cookie.Domain = ""
-		config.Cookie.Secure = false
-		config.Cookie.HttpOnly = true
-		config.Cookie.MaxAge = 3600 * 24 * 7
+		config.Session = new(session)
+		config.Session.Name = "session"
+		config.Session.Path = "/"
+		config.Session.Domain = ""
+		config.Session.Secure = false
+		config.Session.HttpOnly = true
+		config.Session.MaxAge = 3600 * 24 * 7
 	})
 	return config
 }

@@ -43,7 +43,7 @@ import (
 
 var (
 	port      int
-	watchList = regexp.MustCompile(`\.(go|html)$`)
+	watchList = regexp.MustCompile(`\.(go|html|atom|rss|xml)$`)
 )
 
 type app struct {
