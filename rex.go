@@ -45,7 +45,6 @@ package rex
 import (
 	"flag"
 	"net/http"
-	"runtime"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
@@ -53,8 +52,7 @@ import (
 )
 
 var (
-	_, here, _, _ = runtime.Caller(1)
-	settings      = internal.Settings()
+	settings = internal.Settings()
 
 	// Serve starts serving the requests at the pre-defined address from settings.
 	Port = settings.Port

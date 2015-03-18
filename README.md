@@ -135,7 +135,7 @@ import (
 )
 
 func Index(ctx *web.Context) {
-    ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
+    ctx.Render("index.html")
 }
 
 func XML(ctx *web.Context) {
