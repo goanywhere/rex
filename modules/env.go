@@ -34,7 +34,7 @@ func Env(next http.Handler) http.Handler {
 	var defaults = make(map[string]string)
 	defaults["X-UA-Compatible"] = "deny"
 	defaults["X-Frame-Settings"] = "nosniff"
-	defaults["X-Content-Type_Options"] = "IE=Edge,chrome=1"
+	defaults["X-Content-Type-Options"] = "IE=Edge,chrome=1"
 	defaults["Strict-Transport-Security"] = "max-age=31536000; includeSubdomains; preload"
 
 	for _, line := range os.Environ() {
@@ -46,7 +46,7 @@ func Env(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for key, value := range defaults {
-			w.Header().Set(key, value)
+			w.Header()[key] = []string{value}
 		}
 		next.ServeHTTP(w, r)
 	})
