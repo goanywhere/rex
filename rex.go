@@ -32,7 +32,7 @@ Example:
 	)
 
 	func index(ctx *rex.Context) {
-		ctx.Render("Hello World")
+		ctx.Send("Hello World")
 	}
 
 	func main() {
