@@ -196,6 +196,36 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
+// Render constructs HTML page using html/template to the client side.
+// Package template (rex/template) brings shortcuts for using standard "html/template",
+// in addtions to the standard (& vanilla) way, it also add some helper tags like
+//
+//	{% extends "layouts/base.html" %}
+//
+//	{% include "partial/header.html" %}
+//
+//to make you template rendering much more easier.
+func (self *Context) Render(filename string, v ...interface{}) {
+	if strings.HasSuffix(filename, ".xml") {
+		self.Header().Set(ContentType.Name, ContentType.XML)
+	} else {
+		self.Header().Set(ContentType.Name, ContentType.HTML)
+	}
+
+	if template, exists := templates.Get(filename); exists {
+		if len(v) == 0 {
+			self.error = template.Execute(self.buffer, nil)
+
+		} else {
+			self.error = template.Execute(self.buffer, v[0])
+		}
+	} else {
+		self.error = fmt.Errorf("Template <%s> does not exists", filename)
+	}
+
+	self.Flush()
+}
+
 // Send constructs response body using the given object, the object can be string or object.
 // If the parameter is a string, rex sets the "Content-Type" to "text/plain" along with the data.
 // Otherwise the given object will be encoded with JSON (Content-Type: "application/json")
@@ -209,6 +239,7 @@ func (self *Context) Send(v interface{}) {
 
 	default:
 		if ctype := self.Header().Get(ContentType.Name); strings.Contains(ctype, "xml") {
+			self.buffer.Write([]byte(xml.Header))
 			self.error = xml.NewEncoder(self.buffer).Encode(v)
 
 		} else {
@@ -218,32 +249,6 @@ func (self *Context) Send(v interface{}) {
 			self.error = json.NewEncoder(self.buffer).Encode(v)
 		}
 	}
-	self.Flush()
-}
-
-// Render constructs HTML page using html/template to the client side.
-// Package template (rex/template) brings shortcuts for using standard "html/template",
-// in addtions to the standard (& vanilla) way, it also add some helper tags like
-//
-//	{% extends "layouts/base.html" %}
-//
-//	{% include "partial/header.html" %}
-//
-//to make you template rendering much more easier.
-func (self *Context) Render(filename string, v ...interface{}) {
-	self.Header().Set(ContentType.Name, ContentType.HTML)
-
-	if template, exists := templates.Get(filename); exists {
-		if len(v) == 0 {
-			self.error = template.Execute(self.buffer, nil)
-
-		} else {
-			self.error = template.Execute(self.buffer, v[0])
-		}
-	} else {
-		self.error = fmt.Errorf("Template <%s> does not exists", filename)
-	}
-
 	self.Flush()
 }
 

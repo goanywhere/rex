@@ -19,7 +19,6 @@ $ go get -v github.com/goanywhere/rex/...
 * Command line tools
     * Auto-compile for .go & .html
     * Browser-based Live reload supports
-    * Support Node scripts (defined in package.json)
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
@@ -98,17 +97,42 @@ import (
     "github.com/goanywhere/rex/web"
 )
 
-func index(ctx *web.Context) {
+func Index(ctx *web.Context) {
     ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
 }
 
-func json(ctx *web.Context) {
+func JSON(ctx *web.Context) {
     ctx.Send(rex.H{"Success": true, "Response": "This is a JSON Response"})
 }
 
+func XML(ctx *web.Context) {
+	type Address struct {
+		City, State string
+	}
+	type Person struct {
+		XMLName   xml.Name `xml:"person"`
+		Id        int      `xml:"id,attr"`
+		FirstName string   `xml:"name>first"`
+		LastName  string   `xml:"name>last"`
+		Age       int      `xml:"age"`
+		Height    float32  `xml:"height,omitempty"`
+		Married   bool
+		Address
+		Comment string `xml:",comment"`
+	}
+
+	person := &Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
+	person.Comment = " Need more details. "
+	person.Address = Address{"Hanga Roa", "Easter Island"}
+
+    ctx.Header().Set("Content-Type", "application/xml")
+    ctx.Send(person)
+}
+
 func main() {
-    rex.Get("/", index)
-    rex.Get("/api", json)
+    rex.Get("/", Index)
+    rex.Get("/api", JSON)
+    rex.Get("/xml", XML)
     rex.Run()
 }
 ```
@@ -185,8 +209,6 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Template Functions
 - [X] Common Modules
 - [X] Cache Framework
-- [X] Authentication Framework
-- [ ] Validations
 - [ ] Project Wiki
 - [ ] Continuous Integration
 - [ ] Stable API

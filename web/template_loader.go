@@ -27,14 +27,16 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/goanywhere/x/fs"
 )
 
-var regexIgnores = regexp.MustCompile(`(include|layout)s?`)
+var (
+	regexDocuments = regexp.MustCompile(`\.(html|xml)$`)
+	regexIgnores   = regexp.MustCompile(`(include|layout)s?`)
+)
 
 type TemplateLoader struct {
 	sync.RWMutex
@@ -79,7 +81,7 @@ func (self *TemplateLoader) Load() (pages int) {
 			if info.IsDir() && regexIgnores.MatchString(info.Name()) {
 				return filepath.SkipDir
 			}
-			if !info.IsDir() && strings.HasSuffix(info.Name(), ".html") {
+			if !info.IsDir() && regexDocuments.MatchString(info.Name()) {
 				if name, e := filepath.Rel(self.root, path); e == nil {
 					self.templates[name] = self.page(name).parse()
 					pages++
