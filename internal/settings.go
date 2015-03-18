@@ -39,7 +39,7 @@ type settings struct {
 	Root       string
 	Debug      bool     `env:"DEBUG"`
 	Port       int      `env:"PORT"`
-	Views      string   `env:"VIEWS"`
+	View       string   `env:"VIEW"`
 	SecretKey  string   `env:"SECRET_KEY"`
 	SecretKeys []string `env:"SECRET_KEYS"`
 }
@@ -55,7 +55,8 @@ func Settings() *settings {
 		// session cookie defaults
 		config.Debug = true
 		config.Port = 5000
-		config.Views = "views"
+		config.View = "views"
+
 		config.Session = new(session)
 		config.Session.Name = "session"
 		config.Session.Path = "/"

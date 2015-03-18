@@ -25,21 +25,101 @@ package web
 import (
 	"html/template"
 	"io/ioutil"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/goanywhere/x/fs"
 )
 
 var (
+	regexIgnores   = regexp.MustCompile(`(include|layouts)`)
+	regexDocuments = regexp.MustCompile(`\.(html|atom|rss|xml)$`)
+
 	regexExtends = regexp.MustCompile(`{%\s+extends\s+["]([^"]*\.html)["]\s+%}`)
 	regexInclude = regexp.MustCompile(`{%\s+include\s+["]([^"]*\.html)["]\s+%}`)
 )
 
+type loader struct {
+	sync.RWMutex
+
+	root  string
+	views map[string]*template.Template
+}
+
+func Load(dir string) *loader {
+	loader := new(loader)
+
+	if fs.Exists(dir) {
+		loader.root = dir
+		loader.views = make(map[string]*template.Template)
+
+		err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+			// NOTE ignore folders for layout/partial HTMLs: layouts & include.
+			if info.IsDir() && regexIgnores.MatchString(info.Name()) {
+				return filepath.SkipDir
+			}
+
+			if !info.IsDir() && regexDocuments.MatchString(info.Name()) {
+				name, _ := filepath.Rel(dir, path)
+				loader.views[name] = loader.page(name).parse()
+			}
+			return err
+		})
+
+		if err != nil {
+			loader.root = ""
+			log.Fatalf("Failed to load templates: %v", err)
+		}
+	}
+	return loader
+}
+
+// Exists checks if the given filename exists under the root.
+func (self *loader) Exists(name string) bool {
+	abspath := filepath.Join(self.root, name)
+	if _, err := os.Stat(abspath); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+// Get retrieves the parsed template from preloaded pool.
+func (self *loader) Get(name string) (*template.Template, bool) {
+	self.Lock()
+	defer self.Unlock()
+	template, exists := self.views[name]
+	return template, exists
+}
+
+// internal page helper.
+func (self *loader) page(name string) *page {
+	page := new(page)
+	page.name = name
+	page.loader = self
+	return page
+}
+
+// Reset clears the cached pages.
+func (self *loader) Reset() {
+	self.Lock()
+	defer self.Unlock()
+	for k := range self.views {
+		delete(self.views, k)
+	}
+}
+
+// ----------------------------------------------------------------------*/
+// inner page parser
+// ----------------------------------------------------------------------*/
+
 type page struct {
-	name   string          // name of the page under laoder's root path.
-	loader *TemplateLoader // file loader.
+	name   string  // name of the page under laoder's root path.
+	loader *loader // file loader.
 }
 
 // Ancesters finds all ancestors absolute path using jinja's syntax

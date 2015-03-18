@@ -211,7 +211,7 @@ func (self *Server) Run(port int) {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		log.Infof("Application server is listening at :%d", port)
+		log.Infof("Application server is listening at %d", port)
 	}()
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), self); err != nil {

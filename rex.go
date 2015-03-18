@@ -45,6 +45,7 @@ package rex
 import (
 	"flag"
 	"net/http"
+	"runtime"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
@@ -52,7 +53,8 @@ import (
 )
 
 var (
-	settings = internal.Settings()
+	_, here, _, _ = runtime.Caller(1)
+	settings      = internal.Settings()
 
 	// Serve starts serving the requests at the pre-defined address from settings.
 	Port = settings.Port
@@ -61,6 +63,7 @@ var (
 // default rex mux with reasonable middleware modules.
 var server = web.New()
 
+// Shortcut to create hash map.
 type M map[string]interface{}
 
 // Get adds a HTTP GET route to the default server.
@@ -114,5 +117,6 @@ func Run() {
 
 func init() {
 	// cmd parameters take the priority.
-	flag.IntVar(&Port, "port", Port, "port to run the application server")
+	flag.BoolVar(&settings.Debug, "debug", settings.Debug, "flag to toggle debug mode")
+	flag.IntVar(&settings.Port, "port", settings.Port, "port to run the application server")
 }

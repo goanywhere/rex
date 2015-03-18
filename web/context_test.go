@@ -134,7 +134,7 @@ func TestContextId(t *testing.T) {
 // ---------------------------------------------------------------------------
 func TestSession(t *testing.T) {
 	Convey("context#Session", t, func() {
-		name := settings.String("SESSION_COOKIE_NAME")
+		name := settings.Session.Name
 		values := make(map[string]interface{})
 		values["number"] = 123
 
@@ -233,7 +233,7 @@ func TestSetCookie(t *testing.T) {
 }
 
 func TestSecureCookie(t *testing.T) {
-	settings.Set("SECRET_KEYS", crypto.Random(64))
+	settings.SecretKeys = []string{crypto.Random(64)}
 	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SecureCookie", t, func() {
 		raw, _ := securecookie.EncodeMulti("number", 123, secrets...)
@@ -260,7 +260,7 @@ func TestSecureCookie(t *testing.T) {
 }
 
 func TestSetSecureCookie(t *testing.T) {
-	settings.Set("SECRET_KEYS", crypto.Random(64))
+	settings.SecretKeys = []string{crypto.Random(64)}
 	//createSecrets(crypto.Random(64), crypto.Random(32))
 	Convey("context#SetSecureCookie", t, func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

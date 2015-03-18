@@ -72,13 +72,50 @@ template.Must(template.ParseFiles("layout.html", "index.html", "header.html", "f
 template.Must(template.ParseFiles("layout.html", "contact.html", "header.html", "footer.html"))
 ```
 
-Rex's solution? Simple, in addition to the standard tags, we introduce two "new" (not really if you have ever used Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, the code will then will be like:
+Rex's solution? Simple, in addition to the standard tags, we introduce two "new" (not really if you have ever used Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, just like this:
+
+*layouts/base.html*
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Base Layout</title>
+</head>
+<body>
+  {{ template "body" }}
+</body>
+</html>
+```
+
+*include/header.html*
+
+```html
+<header>I'm A header to be included</header>
+```
+
+*index.html*
+
+```html
+{% extends "layouts/base.html" %}
+
+{{ define "body" }}
+<main>
+  {% include "include/header.html" %}
+index body
+</main>
+{{ end }}
+```
+
+*main.go*
 
 ```go
-import "github.com/goanywhere/rex/template"
-
-loader := template.NewLoader("views")
-template := loader.Parse("index.html")
+func Index(ctx *web.Context) {
+    ctx.Render("index.html")
+}
 ```
 
 There you Go now, rex will parse all *extends* and *include* tags in your HTML files, simple as that.

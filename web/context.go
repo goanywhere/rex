@@ -210,7 +210,7 @@ func (self *Context) RemoteAddr() string {
 // NOTE Due to the limitation of "html/template", XML template must not
 // include the XML definition header, rex will add it for you.
 func (self *Context) Render(filename string, v ...interface{}) {
-	// determine ContentType.
+
 	if strings.HasSuffix(filename, ".xml") {
 		self.Header().Set(ContentType.Name, ContentType.XML)
 		self.Write([]byte(xml.Header))
@@ -218,7 +218,7 @@ func (self *Context) Render(filename string, v ...interface{}) {
 		self.Header().Set(ContentType.Name, ContentType.HTML)
 	}
 
-	if template, exists := templates.Get(filename); exists {
+	if template, exists := views.Get(filename); exists {
 		if len(v) == 0 {
 			self.error = template.Execute(self.buffer, nil)
 

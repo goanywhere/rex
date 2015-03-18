@@ -44,8 +44,8 @@ var (
 	// application secret keys
 	secrets []securecookie.Codec
 
-	// application page templates (Settings: dir.templates)
-	templates *TemplateLoader
+	// application page templates (Settings.Views)
+	views *loader
 )
 
 func createSecrets(keys ...string) {
@@ -61,7 +61,6 @@ func createSecrets(keys ...string) {
 }
 
 // configure initialize all application related settings before running.
-// Server Secret Keys
 func init() {
 	// ------------------------------------------------
 	// setup fundamental project root.
@@ -76,9 +75,8 @@ func init() {
 		// ------------------------------------------------
 		// templates folder exists => load HTML templates.
 		// ------------------------------------------------
-		if dir := filepath.Join(root, settings.Views); fs.Exists(dir) {
-			templates = NewTemplateLoader(dir)
-			templates.Load()
+		if dir := filepath.Join(root, settings.View); fs.Exists(dir) {
+			views = Load(dir)
 		}
 	} else {
 		log.Fatalf("Failed to retrieve project root: %v", err)
