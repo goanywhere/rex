@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 
 	. "github.com/goanywhere/rex/internal"
@@ -278,4 +279,14 @@ func (self *Context) WriteHeader(status int) {
 		self.status = status
 		self.ResponseWriter.WriteHeader(status)
 	}
+}
+
+// Var returns the route variables for the current request.
+func (self *Context) Var(key string) (value string) {
+	if vars := mux.Vars(self.Request); vars != nil {
+		if v, exists := vars[key]; exists {
+			value = v
+		}
+	}
+	return
 }
