@@ -72,7 +72,7 @@ func init() {
 		// custom settings
 		env.Load(filepath.Join(root, ".env"))
 		env.Map(settings)
-		env.Map(settings.Cookie)
+		env.Map(settings.Session)
 		// ------------------------------------------------
 		// templates folder exists => load HTML templates.
 		// ------------------------------------------------

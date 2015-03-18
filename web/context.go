@@ -91,7 +91,7 @@ func (self *Context) Session() Session {
 			ctx:    self,
 			values: make(map[string]interface{}),
 		}
-		self.SecureCookie(settings.Cookie.Name, &session.values)
+		self.SecureCookie(settings.Session.Name, &session.values)
 		self.session = session
 	}
 	return self.session
@@ -112,11 +112,11 @@ func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
 		cookie = options[0]
 	} else {
 		cookie = new(http.Cookie)
-		cookie.Path = settings.Cookie.Path
-		cookie.Domain = settings.Cookie.Domain
-		cookie.MaxAge = settings.Cookie.MaxAge
-		cookie.Secure = settings.Cookie.Secure
-		cookie.HttpOnly = settings.Cookie.HttpOnly
+		cookie.Path = settings.Session.Path
+		cookie.Domain = settings.Session.Domain
+		cookie.MaxAge = settings.Session.MaxAge
+		cookie.Secure = settings.Session.Secure
+		cookie.HttpOnly = settings.Session.HttpOnly
 	}
 	cookie.Name = name
 	cookie.Value = value
