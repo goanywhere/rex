@@ -101,32 +101,12 @@ func Index(ctx *web.Context) {
     ctx.Render("index.html")  // Context.Render has the extends/include tag supports by default.
 }
 
-func JSON(ctx *web.Context) {
-    ctx.Send(rex.H{"Success": true, "Response": "This is a JSON Response"})
+func XML(ctx *web.Context) {
+    ctx.Render("atom.xml")
 }
 
-func XML(ctx *web.Context) {
-	type Address struct {
-		City, State string
-	}
-	type Person struct {
-		XMLName   xml.Name `xml:"person"`
-		Id        int      `xml:"id,attr"`
-		FirstName string   `xml:"name>first"`
-		LastName  string   `xml:"name>last"`
-		Age       int      `xml:"age"`
-		Height    float32  `xml:"height,omitempty"`
-		Married   bool
-		Address
-		Comment string `xml:",comment"`
-	}
-
-	person := &Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
-	person.Comment = " Need more details. "
-	person.Address = Address{"Hanga Roa", "Easter Island"}
-
-    ctx.Header().Set("Content-Type", "application/xml")
-    ctx.Send(person)
+func JSON(ctx *web.Context) {
+    ctx.Send(rex.H{"Success": true, "Response": "This is a JSON Response"})
 }
 
 func main() {

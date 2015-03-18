@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	regexDocuments = regexp.MustCompile(`\.(html|xml)$`)
 	regexIgnores   = regexp.MustCompile(`(include|layout)s?`)
+	regexDocuments = regexp.MustCompile(`\.(html|atom|rss|xml)$`)
 )
 
 type TemplateLoader struct {

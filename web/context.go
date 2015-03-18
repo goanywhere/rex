@@ -196,7 +196,7 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Render constructs HTML page using html/template to the client side.
+// Render constructs HTML|XML page using html/template to the client side.
 // Package template (rex/template) brings shortcuts for using standard "html/template",
 // in addtions to the standard (& vanilla) way, it also add some helper tags like
 //
@@ -204,10 +204,15 @@ func (self *Context) RemoteAddr() string {
 //
 //	{% include "partial/header.html" %}
 //
-//to make you template rendering much more easier.
+// to make the template rendering much more easier.
+//
+// NOTE Due to the limitation of "html/template", XML template must not
+// include the XML definition header, rex will add it for you.
 func (self *Context) Render(filename string, v ...interface{}) {
+	// determine ContentType.
 	if strings.HasSuffix(filename, ".xml") {
 		self.Header().Set(ContentType.Name, ContentType.XML)
+		self.Write([]byte(xml.Header))
 	} else {
 		self.Header().Set(ContentType.Name, ContentType.HTML)
 	}
@@ -239,7 +244,7 @@ func (self *Context) Send(v interface{}) {
 
 	default:
 		if ctype := self.Header().Get(ContentType.Name); strings.Contains(ctype, "xml") {
-			self.buffer.Write([]byte(xml.Header))
+			self.Write([]byte(xml.Header))
 			self.error = xml.NewEncoder(self.buffer).Encode(v)
 
 		} else {
