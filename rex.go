@@ -61,7 +61,7 @@ var (
 // default rex mux with reasonable middleware modules.
 var server = web.New()
 
-type H map[string]interface{}
+type M map[string]interface{}
 
 // Get adds a HTTP GET route to the default server.
 func Get(pattern string, handler interface{}) {

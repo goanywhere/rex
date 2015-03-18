@@ -195,14 +195,14 @@ func (self *Server) Use(modules ...Module) {
 
 // ServeHTTP: Implementation of "http.Handler" interface.
 func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var mux http.Handler = self.mux
+	var next http.Handler = self.mux
 	// Activate modules in FIFO order.
 	if len(self.modules) > 0 {
 		for index := len(self.modules) - 1; index >= 0; index-- {
-			mux = self.modules[index](mux)
+			next = self.modules[index](next)
 		}
 	}
-	mux.ServeHTTP(w, r)
+	next.ServeHTTP(w, r)
 }
 
 // Run starts the application server to serve incoming requests at the given address.

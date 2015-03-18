@@ -106,7 +106,7 @@ func XML(ctx *web.Context) {
 }
 
 func JSON(ctx *web.Context) {
-    ctx.Send(rex.H{"Success": true, "Response": "This is a JSON Response"})
+    ctx.Send(rex.M{"Success": true, "Response": "This is a JSON Response"})
 }
 
 func main() {
