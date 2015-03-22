@@ -151,6 +151,13 @@ func (self *Context) SetSecureCookie(name string, value interface{}, options ...
 // ----------------------------------------
 // HTTP Utilities
 // ----------------------------------------
+func (self *Context) Form() url.Values {
+	if self.Request.Form == nil {
+		self.Request.ParseForm()
+	}
+	return self.Request.Form
+}
+
 // Query returns the URL query values.
 func (self *Context) Query() url.Values {
 	return self.Request.URL.Query()

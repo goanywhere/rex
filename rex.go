@@ -45,21 +45,25 @@ package rex
 import (
 	"flag"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/rex/web"
+	"github.com/goanywhere/x/env"
 )
 
 var (
-	settings = internal.Settings()
-
 	// Serve starts serving the requests at the pre-defined address from settings.
 	Port = settings.Port
-)
 
-// default rex mux with reasonable middleware modules.
-var server = web.New()
+	server *web.Server
+
+	settings = internal.Settings()
+)
 
 // Shortcut to create hash map.
 type M map[string]interface{}
@@ -114,6 +118,20 @@ func Run() {
 }
 
 func init() {
+	/*** project root ***/
+	pc, _, _, _ := runtime.Caller(2)
+	function := runtime.FuncForPC(pc)
+	filename, _ := function.FileLine(0)
+	root := path.Dir(filename)
+	os.Setenv("rex.root", root)
+
+	/*** custom settings ***/
+	env.Load(filepath.Join(root, ".env"))
+	env.Map(settings)
+	env.Map(settings.Session)
+
+	server = web.New()
+
 	// cmd parameters take the priority.
 	flag.BoolVar(&settings.Debug, "debug", settings.Debug, "flag to toggle debug mode")
 	flag.IntVar(&settings.Port, "port", settings.Port, "port to run the application server")
