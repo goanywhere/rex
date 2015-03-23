@@ -40,6 +40,8 @@ import (
 	. "github.com/goanywhere/rex/internal"
 )
 
+var form = schema.NewDecoder()
+
 type Context struct {
 	http.ResponseWriter
 	Request *http.Request
@@ -161,8 +163,7 @@ func (self *Context) Decode(object interface{}) error {
 			return err
 		}
 	}
-
-	return schema.NewDecoder().Decode(object, self.Request.Form)
+	return form.Decode(object, self.Request.Form)
 }
 
 // Query returns the URL query values.
