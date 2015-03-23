@@ -37,6 +37,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/gorilla/securecookie"
 
+	"github.com/goanywhere/rex/db"
 	. "github.com/goanywhere/rex/internal"
 )
 
@@ -156,14 +157,18 @@ func (self *Context) SetSecureCookie(name string, value interface{}, options ...
 // ----------------------------------------
 
 // Decode decodes request url/form values into the given struct.
-func (self *Context) Decode(object interface{}) error {
-
+func (self *Context) Decode(object db.Validator) error {
 	if self.Request.Form == nil {
 		if err := self.Request.ParseForm(); err != nil {
 			return err
 		}
 	}
-	return form.Decode(object, self.Request.Form)
+
+	if err := form.Decode(object, self.Request.Form); err == nil {
+		return object.Validate()
+	} else {
+		return err
+	}
 }
 
 // Query returns the URL query values.
