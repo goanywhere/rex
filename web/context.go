@@ -155,19 +155,14 @@ func (self *Context) SetSecureCookie(name string, value interface{}, options ...
 
 // Decode decodes request url/form values into the given struct.
 func (self *Context) Decode(object interface{}) error {
-	decoder := schema.NewDecoder()
 
 	if self.Request.Form == nil {
-
-		if err := self.Request.ParseForm(); err == nil {
-			return decoder.Decode(object, self.Request.Form)
-		} else {
+		if err := self.Request.ParseForm(); err != nil {
 			return err
 		}
-
-	} else {
-		return decoder.Decode(object, self.Request.Form)
 	}
+
+	return schema.NewDecoder().Decode(object, self.Request.Form)
 }
 
 // Query returns the URL query values.
