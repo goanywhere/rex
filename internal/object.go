@@ -20,48 +20,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package internal
 
-import (
-	"html/template"
+import "reflect"
 
-	"github.com/gorilla/securecookie"
+func DetectType(v interface{}) string {
+	switch v.(type) {
+	case string:
+		return "text/plain"
 
-	"github.com/goanywhere/rex/internal"
-)
-
-var (
-	FuncMap  = make(template.FuncMap)
-	settings = internal.Settings()
-
-	// application secret keys
-	secrets []securecookie.Codec
-
-	// application page templates (Settings.Views)
-	views *loader
-)
-
-// configure initialize all application related settings before running.
-func init() {
-	/*
-		// ------------------------------------------------
-		// templates folder exists => load HTML templates.
-		// ------------------------------------------------
-		if dir := filepath.Join(root, settings.View); fs.Exists(dir) {
-			views = Load(dir)
-		}
-
-		// ------------------------------------------------
-		// Create application secrets
-		// ------------------------------------------------
-		if len(settings.SecretKeys) > 0 {
-			var bytes [][]byte
-			for _, key := range settings.SecretKeys {
-				bytes = append(bytes, []byte(key))
+	default:
+		var (
+			elem  = reflect.ValueOf(v).Elem()
+			stype = elem.Type()
+		)
+		for index := 0; index < elem.NumField(); index++ {
+			if tag := stype.Field(index).Tag.Get("json"); tag != "" {
+				return "application/json"
 			}
-			secrets = securecookie.CodecsFromPairs(bytes...)
-		} else {
-			log.Fatalf("Failed to setup application: secret key(s) missing")
+
+			if tag := stype.Field(index).Tag.Get("xml"); tag != "" {
+				return "application/xml"
+			}
 		}
-	*/
+	}
+
+	return "text/plain"
 }

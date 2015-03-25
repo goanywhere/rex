@@ -20,7 +20,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
 	"bytes"
@@ -28,15 +28,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/securecookie"
 
+	pongo "github.com/flosch/pongo2"
 	"github.com/goanywhere/rex/db"
 	. "github.com/goanywhere/rex/internal"
 )
@@ -50,102 +49,77 @@ type Context struct {
 	size   int
 	status int
 
-	error   error
-	buffer  *bytes.Buffer
-	session Session
+	values pongo.Context
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
 	ctx.ResponseWriter = w
 	ctx.Request = r
-	ctx.buffer = new(bytes.Buffer)
+	ctx.values = pongo.Context{}
 	return ctx
 }
 
 // ----------------------------------------
 // Context Values for Rendering
 // ----------------------------------------
-// Clear removes all values stored for the request.
-func (self *Context) Clear() {
-	context.Clear(self.Request)
-}
-
-// Del removes value stored with associated key for the request.
-func (self *Context) Del(key string) {
-	context.Delete(self.Request, key)
-}
-
-// Get retrieves value stored for the request with associated key.
+// Get retrieves the value with associated key from the request context.
 func (self *Context) Get(key string) interface{} {
-	return context.Get(self.Request, key)
+	return self.values[key]
 }
 
-// Set stores value with associated key for the request.
+// Set stores value with associated key for the request context.
 func (self *Context) Set(key string, value interface{}) {
-	context.Set(self.Request, key, value)
+	self.values[key] = value
+}
+
+// Del removes the value with associated key for request context.
+func (self *Context) Del(key string) {
+	delete(self.values, key)
 }
 
 // ----------------------------------------
-// Session & (Secure) Cookie Supports
+// Secure Cookie Supports
 // ----------------------------------------
-// Session fetches the securecookie based session from incoming request.
-func (self *Context) Session() Session {
-	if self.session == nil {
-		session := &session{
-			ctx:    self,
-			values: make(map[string]interface{}),
-		}
-		self.SecureCookie(settings.Session.Name, &session.values)
-		self.session = session
-	}
-	return self.session
-}
-
-// Cookie fetches the value associated with the given name from request cookie.
-func (self *Context) Cookie(name string) string {
+// Cookie securely fetches the value associated with the given name from request cookie.
+func (self *Context) Cookie(name string, v interface{}) error {
 	if cookie, err := self.Request.Cookie(name); err == nil {
-		return cookie.Value
-	}
-	return ""
-}
 
-// SetCookie adds a Set-Cookie header to response with default options.
-func (self *Context) SetCookie(name, value string, options ...*http.Cookie) {
-	var cookie *http.Cookie
-	if len(options) > 0 {
-		cookie = options[0]
+		if cookie.Value != "" {
+			return securecookie.DecodeMulti(name, cookie.Value, v, secrets...)
+		}
+
 	} else {
-		cookie = new(http.Cookie)
-		cookie.Path = settings.Session.Path
-		cookie.Domain = settings.Session.Domain
-		cookie.MaxAge = settings.Session.MaxAge
-		cookie.Secure = settings.Session.Secure
-		cookie.HttpOnly = settings.Session.HttpOnly
+		return err
 	}
-	cookie.Name = name
-	cookie.Value = value
-	// IE 6/7/8 Compatible Mode.
-	if cookie.MaxAge > 0 {
-		cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
-	} else if cookie.MaxAge < 0 {
-		cookie.Expires = time.Unix(1, 0)
-	}
-	http.SetCookie(self, cookie)
-}
 
-// SecureCookie decodes the signed values associated with the given name from request cookie.
-func (self *Context) SecureCookie(name string, ptr interface{}) error {
-	if raw := self.Cookie(name); raw != "" {
-		return securecookie.DecodeMulti(name, raw, ptr, secrets...)
-	}
 	return nil
 }
 
-// SetSecureCookie encode the raw value securely and adds a Set-Cookie header to response.
-func (self *Context) SetSecureCookie(name string, value interface{}, options ...*http.Cookie) error {
-	if raw, err := securecookie.EncodeMulti(name, value, secrets...); err == nil {
-		self.SetCookie(name, raw, options...)
+// SetCookie securely encodes the value to response cookie via Set-Cookie header.
+func (self *Context) SetCookie(name string, value interface{}, options ...*http.Cookie) error {
+	if str, err := securecookie.EncodeMulti(name, value, secrets...); err == nil {
+
+		var cookie *http.Cookie
+
+		if len(options) > 0 {
+			cookie = options[0]
+		} else {
+			cookie = settings.NewCookie()
+		}
+		cookie.Name = name
+		cookie.Value = str
+
+		// IE 6/7/8 Compatible Mode.
+		if cookie.MaxAge > 0 {
+			cookie.Expires = time.Now().Add(time.Duration(cookie.MaxAge) * time.Second)
+
+		} else if cookie.MaxAge < 0 {
+			cookie.Expires = time.Unix(1, 0)
+		}
+
+		http.SetCookie(self, cookie)
+
 	} else {
 		return err
 	}
@@ -168,34 +142,6 @@ func (self *Context) Decode(object db.Validator) error {
 		return object.Validate()
 	} else {
 		return err
-	}
-}
-
-// Query returns the URL query values.
-func (self *Context) Query() url.Values {
-	return self.Request.URL.Query()
-}
-
-// Error raises a HTTP error response according to the given status code.
-func (self *Context) Error(status int, errors ...string) {
-	if len(errors) > 0 {
-		http.Error(self, errors[0], status)
-	} else {
-		http.Error(self, http.StatusText(status), status)
-	}
-}
-
-// Flush sends any buffered data to the client & clear all context values.
-func (self *Context) Flush() {
-	defer func() { self.error = nil }()
-
-	if self.error == nil {
-		if self.buffer.Len() > 0 {
-			self.Write(self.buffer.Bytes())
-			self.buffer.Reset()
-		}
-	} else {
-		self.Error(http.StatusInternalServerError, self.error.Error())
 	}
 }
 
@@ -229,27 +175,28 @@ func (self *Context) RemoteAddr() string {
 //
 // NOTE Due to the limitation of "html/template", XML template must not
 // include the XML definition header, rex will add it for you.
-func (self *Context) Render(filename string, v ...interface{}) {
+func (self *Context) Render(filename string, values ...map[string]interface{}) {
+	defer func() {
+		self.values = pongo.Context{}
+	}()
+	// determine the reponse Content-Type with its extension.
+	if strings.HasSuffix(filename, ".html") {
+		self.Header().Set("Content-Type", "text/html; charset=UTF-8")
 
-	if strings.HasSuffix(filename, ".xml") {
-		self.Header().Set(ContentType.Name, ContentType.XML)
-		self.Write([]byte(xml.Header))
 	} else {
-		self.Header().Set(ContentType.Name, ContentType.HTML)
+		self.Header().Set("Content-Type", "text/xml; charset=UTF-8")
+		self.Write([]byte(xml.Header))
 	}
 
-	if template, exists := views.Get(filename); exists {
-		if len(v) == 0 {
-			self.error = template.Execute(self.buffer, nil)
-
+	if template, exists := views[filename]; exists {
+		if out, err := template.ExecuteBytes(self.values); err == nil {
+			self.Write(out)
 		} else {
-			self.error = template.Execute(self.buffer, v[0])
+			http.Error(self, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		self.error = fmt.Errorf("Template <%s> does not exists", filename)
+		http.Error(self, fmt.Sprintf("<Template: %s> does not exists", filename), http.StatusInternalServerError)
 	}
-
-	self.Flush()
 }
 
 // Send constructs response body using the given object, the object can be string or object.
@@ -258,24 +205,34 @@ func (self *Context) Render(filename string, v ...interface{}) {
 // unless the "Content-Type" is set as "application/xml" (XML encoder will be used if so).
 func (self *Context) Send(v interface{}) {
 
-	switch T := v.(type) {
-	case string:
-		self.Header().Set(ContentType.Name, ContentType.Text)
-		self.Write([]byte(T))
+	var ctype = DetectType(v)
 
-	default:
-		if ctype := self.Header().Get(ContentType.Name); strings.Contains(ctype, "xml") {
+	if strings.HasPrefix(ctype, "text") {
+		self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		self.Write([]byte(v.(string)))
+
+	} else {
+		// v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		var (
+			e      error
+			buffer = new(bytes.Buffer)
+		)
+		if strings.HasPrefix(ctype, "application/xml") {
+			self.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 			self.Write([]byte(xml.Header))
-			self.error = xml.NewEncoder(self.buffer).Encode(v)
+			e = xml.NewEncoder(buffer).Encode(v)
 
 		} else {
-			if ctype == "" {
-				self.Header().Set(ContentType.Name, ContentType.JSON)
-			}
-			self.error = json.NewEncoder(self.buffer).Encode(v)
+			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			e = json.NewEncoder(buffer).Encode(v)
+		}
+
+		if e == nil {
+			self.Write(buffer.Bytes())
+		} else {
+			http.Error(self, e.Error(), http.StatusInternalServerError)
 		}
 	}
-	self.Flush()
 }
 
 // Write writes the data to the connection as part of an HTTP reply.

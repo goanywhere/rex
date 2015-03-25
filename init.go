@@ -20,52 +20,44 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
-import "reflect"
+import (
+	"html/template"
 
-type Session interface {
-	Clear()
+	"github.com/gorilla/securecookie"
+)
 
-	Del(key string)
+var (
+	FuncMap = make(template.FuncMap)
 
-	Get(key string, ptr interface{}) error
+	// application secret keys
+	secrets []securecookie.Codec
 
-	Set(key string, value interface{})
+	// application page templates (Settings.Views)
+)
 
-	Save() error
-}
-
-// internal securecookie based session.
-type session struct {
-	ctx    *Context
-	values map[string]interface{}
-}
-
-func (self *session) Clear() {
-	for key, _ := range self.values {
-		delete(self.values, key)
-	}
-}
-
-func (self *session) Del(key string) {
-	delete(self.values, key)
-}
-
-func (self *session) Get(key string, ptr interface{}) error {
-	if value := self.values[key]; value != nil {
-		if reflect.TypeOf(ptr).Kind() == reflect.Ptr {
-			elem := reflect.ValueOf(ptr).Elem()
-			elem.Set(reflect.ValueOf(value))
+// configure initialize all application related settings before running.
+func init() {
+	/*
+		// ------------------------------------------------
+		// templates folder exists => load HTML templates.
+		// ------------------------------------------------
+		if dir := filepath.Join(root, settings.View); fs.Exists(dir) {
+			views = Load(dir)
 		}
-	}
-	return nil
-}
 
-func (self *session) Set(key string, value interface{}) {
-	self.values[key] = value
-}
-
-func (self *session) Save() error {
-	return self.ctx.SetSecureCookie(settings.Session.Name, self.values)
+		// ------------------------------------------------
+		// Create application secrets
+		// ------------------------------------------------
+		if len(settings.SecretKeys) > 0 {
+			var bytes [][]byte
+			for _, key := range settings.SecretKeys {
+				bytes = append(bytes, []byte(key))
+			}
+			secrets = securecookie.CodecsFromPairs(bytes...)
+		} else {
+			log.Fatalf("Failed to setup application: secret key(s) missing")
+		}
+	*/
 }

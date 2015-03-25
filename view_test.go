@@ -20,4 +20,46 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
+
+/*
+import (
+	"os"
+	"path"
+	"testing"
+
+	"github.com/flosch/pongo2"
+	. "github.com/smartystreets/goconvey/convey"
+)
+
+func TestLoadViews(t *testing.T) {
+	Convey("rex.loadViews", t, func() {
+		temp := os.TempDir()
+		html := path.Join(temp, "index.html")
+		xml := path.Join(temp, "index.xml")
+
+		os.Create(html)
+		os.Create(xml)
+
+		include := path.Join(temp, "include")
+		header := path.Join(include, "header.html")
+		os.Mkdir(include, os.ModePerm)
+		os.Create(header)
+
+		layouts := path.Join(temp, "layouts")
+		base := path.Join(layouts, "base.html")
+		os.Mkdir(layouts, os.ModePerm)
+		os.Create(base)
+
+		loadViews(temp)
+
+		So(len(views), ShouldEqual, 2)
+
+		os.RemoveAll(include)
+		os.RemoveAll(layouts)
+		os.Remove(html)
+		os.Remove(xml)
+		views = make(map[string]*pongo2.Template)
+	})
+}
+*/

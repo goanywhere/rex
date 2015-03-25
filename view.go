@@ -20,16 +20,44 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
+package rex
 
-/*
-Package template (rex/template) brings shortcuts for using standard "html/template",
-in addtions to the standard (& vanilla) way, it also add some helper tags like
+import (
+	"os"
+	"path/filepath"
+	"regexp"
 
-	{% extends "layouts/base.html" %}
+	pongo "github.com/flosch/pongo2"
+	"github.com/goanywhere/x/fs"
+)
 
-	{% include "partial/header.html" %}
+var views map[string]*pongo.Template = make(map[string]*pongo.Template)
 
-to make you template rendering much more easier.
-*/
+// loadViews load the html/xml documents from the pre-defined directory,
+// rex will ignores directories named "layouts" & "include".
+// TODO multiple paths supports.
+func loadViews(root string) {
+	var (
+		files   = regexp.MustCompile(`\.(html|xml)$`)
+		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
+	)
+	if fs.Exists(root) {
+		filepath.Walk(root, func(path string, info os.FileInfo, e error) error {
 
-package web
+			if info.IsDir() {
+				if ignores.MatchString(info.Name()) {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
+			}
+
+			if files.MatchString(path) {
+				key, _ := filepath.Rel(root, path)
+				views[key] = pongo.Must(pongo.FromFile(path))
+			}
+
+			return e
+		})
+	}
+}

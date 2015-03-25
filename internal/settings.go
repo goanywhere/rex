@@ -22,26 +22,32 @@
  * ----------------------------------------------------------------------*/
 package internal
 
-import "sync"
+import (
+	"net/http"
+	"sync"
 
-type session struct {
-	Name     string `env:"SESSION_COOKIE_NAME"`
-	Path     string `env:"SESSION_COOKIE_PATH"`
-	Domain   string `env:"SESSION_COOKIE_DOMAIN"`
-	Secure   bool   `env:"SESSION_COOKIE_SECURE"`
-	HttpOnly bool   `env:"SESSION_COOKIE_HTTPONLY"`
-	MaxAge   int    `env:"SESSION_COOKIE_MAXAGE"`
-}
+	"github.com/goanywhere/x/env"
+)
 
 type settings struct {
-	Session *session
-
 	Root       string
 	Debug      bool     `env:"DEBUG"`
 	Port       int      `env:"PORT"`
 	View       string   `env:"VIEW"`
 	SecretKey  string   `env:"SECRET_KEY"`
 	SecretKeys []string `env:"SECRET_KEYS"`
+}
+
+func (self *settings) NewCookie() *http.Cookie {
+	cookie := &http.Cookie{
+		Name:     env.String("COOKIE_NAME", "session"),
+		Path:     env.String("COOKIE_PATH", "/"),
+		Domain:   env.String("COOKIE_DOMAIN", ""),
+		Secure:   env.Bool("COOKIE_SECURE", false),
+		HttpOnly: env.Bool("COOKIE_HTTPONLY", true),
+		MaxAge:   env.Int("COOKIE_MAGAGE", 3600*24*7),
+	}
+	return cookie
 }
 
 var (
@@ -56,14 +62,6 @@ func Settings() *settings {
 		config.Debug = true
 		config.Port = 5000
 		config.View = "views"
-
-		config.Session = new(session)
-		config.Session.Name = "session"
-		config.Session.Path = "/"
-		config.Session.Domain = ""
-		config.Session.Secure = false
-		config.Session.HttpOnly = true
-		config.Session.MaxAge = 3600 * 24 * 7
 	})
 	return config
 }

@@ -20,10 +20,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package web
+package rex
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -33,6 +32,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	pongo "github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 )
 
@@ -71,7 +71,7 @@ func New() *Server {
 	self.mux = mux.NewRouter()
 	self.pool.New = func() interface{} {
 		ctx := new(Context)
-		ctx.buffer = new(bytes.Buffer)
+		ctx.values = pongo.Context{}
 		return ctx
 	}
 	return self
@@ -126,8 +126,6 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 		log.Fatalf("Unsupported handler (%s) passed in.", name)
 	}
 }
-
-func (self *Server) Add(pattern string, resource interface{}) {}
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
