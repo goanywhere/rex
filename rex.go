@@ -46,23 +46,67 @@ import (
 	"flag"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
-	"runtime"
+	"regexp"
+	"strings"
+
+	pongo "github.com/flosch/pongo2"
+	"github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
+
 	"github.com/goanywhere/x/env"
+	"github.com/goanywhere/x/fs"
 )
 
 var (
 	// Serve starts serving the requests at the pre-defined address from settings.
 	Port = settings.Port
 
+	root string
+
 	server *Server
 
+	secrets []securecookie.Codec
+
 	settings = internal.Settings()
+
+	views map[string]*pongo.Template = make(map[string]*pongo.Template)
 )
+
+func configure() {
+
+}
+
+// loadViews load the html/xml documents from the pre-defined directory,
+// rex will ignores directories named "layouts" & "include".
+// TODO multiple paths supports.
+func loadViews(root string) {
+	var (
+		files   = regexp.MustCompile(`\.(html|xml)$`)
+		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
+	)
+	if fs.Exists(root) {
+		filepath.Walk(root, func(path string, info os.FileInfo, e error) error {
+
+			if info.IsDir() {
+				if ignores.MatchString(info.Name()) {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
+			}
+
+			if files.MatchString(path) {
+				key, _ := filepath.Rel(root, path)
+				views[key] = pongo.Must(pongo.FromFile(path))
+			}
+
+			return e
+		})
+	}
+}
 
 // Shortcut to create hash map.
 type M map[string]interface{}
@@ -117,17 +161,22 @@ func Run() {
 }
 
 func init() {
-	/*** project root ***/
-	pc, _, _, _ := runtime.Caller(2)
-	function := runtime.FuncForPC(pc)
-	filename, _ := function.FileLine(0)
-	root := path.Dir(filename)
-	os.Setenv("rex.root", root)
-
-	/*** custom settings ***/
+	// ----------------------------------------
+	// Project Root
+	// ----------------------------------------
+	if exe := fs.Geted(); strings.HasPrefix(exe, os.TempDir()) {
+		root = fs.Getcd(2)
+	} else {
+		root = exe
+	}
+	// ----------------------------------------
+	// Project Settings
+	// ----------------------------------------
+	env.Set("rex.root", root)
 	env.Load(filepath.Join(root, ".env"))
-	env.Map(settings)
-
+	// ----------------------------------------
+	// Default Server
+	// ----------------------------------------
 	server = New()
 
 	// cmd parameters take the priority.
