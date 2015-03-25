@@ -13,7 +13,8 @@ $ go get -v github.com/goanywhere/rex/...
 
 ## Features
 * Flexible Env-based configurations.
-* Awesome routing system provided by [Gorilla/Mux](http://www.gorillatoolkit.org/pkg/mux).
+* Awesome routing system provided by [Gorilla/Mux](//github.com/gorilla/mux).
+* Django-syntax like templating-language backed by [flosch/pongo](//github.com/flosch/pongo2).
 * Non-intrusive/Modular design, extremely easy to use.
 * Standard & modular system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Command line tools
@@ -50,80 +51,10 @@ rex run
 You will now have a HTTP server running on `localhost:5000`.
 
 
-## Template
-
-The standard template (html/template) package implements data-driven templates for generating HTML output safe against code injection, sounds nice? But once you step into the real world, you will soon find your code to be spaghetti. To parse multiple files with pieces of "define", say you have a "index.html", and header source defined in "header.html", footer source in "footer.html", you will need this:
-
-```go
-template.Must(template.ParseFiles("index.html", "header.html", "footer.html"))
-```
-
-What if another page say "contact.html" will share the same header & footer? Oops & yes, you'll need to do this again,
-
-```go
-template.Must(template.ParseFiles("contact.html", "header.html", "footer.html"))
-```
-
-Inheritance? Pretty much the same, yes, you'll have to do this over & over again:
-
-```go
-template.Must(template.ParseFiles("layout.html", "index.html", "header.html", "footer.html"))
-
-template.Must(template.ParseFiles("layout.html", "contact.html", "header.html", "footer.html"))
-```
-
-Rex's solution? Simple, in addition to the standard tags, we introduce two "new" (not really if you have ever used Django/Tornado/Jinja/Liquid) tags, "extends" & "include". You simply add the these two into the html pages as previous, just like this:
-
-*layouts/base.html*
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Base Layout</title>
-</head>
-<body>
-  {{ template "body" }}
-</body>
-</html>
-```
-
-*include/header.html*
-
-```html
-<header>I'm A header to be included</header>
-```
-
-*index.html*
-
-```html
-{% extends "layouts/base.html" %}
-
-{{ define "body" }}
-<main>
-  {% include "include/header.html" %}
-index body
-</main>
-{{ end }}
-```
-
-*main.go*
-
-```go
-func Index(ctx *web.Context) {
-    ctx.Render("index.html")
-}
-```
-
-There you Go now, rex will parse all *extends* and *include* tags in your HTML files, simple as that.
-
 
 ## Context
 
-Context is a very useful helper shipped with Rex. It allows you to access incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
+Context is a very useful helper shipped with Rex. It allows you to access/send incoming requests & responsed data, there are also shortcuts for rendering HTML/JSON/XML.
 
 
 ``` go
@@ -147,6 +78,7 @@ func JSON(ctx *web.Context) {
 }
 
 func main() {
+    // rex loads the html/xml from `os.Getenv("views")` by default.
     rex.Get("/", Index)
     rex.Get("/api", JSON)
     rex.Get("/xml", XML)
@@ -164,16 +96,15 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
-func index (ctx *web.Context) {
+func index (ctx *rex.Context) {
     ctx.Render("index.html")
 }
 
 func main() {
     // Override default 5000 port here.
-    rex.Port = 9394
+    env.Set("PORT", 9394)
 
     rex.Get("/", index)
     rex.Run()
@@ -218,7 +149,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Project Home page
 - [X] Test Suite
 - [X] New Project Template
-- [X] CLI Apps Integrations 
+- [X] CLI Apps Integrations
 - [X] Improved Template Rendering
 - [X] Performance Boost
 - [X] Hot-Compile Runner
