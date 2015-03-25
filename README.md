@@ -62,24 +62,40 @@ package main
 
 import (
     "github.com/goanywhere/rex"
-    "github.com/goanywhere/rex/web"
 )
 
-func Index(ctx *web.Context) {
+func Index(ctx *rex.Context) {
+    // Content-Type: text/html
     ctx.Render("index.html")
 }
 
-func XML(ctx *web.Context) {
+func Atom(ctx *rex.Context) {
+    // Content-Type: text/xml
     ctx.Render("atom.xml")
 }
 
-func JSON(ctx *web.Context) {
-    ctx.Send(rex.M{"Success": true, "Response": "This is a JSON Response"})
+func JSON(ctx *rex.Context) {
+    // Content-Type: application/json
+    type Object struct {
+        Id      int `json:id`
+    }
+    object := &Object{123}
+    ctx.Send(object)
+}
+
+func XML(ctx *rex.Context) {
+    // Content-Type: application/xml
+    type Object struct {
+        Id      int `xml:id`
+    }
+    object := &Object{123}
+    ctx.Send(object)
 }
 
 func main() {
     // rex loads the html/xml from `os.Getenv("views")` by default.
     rex.Get("/", Index)
+    rex.Get("/feeds", Atom)
     rex.Get("/api", JSON)
     rex.Get("/xml", XML)
     rex.Run()
