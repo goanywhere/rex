@@ -35,8 +35,7 @@ import (
 	"github.com/gorilla/schema"
 
 	pongo "github.com/flosch/pongo2"
-	"github.com/goanywhere/rex/db"
-	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/x"
 )
 
 var form = schema.NewDecoder()
@@ -128,22 +127,6 @@ func (self *Context) SetCookie(name string, value interface{}, options ...*http.
 // ----------------------------------------
 // HTTP Utilities
 // ----------------------------------------
-
-// Decode decodes request url/form values into the given struct.
-func (self *Context) Decode(object db.Validator) error {
-	if self.Request.Form == nil {
-		if err := self.Request.ParseForm(); err != nil {
-			return err
-		}
-	}
-
-	if err := form.Decode(object, self.Request.Form); err == nil {
-		return object.Validate()
-	} else {
-		return err
-	}
-}
-
 // RemoteAddr fetches the real remote address of incoming HTTP request.
 func (self *Context) RemoteAddr() string {
 	var address string
@@ -162,68 +145,45 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Render constructs HTML|XML page using html/template to the client side.
-// Package template (rex/template) brings shortcuts for using standard "html/template",
-// in addtions to the standard (& vanilla) way, it also add some helper tags like
-//
-//	{% extends "layouts/base.html" %}
-//
-//	{% include "partial/header.html" %}
-//
-// to make the template rendering much more easier.
-//
-// NOTE Due to the limitation of "html/template", XML template must not
-// include the XML definition header, rex will add it for you.
-func (self *Context) Render(filename string) {
-	defer func() {
-		self.values = pongo.Context{}
-	}()
-	// determine the reponse Content-Type with its extension.
-	if strings.HasSuffix(filename, ".html") {
-		self.Header().Set("Content-Type", "text/html; charset=UTF-8")
+// Render constructs response body using the given object. Supported objects:
+//  string (filename): filename under pre-defined views folder (via os.Getenv("VIEWS"))
+//  pointer to struct: Content-Type will be determined via StructTag.
+func (self *Context) Render(v interface{}) {
 
-	} else {
-		self.Header().Set("Content-Type", "text/xml; charset=UTF-8")
-		self.Write([]byte(xml.Header))
-	}
+	switch T := v.(type) {
+	case string:
+		defer func() {
+			self.values = pongo.Context{}
+		}()
 
-	if template, exists := views[filename]; exists {
-		if out, err := template.ExecuteBytes(self.values); err == nil {
-			self.Write(out)
-		} else {
-			http.Error(self, err.Error(), http.StatusInternalServerError)
+		if self.Header().Get("Content-Type") == "" {
+			self.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		}
-	} else {
-		http.Error(self, fmt.Sprintf("<Template: %s> does not exists", filename), http.StatusInternalServerError)
-	}
-}
 
-// Send constructs response body using the given object, the object can be string or object.
-// If the parameter is a string, rex sets the "Content-Type" to "text/plain" along with the data.
-// Otherwise the given object will be encoded with JSON (Content-Type: "application/json")
-// unless the "Content-Type" is set as "application/xml" (XML encoder will be used if so).
-func (self *Context) Send(v interface{}) {
+		if template, exists := views[T]; exists {
+			if out, err := template.ExecuteBytes(self.values); err == nil {
+				self.Write(out)
+			} else {
+				http.Error(self, err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			http.Error(self, fmt.Sprintf("<Template: %s> does not exists", T), http.StatusInternalServerError)
+		}
 
-	var ctype = internal.DetectType(v)
-
-	if strings.HasPrefix(ctype, "text") {
-		self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-		self.Write([]byte(v.(string)))
-
-	} else {
-		// v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+	default:
 		var (
 			e      error
 			buffer = new(bytes.Buffer)
 		)
-		if strings.HasPrefix(ctype, "application/xml") {
+		// JSON/XML rendering.
+		if x.Has(v, "json") {
+			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			e = json.NewEncoder(buffer).Encode(v)
+
+		} else {
 			self.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 			self.Write([]byte(xml.Header))
 			e = xml.NewEncoder(buffer).Encode(v)
-
-		} else {
-			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			e = json.NewEncoder(buffer).Encode(v)
 		}
 
 		if e == nil {

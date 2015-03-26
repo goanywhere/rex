@@ -98,9 +98,9 @@ func TestCookie(t *testing.T) {
 
 func TestContextRender(t *testing.T) {
 	Convey("Context.Render", t, func() {
-		tmp := os.TempDir()
 
 		Convey("HTML", func() {
+			tmp := os.TempDir()
 			filename := path.Join(tmp, "index.html")
 			ioutil.WriteFile(filename, []byte("<html><body>{{ user.Username }}</body></html>"), os.ModePerm)
 
@@ -133,62 +133,6 @@ func TestContextRender(t *testing.T) {
 		})
 
 		Convey("XML", func() {
-			filename := path.Join(tmp, "index.xml")
-			content := `<user id="{{ user.Id }}"><username>{{ user.Username }}</username></user>`
-			ioutil.WriteFile(filename, []byte(content), os.ModePerm)
-
-			loadViews(tmp)
-
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				type User struct {
-					Id       int
-					Username string
-				}
-				user := &User{Id: 123, Username: "test@example.com"}
-
-				ctx := NewContext(w, r)
-				ctx.Set("user", user)
-				ctx.Render("index.xml")
-			}))
-			defer server.Close()
-
-			if response, err := http.Get(server.URL); err == nil {
-				So(response.StatusCode, ShouldEqual, http.StatusOK)
-				So(response.Header.Get("Content-Type"), ShouldStartWith, "text/xml")
-
-				bytes, err := ioutil.ReadAll(response.Body)
-				So(err, ShouldBeNil)
-				text := string(bytes)
-				So(text, ShouldStartWith, xml.Header)
-				So(text, ShouldContainSubstring, "test@example.com")
-
-				os.Remove(filename)
-			}
-
-		})
-	})
-}
-
-func TestContextSend(t *testing.T) {
-	Convey("Context.Send", t, func() {
-
-		Convey("Text", func() {
-
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				ctx := NewContext(w, r)
-				ctx.Send("plain string")
-			}))
-			defer server.Close()
-
-			if response, err := http.Get(server.URL); err == nil {
-				So(response.Header.Get("Content-Type"), ShouldStartWith, "text/plain")
-				bytes, err := ioutil.ReadAll(response.Body)
-				So(err, ShouldBeNil)
-				So(string(bytes), ShouldEqual, "plain string")
-			}
-		})
-
-		Convey("XML", func() {
 			type A struct {
 				Id   int    `xml:"id,attr"`
 				Name string `xml:"name"`
@@ -197,7 +141,7 @@ func TestContextSend(t *testing.T) {
 				var obj = &A{Id: 123, Name: "test"}
 
 				ctx := NewContext(w, r)
-				ctx.Send(obj)
+				ctx.Render(obj)
 			}))
 			defer server.Close()
 
@@ -219,7 +163,7 @@ func TestContextSend(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				var obj = &B{Id: 123, Name: "test"}
 				ctx := NewContext(w, r)
-				ctx.Send(obj)
+				ctx.Render(obj)
 			}))
 			defer server.Close()
 
