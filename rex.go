@@ -51,11 +51,10 @@ import (
 	"strings"
 
 	pongo "github.com/flosch/pongo2"
-	"github.com/gorilla/securecookie"
+	cookie "github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
-
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
@@ -68,16 +67,12 @@ var (
 
 	server *Server
 
-	secrets []securecookie.Codec
+	securecookie *cookie.SecureCookie
 
 	settings = internal.Settings()
 
 	views map[string]*pongo.Template = make(map[string]*pongo.Template)
 )
-
-func configure() {
-
-}
 
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
@@ -87,6 +82,7 @@ func loadViews(root string) {
 		files   = regexp.MustCompile(`\.(html|xml)$`)
 		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
 	)
+
 	if fs.Exists(root) {
 		filepath.Walk(root, func(path string, info os.FileInfo, e error) error {
 
@@ -164,22 +160,34 @@ func init() {
 	// ----------------------------------------
 	// Project Root
 	// ----------------------------------------
-	if exe := fs.Geted(); strings.HasPrefix(exe, os.TempDir()) {
+	if dir := fs.Geted(); strings.HasPrefix(dir, os.TempDir()) {
 		root = fs.Getcd(2)
 	} else {
-		root = exe
+		root = dir
 	}
+
 	// ----------------------------------------
 	// Project Settings
 	// ----------------------------------------
 	env.Set("rex.root", root)
 	env.Load(filepath.Join(root, ".env"))
+
+	loadViews(root)
+
+	if securecookie == nil {
+		if secrets := env.Strings("SECRET_KEYS"); len(secrets) == 2 {
+			securecookie = cookie.New([]byte(secrets[0]), []byte(secrets[1]))
+		}
+	}
+
 	// ----------------------------------------
 	// Default Server
 	// ----------------------------------------
 	server = New()
 
-	// cmd parameters take the priority.
+	// ----------------------------------------
+	// cmd arguments
+	// ----------------------------------------
 	flag.BoolVar(&settings.Debug, "debug", settings.Debug, "flag to toggle debug mode")
 	flag.IntVar(&settings.Port, "port", settings.Port, "port to run the application server")
 }

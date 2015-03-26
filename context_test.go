@@ -33,19 +33,18 @@ import (
 	"path"
 	"testing"
 
-	"github.com/gorilla/securecookie"
+	cookie "github.com/gorilla/securecookie"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCookie(t *testing.T) {
 	Convey("Context.Cookie", t, func() {
-
-		a := securecookie.GenerateRandomKey(64)
-		b := securecookie.GenerateRandomKey(32)
-		secrets = securecookie.CodecsFromPairs(a, b)
+		a := cookie.GenerateRandomKey(64)
+		b := cookie.GenerateRandomKey(32)
+		securecookie = cookie.New(a, b)
 
 		Convey("Get", func() {
-			raw, _ := securecookie.EncodeMulti("number", 123, secrets...)
+			raw, _ := securecookie.Encode("number", 123)
 			cookie := &http.Cookie{Name: "number", Value: raw, Path: "/"}
 
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +85,7 @@ func TestCookie(t *testing.T) {
 				if len(response.Cookies()) == 1 {
 					cookie := response.Cookies()[0]
 					var values map[string]interface{}
-					securecookie.DecodeMulti(cookie.Name, cookie.Value, &values, secrets...)
+					securecookie.Decode(cookie.Name, cookie.Value, &values)
 
 					So(values["uid"], ShouldEqual, 123)
 					So(values["username"], ShouldEqual, "test@example.com")

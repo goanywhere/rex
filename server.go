@@ -33,26 +33,14 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	pongo "github.com/flosch/pongo2"
+
 	"github.com/gorilla/mux"
 )
 
-type (
-	Server struct {
-		mux     *mux.Router
-		modules []Module
-		pool    sync.Pool
-	}
+// Conventional method to implement custom modules.
+type Module func(http.Handler) http.Handler
 
-	// Conventional method to implement custom modules.
-	Module func(http.Handler) http.Handler
-
-	Handler interface {
-		http.Handler
-		Serve(ctx *Context)
-	}
-
-	HandlerFunc func(*Context)
-)
+type HandlerFunc func(*Context)
 
 // Serve wraps standard ServeHTTP function with context.
 func (self HandlerFunc) Serve(ctx *Context) {
@@ -63,6 +51,12 @@ func (self HandlerFunc) Serve(ctx *Context) {
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := NewContext(w, r)
 	self(ctx)
+}
+
+type Server struct {
+	mux     *mux.Router
+	modules []Module
+	pool    sync.Pool
 }
 
 // New creates a plain web server without any middleware modules.
@@ -107,13 +101,6 @@ func (self *Server) register(method, pattern string, handler interface{}) {
 
 	case func(http.ResponseWriter, *http.Request):
 		self.mux.HandleFunc(pattern, H).Methods(method).Name(name)
-
-	case Handler:
-		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-			ctx := self.createContext(w, r)
-			defer self.recycleContext(ctx)
-			H.Serve(ctx)
-		}).Methods(method).Name(name)
 
 	case func(*Context):
 		self.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {

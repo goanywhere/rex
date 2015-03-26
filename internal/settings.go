@@ -38,6 +38,7 @@ type settings struct {
 	SecretKeys []string `env:"SECRET_KEYS"`
 }
 
+// NewCookie creates a http.Cookie instance with default options.
 func (self *settings) NewCookie() *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     env.String("COOKIE_NAME", "session"),

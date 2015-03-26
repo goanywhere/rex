@@ -33,11 +33,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
-	"github.com/gorilla/securecookie"
 
 	pongo "github.com/flosch/pongo2"
 	"github.com/goanywhere/rex/db"
-	. "github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/rex/internal"
 )
 
 var form = schema.NewDecoder()
@@ -86,7 +85,7 @@ func (self *Context) Cookie(name string, v interface{}) error {
 	if cookie, err := self.Request.Cookie(name); err == nil {
 
 		if cookie.Value != "" {
-			return securecookie.DecodeMulti(name, cookie.Value, v, secrets...)
+			return securecookie.Decode(name, cookie.Value, v)
 		}
 
 	} else {
@@ -98,7 +97,7 @@ func (self *Context) Cookie(name string, v interface{}) error {
 
 // SetCookie securely encodes the value to response cookie via Set-Cookie header.
 func (self *Context) SetCookie(name string, value interface{}, options ...*http.Cookie) error {
-	if str, err := securecookie.EncodeMulti(name, value, secrets...); err == nil {
+	if str, err := securecookie.Encode(name, value); err == nil {
 
 		var cookie *http.Cookie
 
@@ -175,7 +174,7 @@ func (self *Context) RemoteAddr() string {
 //
 // NOTE Due to the limitation of "html/template", XML template must not
 // include the XML definition header, rex will add it for you.
-func (self *Context) Render(filename string, values ...map[string]interface{}) {
+func (self *Context) Render(filename string) {
 	defer func() {
 		self.values = pongo.Context{}
 	}()
@@ -205,7 +204,7 @@ func (self *Context) Render(filename string, values ...map[string]interface{}) {
 // unless the "Content-Type" is set as "application/xml" (XML encoder will be used if so).
 func (self *Context) Send(v interface{}) {
 
-	var ctype = DetectType(v)
+	var ctype = internal.DetectType(v)
 
 	if strings.HasPrefix(ctype, "text") {
 		self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
