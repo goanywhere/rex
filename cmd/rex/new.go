@@ -34,7 +34,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
-	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/x/cmd"
 	"github.com/goanywhere/x/crypto"
 )
 
@@ -48,13 +48,13 @@ type project struct {
 }
 
 func (self *project) create() {
-	internal.Prompt("Fetching project template\n")
+	cmd.Prompt("Fetching project template\n")
 	var done = make(chan bool)
-	internal.Loading(done)
+	cmd.Loading(done)
 
-	cmd := exec.Command("git", "clone", "-b", "scaffolds", endpoint, self.name)
-	cmd.Dir = cwd
-	if e := cmd.Run(); e == nil {
+	command := exec.Command("git", "clone", "-b", "scaffolds", endpoint, self.name)
+	command.Dir = cwd
+	if e := command.Run(); e == nil {
 		self.root = filepath.Join(cwd, self.name)
 		// create dotenv under project's root.
 		filename := filepath.Join(self.root, ".env")
@@ -78,12 +78,12 @@ func (self *project) create() {
 
 func (self *project) setup() {
 	if e := exec.Command("npm", "-v").Run(); e == nil {
-		internal.Prompt("Fetching project dependencies\n")
-		cmd := exec.Command("npm", "install")
-		cmd.Dir = self.root
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Run()
+		cmd.Prompt("Fetching project dependencies\n")
+		command := exec.Command("npm", "install")
+		command.Dir = self.root
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		command.Run()
 	} else {
 		log.Fatalf("Failed to setup project dependecies: nodejs is missing.")
 	}

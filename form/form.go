@@ -20,41 +20,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package internal
+package form
 
-import (
-	"fmt"
-	"time"
-)
+import "net/url"
 
-// Loading provides a simple dotted loading prompt while
-// processing task. NOTE that task needs to manually notify
-// the prompt once the task is done.
-func Loading(done chan bool) {
-	var (
-		index      = 0
-		indicators = []string{"-", "\\", "|", "/"}
-	)
-	go func() {
-		for {
-			select {
-			case <-done:
-				fmt.Print(" \b")
-				close(done)
-				return
-			default:
-				fmt.Printf("%s\b", indicators[index])
-				if index < (len(indicators) - 1) {
-					index++
-				} else {
-					index = 0
-				}
-				time.Sleep(50 * time.Millisecond)
-			}
-		}
-	}()
-}
+// Decode maps the form values into pre-defined struct.
+func Decode(form interface{}, values url.Values) {
 
-func Prompt(message string, values ...interface{}) {
-	fmt.Printf(fmt.Sprintf("* %s", message), values...)
 }

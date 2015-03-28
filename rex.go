@@ -20,59 +20,38 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-/*
-Package rex provides an out-of-box web server with common middleware modules.
-Example:
-	package main
-
-	import (
-		"net/http"
-
-		"github.com/goanywhere/rex"
-	)
-
-	func index(ctx *rex.Context) {
-		ctx.Send("Hello World")
-	}
-
-	func main() {
-		rex.Get("/", index)
-		rex.Run()
-	}
-*/
 package rex
 
 import (
 	"flag"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	pongo "github.com/flosch/pongo2"
 	cookie "github.com/gorilla/securecookie"
 
-	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
 
+// server settings
 var (
-	// Serve starts serving the requests at the pre-defined address from settings.
-	Port = settings.Port
+	port int = 5000
+
+	debug bool = true
 
 	root string
+)
 
-	server *Server
-
+var (
 	securecookie *cookie.SecureCookie
-
-	settings = internal.Settings()
 
 	views map[string]*pongo.Template = make(map[string]*pongo.Template)
 )
+
+// Shortcut to create hash map.
+type M map[string]interface{}
 
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
@@ -82,7 +61,6 @@ func loadViews(root string) {
 		files   = regexp.MustCompile(`\.(html|xml)$`)
 		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
 	)
-
 	if fs.Exists(root) {
 		filepath.Walk(root, func(path string, info os.FileInfo, e error) error {
 
@@ -104,71 +82,30 @@ func loadViews(root string) {
 	}
 }
 
-// Shortcut to create hash map.
-type M map[string]interface{}
+// ---------------------------------------------------------------------------
+//  Default Server Mux
+// ---------------------------------------------------------------------------
+var web *Server
 
-// Get adds a HTTP GET route to the default server.
 func Get(pattern string, handler interface{}) {
-	server.Get(pattern, handler)
-}
-
-// Post adds a HTTP POST route to the default server.
-func Post(pattern string, handler interface{}) {
-	server.Post(pattern, handler)
-}
-
-// Put adds a HTTP PUT route to the default server.
-func Put(pattern string, handler interface{}) {
-	server.Put(pattern, handler)
-}
-
-// Delete adds a HTTP DELETE route to the default server.
-func Delete(pattern string, handler interface{}) {
-	server.Delete(pattern, handler)
-}
-
-// Head adds a HTTP HEAD route to the default server.
-func Head(pattern string, handler http.HandlerFunc) {
-	server.Head(pattern, handler)
-}
-
-// Group creates a new muxlication group in default Mux with the given path.
-func Group(path string) *Server {
-	return server.Group(path)
-}
-
-func FileServer(prefix, dir string) {
-	server.FileServer(prefix, dir)
-}
-
-// Use muxends middleware module into the default serving list.
-func Use(modules ...Module) {
-	server.Use(modules...)
+	web.Get(pattern, handler)
 }
 
 func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
-	server.Use(modules.Env)
-	server.Use(modules.LiveReload)
+	//web.Use(modules.Env)
+	//web.Use(modules.LiveReload)
 
 	flag.Parse()
-	server.Run(Port)
+	web.Run(port)
 }
 
 func init() {
 	// ----------------------------------------
 	// Project Root
 	// ----------------------------------------
-	if dir := fs.Geted(); strings.HasPrefix(dir, os.TempDir()) {
-		root = fs.Getcd(2)
-	} else {
-		root = dir
-	}
-
-	// ----------------------------------------
-	// Project Settings
-	// ----------------------------------------
+	root = fs.Getcd(2)
 	env.Set("rex.root", root)
 	env.Load(filepath.Join(root, ".env"))
 
@@ -180,14 +117,8 @@ func init() {
 		}
 	}
 
-	// ----------------------------------------
-	// Default Server
-	// ----------------------------------------
-	server = New()
-
-	// ----------------------------------------
+	web = New()
 	// cmd arguments
-	// ----------------------------------------
-	flag.BoolVar(&settings.Debug, "debug", settings.Debug, "flag to toggle debug mode")
-	flag.IntVar(&settings.Port, "port", settings.Port, "port to run the application server")
+	flag.BoolVar(&debug, "debug", debug, "flag to toggle debug mode")
+	flag.IntVar(&port, "port", port, "port to run the application server")
 }

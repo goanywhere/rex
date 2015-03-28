@@ -26,19 +26,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/schema"
 
 	pongo "github.com/flosch/pongo2"
 	"github.com/goanywhere/x"
+	"github.com/goanywhere/x/env"
 )
-
-var form = schema.NewDecoder()
 
 type Context struct {
 	http.ResponseWriter
@@ -81,6 +80,10 @@ func (self *Context) Del(key string) {
 // ----------------------------------------
 // Cookie securely fetches the value associated with the given name from request cookie.
 func (self *Context) Cookie(name string, v interface{}) error {
+	if securecookie == nil {
+		return errors.New("env:SECRET_KEYS is missing")
+	}
+
 	if cookie, err := self.Request.Cookie(name); err == nil {
 
 		if cookie.Value != "" {
@@ -90,12 +93,15 @@ func (self *Context) Cookie(name string, v interface{}) error {
 	} else {
 		return err
 	}
-
 	return nil
 }
 
 // SetCookie securely encodes the value to response cookie via Set-Cookie header.
 func (self *Context) SetCookie(name string, value interface{}, options ...*http.Cookie) error {
+	if securecookie == nil {
+		return errors.New("env:SECRET_KEYS is missing")
+	}
+
 	if str, err := securecookie.Encode(name, value); err == nil {
 
 		var cookie *http.Cookie
@@ -103,7 +109,13 @@ func (self *Context) SetCookie(name string, value interface{}, options ...*http.
 		if len(options) > 0 {
 			cookie = options[0]
 		} else {
-			cookie = settings.NewCookie()
+			cookie = &http.Cookie{
+				Path:     env.String("COOKIE_PATH", "/"),
+				Domain:   env.String("COOKIE_DOMAIN", ""),
+				Secure:   env.Bool("COOKIE_SECURE", false),
+				HttpOnly: env.Bool("COOKIE_HTTPONLY", true),
+				MaxAge:   env.Int("COOKIE_MAGAGE", 3600*24*7),
+			}
 		}
 		cookie.Name = name
 		cookie.Value = str
@@ -127,6 +139,15 @@ func (self *Context) SetCookie(name string, value interface{}, options ...*http.
 // ----------------------------------------
 // HTTP Utilities
 // ----------------------------------------
+//Error writes the error message to http response.
+func (self *Context) Error(status int, message ...string) {
+	if len(message) == 0 {
+		http.Error(self, http.StatusText(status), status)
+	} else {
+		http.Error(self, message[0], status)
+	}
+}
+
 // RemoteAddr fetches the real remote address of incoming HTTP request.
 func (self *Context) RemoteAddr() string {
 	var address string
@@ -145,30 +166,38 @@ func (self *Context) RemoteAddr() string {
 	return address
 }
 
-// Render constructs response body using the given object. Supported objects:
-//  string (filename): filename under pre-defined views folder (via os.Getenv("VIEWS"))
-//  pointer to struct: Content-Type will be determined via StructTag.
-func (self *Context) Render(v interface{}) {
+// Render constructs response body using html/template.
+func (self *Context) Render(filename string) {
+	defer func() {
+		self.values = pongo.Context{}
+	}()
 
+	if self.Header().Get("Content-Type") == "" {
+		self.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	}
+
+	if template, exists := views[filename]; exists {
+		if out, err := template.ExecuteBytes(self.values); err == nil {
+			self.Write(out)
+		} else {
+			http.Error(self, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		http.Error(self, fmt.Sprintf("<Template: %s> does not exists", filename), http.StatusInternalServerError)
+	}
+}
+
+// Send constructs response body using the given object, Content-Type
+// will be automatically detected using StructTag for objects.
+// Supported Objects:
+//      string: text/plain
+//      json:   application/json
+//      xml:    application/xml
+func (self *Context) Send(v interface{}) {
 	switch T := v.(type) {
 	case string:
-		defer func() {
-			self.values = pongo.Context{}
-		}()
-
-		if self.Header().Get("Content-Type") == "" {
-			self.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		}
-
-		if template, exists := views[T]; exists {
-			if out, err := template.ExecuteBytes(self.values); err == nil {
-				self.Write(out)
-			} else {
-				http.Error(self, err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			http.Error(self, fmt.Sprintf("<Template: %s> does not exists", T), http.StatusInternalServerError)
-		}
+		self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+		self.Write([]byte(T))
 
 	default:
 		var (

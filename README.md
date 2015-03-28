@@ -69,13 +69,16 @@ func Index(ctx *rex.Context) {
     ctx.Render("index.html")
 }
 
+func Text(ctx *rex.Context) {
+    ctx.Send("Hello World")
+}
+
 func JSON(ctx *rex.Context) {
     // Content-Type: application/json
     type Object struct {
         Id      int `json:id`
     }
-    object := &Object{123}
-    ctx.Render(object)
+    ctx.Send(&Object{123})
 }
 
 func XML(ctx *rex.Context) {
@@ -83,13 +86,13 @@ func XML(ctx *rex.Context) {
     type Object struct {
         Id      int `xml:id`
     }
-    object := &Object{123}
-    ctx.Render(object)
+    ctx.Send(&Object{123})
 }
 
 func main() {
     // rex loads the html/xml from `os.Getenv("views")` by default.
     rex.Get("/", Index)
+    rex.Get("/txt", Text)
     rex.Get("/api", JSON)
     rex.Get("/xml", XML)
     rex.Run()

@@ -36,8 +36,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
-	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules/livereload"
+	"github.com/goanywhere/x/cmd"
 	"github.com/goanywhere/x/fs"
 )
 
@@ -58,12 +58,12 @@ type app struct {
 // to run & optionally compiles static assets using npm.
 func (self *app) build() {
 	var done = make(chan bool)
-	internal.Loading(done)
+	cmd.Loading(done)
 
 	// * try build the application into rex-bin(.exe)
-	cmd := exec.Command("go", "build", "-o", self.binary)
-	cmd.Dir = self.dir
-	if e := cmd.Run(); e != nil {
+	command := exec.Command("go", "build", "-o", self.binary)
+	command.Dir = self.dir
+	if e := command.Run(); e != nil {
 		log.Fatalf("Failed to compile the application: %v", e)
 	}
 
@@ -86,14 +86,14 @@ func (self *app) run() (gorun chan bool) {
 			if !start {
 				continue
 			}
-			cmd := exec.Command(self.binary, fmt.Sprintf("--port=%d", port))
-			cmd.Dir = self.dir
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Start(); err != nil {
+			command := exec.Command(self.binary, fmt.Sprintf("--port=%d", port))
+			command.Dir = self.dir
+			command.Stdout = os.Stdout
+			command.Stderr = os.Stderr
+			if err := command.Start(); err != nil {
 				log.Fatalf("Failed to start the process: %v\n", err)
 			}
-			proc = cmd.Process
+			proc = command.Process
 		}
 	}()
 	return

@@ -20,18 +20,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package internal
+package form
 
-var ContentType = struct {
-	Name string
-	HTML string
-	JSON string
-	XML  string
-	Text string
-}{
-	Name: "Content-Type",
-	HTML: "text/html; charset=UTF-8",
-	JSON: "application/json; charset=UTF-8",
-	XML:  "application/xml; charset=UTF-8",
-	Text: "text/plain; charset=UTF-8",
+type field struct {
+	required bool
+	message  string
 }

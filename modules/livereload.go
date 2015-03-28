@@ -33,6 +33,7 @@ import (
 	"strings"
 
 	"github.com/goanywhere/rex/modules/livereload"
+	"github.com/goanywhere/x/env"
 )
 
 type writer struct {
@@ -88,7 +89,7 @@ func (self *writer) Write(data []byte) (size int, e error) {
 
 func LiveReload(next http.Handler) http.Handler {
 	// ONLY run this under debug mode.
-	if !settings.Debug {
+	if !env.Bool("DEBUG", true) {
 		return next
 	}
 	livereload.Start()

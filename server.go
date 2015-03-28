@@ -54,9 +54,9 @@ func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type Server struct {
-	mux     *mux.Router
 	modules []Module
 	pool    sync.Pool
+	mux     *mux.Router
 }
 
 // New creates a plain web server without any middleware modules.
