@@ -56,13 +56,13 @@ type M map[string]interface{}
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
 // TODO multiple paths supports.
-func loadViews(root string) {
+func loadViews(dir string) {
 	var (
 		files   = regexp.MustCompile(`\.(html|xml)$`)
 		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
 	)
-	if fs.Exists(root) {
-		filepath.Walk(root, func(path string, info os.FileInfo, e error) error {
+	if fs.Exists(dir) {
+		filepath.Walk(dir, func(path string, info os.FileInfo, e error) error {
 
 			if info.IsDir() {
 				if ignores.MatchString(info.Name()) {
@@ -73,7 +73,7 @@ func loadViews(root string) {
 			}
 
 			if files.MatchString(path) {
-				key, _ := filepath.Rel(root, path)
+				key, _ := filepath.Rel(dir, path)
 				views[key] = pongo.Must(pongo.FromFile(path))
 			}
 
