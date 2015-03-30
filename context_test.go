@@ -141,7 +141,7 @@ func TestContextRender(t *testing.T) {
 				var obj = &A{Id: 123, Name: "test"}
 
 				ctx := NewContext(w, r)
-				ctx.Render(obj)
+				ctx.Send(obj)
 			}))
 			defer server.Close()
 
@@ -163,7 +163,7 @@ func TestContextRender(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				var obj = &B{Id: 123, Name: "test"}
 				ctx := NewContext(w, r)
-				ctx.Render(obj)
+				ctx.Send(obj)
 			}))
 			defer server.Close()
 

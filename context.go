@@ -35,9 +35,17 @@ import (
 	"github.com/gorilla/mux"
 
 	pongo "github.com/flosch/pongo2"
+	gschema "github.com/gorilla/schema"
+
 	"github.com/goanywhere/x"
 	"github.com/goanywhere/x/env"
 )
+
+var schema = gschema.NewDecoder()
+
+type Validator interface {
+	Validate() error
+}
 
 type Context struct {
 	http.ResponseWriter
@@ -148,6 +156,17 @@ func (self *Context) Error(status int, message ...string) {
 	}
 }
 
+// ParseForm parsed the raw query from the URL and updates request.Form,
+// decode the from to the given struct with Validator implemented.
+func (self *Context) ParseForm(form Validator) (err error) {
+	if err = self.Request.ParseForm(); err == nil {
+		if err = schema.Decode(form, self.Request.Form); err == nil {
+			err = form.Validate()
+		}
+	}
+	return
+}
+
 // RemoteAddr fetches the real remote address of incoming HTTP request.
 func (self *Context) RemoteAddr() string {
 	var address string
@@ -193,6 +212,7 @@ func (self *Context) Render(filename string) {
 //      string: text/plain
 //      json:   application/json
 //      xml:    application/xml
+// TODO performance boost by determining the Response ContentType using request header.
 func (self *Context) Send(v interface{}) {
 	switch T := v.(type) {
 	case string:
@@ -203,9 +223,11 @@ func (self *Context) Send(v interface{}) {
 		var (
 			e      error
 			buffer = new(bytes.Buffer)
+			ctype  = self.Request.Header.Get("Content-Type")
 		)
+
 		// JSON/XML rendering.
-		if x.Has(v, "json") {
+		if strings.Contains(ctype, "application/json") || x.Has(v, "json") {
 			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			e = json.NewEncoder(buffer).Encode(v)
 
