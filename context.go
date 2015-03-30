@@ -167,6 +167,11 @@ func (self *Context) ParseForm(form Validator) (err error) {
 	return
 }
 
+// Query parses RawQuery and returns the corresponding values.
+func (self *Context) Query(name string) string {
+	return self.Request.URL.Query().Get(name)
+}
+
 // RemoteAddr fetches the real remote address of incoming HTTP request.
 func (self *Context) RemoteAddr() string {
 	var address string
