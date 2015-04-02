@@ -47,7 +47,7 @@ func (self HandlerFunc) Serve(ctx *Context) {
 	self(ctx)
 }
 
-// HandlerFunc serves as net/http's http.HandlerFunc with web.Context supports.
+// HandlerFunc serves as net/http's http.HandlerFunc with Context supports.
 func (self HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := NewContext(w, r)
 	self(ctx)
