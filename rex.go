@@ -56,11 +56,13 @@ type M map[string]interface{}
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
 // TODO multiple paths supports.
-func loadViews(dir string) {
+func loadViews(root string) {
 	var (
 		files   = regexp.MustCompile(`\.(html|xml)$`)
 		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
 	)
+	dir := filepath.Join(root, env.String("VIEWS", "views"))
+
 	if fs.Exists(dir) {
 		filepath.Walk(dir, func(path string, info os.FileInfo, e error) error {
 
@@ -106,7 +108,6 @@ func init() {
 	// Project Root
 	// ----------------------------------------
 	root = fs.Getcd(2)
-	env.Set("rex.root", root)
 	env.Load(filepath.Join(root, ".env"))
 
 	loadViews(root)
