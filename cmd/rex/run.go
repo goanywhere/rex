@@ -36,8 +36,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules/livereload"
+
 	"github.com/goanywhere/x/cmd"
+	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
 
@@ -137,6 +140,8 @@ func (self *app) Start() {
 func Run(ctx *cli.Context) {
 	port = ctx.Int("port")
 	path := ctx.String("path")
+	abspath, _ := filepath.Abs(path)
+	env.Set(internal.Root, abspath)
 
 	pkg, err := build.ImportDir(path, build.AllowBinary)
 	if err != nil || pkg.Name != "main" {

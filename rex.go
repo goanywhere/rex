@@ -31,6 +31,7 @@ import (
 	pongo "github.com/flosch/pongo2"
 	cookie "github.com/gorilla/securecookie"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
@@ -56,7 +57,7 @@ type M map[string]interface{}
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
 // TODO multiple paths supports.
-func loadViews(root string) {
+func loadViews() {
 	var (
 		files   = regexp.MustCompile(`\.(html|xml)$`)
 		ignores = regexp.MustCompile(`(layouts|include|\.(\w+))`)
@@ -107,10 +108,13 @@ func init() {
 	// ----------------------------------------
 	// Project Root
 	// ----------------------------------------
-	root = fs.Getcd(2)
+	if root = env.String(internal.Root); root == "" {
+		root = fs.Getcd(2)
+		env.Set(internal.Root, root)
+	}
 	env.Load(filepath.Join(root, ".env"))
 
-	loadViews(root)
+	loadViews()
 
 	if securecookie == nil {
 		if secrets := env.Strings("SECRET_KEYS"); len(secrets) == 2 {
