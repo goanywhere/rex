@@ -54,11 +54,6 @@ var commands = []cli.Command{
 				Value: 5000,
 				Usage: "port to run the application server",
 			},
-			cli.StringFlag{
-				Name:  "path",
-				Value: ".",
-				Usage: "path to run the application server",
-			},
 		},
 	},
 	// helper to generate a secret key.
