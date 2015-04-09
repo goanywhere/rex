@@ -129,8 +129,8 @@ func (self *app) Start() {
 	watcher := fs.NewWatcher(self.dir)
 	log.Infof("Start watching: %s", self.dir)
 	watcher.Add(watchList, func(filename string) {
-		abspath, _ := filepath.Abs(filename)
-		log.Infof("Changes on %s detected", abspath)
+		relpath, _ := filepath.Rel(self.dir, filename)
+		log.Infof("Changes on %s detected", relpath)
 		self.rerun(gorun)
 	})
 	watcher.Start()
