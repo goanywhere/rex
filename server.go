@@ -34,6 +34,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	pongo "github.com/flosch/pongo2"
 
+	"github.com/goanywhere/rex/modules"
 	"github.com/gorilla/mux"
 )
 
@@ -191,15 +192,19 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Run starts the application server to serve incoming requests at the given address.
-func (self *Server) Run(port int) {
+func (self *Server) Run() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		log.Infof("Application server is listening at %d", port)
+		log.Infof("Application server is listening at %d", flags.port)
 	}()
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), self); err != nil {
+	if flags.debug {
+		self.Use(modules.LiveReload)
+	}
+
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", flags.port), self); err != nil {
 		log.Fatalf("Failed to start the server: %v", err)
 	}
 }

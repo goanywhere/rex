@@ -36,14 +36,17 @@ import (
 	"github.com/goanywhere/x/fs"
 )
 
-// server settings
 var (
-	port int = 5000
-
-	debug bool = true
-
 	root string
 )
+
+var flags = struct {
+	debug bool
+	port  int
+}{
+	debug: true,
+	port:  5000,
+}
 
 var (
 	securecookie *cookie.SecureCookie
@@ -98,10 +101,9 @@ func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
 	//web.Use(modules.Env)
-	//web.Use(modules.LiveReload)
 
 	flag.Parse()
-	web.Run(port)
+	web.Run()
 }
 
 func init() {
@@ -124,6 +126,6 @@ func init() {
 
 	web = New()
 	// cmd arguments
-	flag.BoolVar(&debug, "debug", debug, "flag to toggle debug mode")
-	flag.IntVar(&port, "port", port, "port to run the application server")
+	flag.BoolVar(&flags.debug, "debug", flags.debug, "flag to toggle debug mode")
+	flag.IntVar(&flags.port, "port", flags.port, "port to run the application server")
 }
