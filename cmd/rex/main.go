@@ -38,11 +38,13 @@ var (
 
 var commands = []cli.Command{
 	// rex project template supports
-	{
-		Name:   "new",
-		Usage:  "create a skeleton web application project",
-		Action: New,
-	},
+	/*
+	 *{
+	 *    Name:   "new",
+	 *    Usage:  "create a skeleton web application project",
+	 *    Action: New,
+	 *},
+	 */
 	// rex server (with livereload supports)
 	{
 		Name:   "run",
