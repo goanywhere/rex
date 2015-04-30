@@ -66,7 +66,7 @@ func New() *Server {
 	self.mux = mux.NewRouter()
 	self.pool.New = func() interface{} {
 		ctx := new(Context)
-		ctx.values = pongo.Context{}
+		ctx.Values = pongo.Context{}
 		return ctx
 	}
 	return self
