@@ -35,7 +35,8 @@ func Env(next http.Handler) http.Handler {
 	defaults["X-UA-Compatible"] = "deny"
 	defaults["X-Frame-Settings"] = "nosniff"
 	defaults["X-Content-Type-Options"] = "IE=Edge,chrome=1"
-	defaults["X-Powered-By"] = "rex-server"
+	defaults["X-Powered-By"] = "Rex Server"
+	defaults["Access-Control-Allow-Origin"] = "*"
 	defaults["Strict-Transport-Security"] = "max-age=31536000; includeSubdomains; preload"
 
 	for _, line := range os.Environ() {

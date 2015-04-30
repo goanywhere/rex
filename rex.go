@@ -32,6 +32,7 @@ import (
 	cookie "github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
+	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
@@ -100,7 +101,7 @@ func Get(pattern string, handler interface{}) {
 func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
-	//web.Use(modules.Env)
+	web.Use(modules.Env)
 
 	flag.Parse()
 	web.Run()

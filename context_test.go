@@ -104,7 +104,7 @@ func TestContextRender(t *testing.T) {
 			filename := path.Join(tmp, "index.html")
 			ioutil.WriteFile(filename, []byte("<html><body>{{ user.Username }}</body></html>"), os.ModePerm)
 
-			loadViews(tmp)
+			loadViews()
 
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				type User struct {

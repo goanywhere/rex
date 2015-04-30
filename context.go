@@ -32,6 +32,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 
 	pongo "github.com/flosch/pongo2"
@@ -54,14 +55,14 @@ type Context struct {
 	size   int
 	status int
 
-	values pongo.Context
+	Values pongo.Context
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	ctx := new(Context)
-	ctx.ResponseWriter = w
 	ctx.Request = r
-	ctx.values = pongo.Context{}
+	ctx.ResponseWriter = w
+	ctx.Values = pongo.Context{}
 	return ctx
 }
 
@@ -70,17 +71,17 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 // ----------------------------------------
 // Get retrieves the value with associated key from the request context.
 func (self *Context) Get(key string) interface{} {
-	return self.values[key]
+	return context.Get(self.Request, key)
 }
 
 // Set stores value with associated key for the request context.
 func (self *Context) Set(key string, value interface{}) {
-	self.values[key] = value
+	context.Set(self.Request, key, value)
 }
 
 // Del removes the value with associated key for request context.
 func (self *Context) Del(key string) {
-	delete(self.values, key)
+	context.Delete(self.Request, key)
 }
 
 // ----------------------------------------
@@ -193,7 +194,7 @@ func (self *Context) RemoteAddr() string {
 // Render constructs response body using html/template.
 func (self *Context) Render(filename string) {
 	defer func() {
-		self.values = pongo.Context{}
+		self.Values = pongo.Context{}
 	}()
 
 	if self.Header().Get("Content-Type") == "" {
@@ -201,7 +202,7 @@ func (self *Context) Render(filename string) {
 	}
 
 	if template, exists := views[filename]; exists {
-		if out, err := template.ExecuteBytes(self.values); err == nil {
+		if out, err := template.ExecuteBytes(self.Values); err == nil {
 			self.Write(out)
 		} else {
 			http.Error(self, err.Error(), http.StatusInternalServerError)
