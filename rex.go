@@ -32,7 +32,6 @@ import (
 	cookie "github.com/gorilla/securecookie"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
@@ -89,24 +88,6 @@ func loadViews() {
 	}
 }
 
-// ---------------------------------------------------------------------------
-//  Default Server Mux
-// ---------------------------------------------------------------------------
-var web *Server
-
-func Get(pattern string, handler interface{}) {
-	web.Get(pattern, handler)
-}
-
-func Run() {
-	// common server middleware modules.
-	//server.Use(modules.XSRF)
-	web.Use(modules.Env)
-
-	flag.Parse()
-	web.Run()
-}
-
 func init() {
 	// ----------------------------------------
 	// Project Root
@@ -125,7 +106,7 @@ func init() {
 		}
 	}
 
-	web = New()
+	server = New()
 	// cmd arguments
 	flag.BoolVar(&flags.debug, "debug", flags.debug, "flag to toggle debug mode")
 	flag.IntVar(&flags.port, "port", flags.port, "port to run the application server")

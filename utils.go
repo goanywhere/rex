@@ -22,10 +22,20 @@
  * ----------------------------------------------------------------------*/
 package rex
 
-import "net/http/httptest"
+import (
+	"net/http/httptest"
+
+	gschema "github.com/gorilla/schema"
+)
 
 // T starts and returns a new Server for testing.
 // The caller should call Close when finished, to shut it down.
 func T(handler HandlerFunc) *httptest.Server {
 	return httptest.NewServer(HandlerFunc(handler))
+}
+
+var schema = gschema.NewDecoder()
+
+type Validator interface {
+	Validate() error
 }

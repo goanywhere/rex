@@ -36,17 +36,10 @@ import (
 	"github.com/gorilla/mux"
 
 	pongo "github.com/flosch/pongo2"
-	gschema "github.com/gorilla/schema"
 
 	"github.com/goanywhere/x"
 	"github.com/goanywhere/x/env"
 )
-
-var schema = gschema.NewDecoder()
-
-type Validator interface {
-	Validate() error
-}
 
 type Context struct {
 	http.ResponseWriter
@@ -171,6 +164,15 @@ func (self *Context) ParseForm(form Validator) (err error) {
 // Query parses RawQuery and returns the corresponding values.
 func (self *Context) Query(name string) string {
 	return self.Request.URL.Query().Get(name)
+}
+
+// Shortcut to redirect URL address with default status code (302).
+func (self *Context) Redirect(url string, status ...int) {
+	if len(status) == 1 {
+		http.Redirect(self, self.Request, url, status[0])
+	} else {
+		http.Redirect(self, self.Request, url, http.StatusFound)
+	}
 }
 
 // RemoteAddr fetches the real remote address of incoming HTTP request.
