@@ -37,7 +37,8 @@ func Env(next http.Handler) http.Handler {
 	defaults["X-Content-Type-Options"] = "IE=Edge,chrome=1"
 	defaults["X-Powered-By"] = "Rex Server"
 	defaults["Access-Control-Allow-Origin"] = "*"
-	defaults["Strict-Transport-Security"] = "max-age=31536000; includeSubdomains; preload"
+	defaults["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+	defaults["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE"
 
 	for _, line := range os.Environ() {
 		if strings.HasPrefix(line, namespace) {
@@ -50,6 +51,15 @@ func Env(next http.Handler) http.Handler {
 		for key, value := range defaults {
 			w.Header()[key] = []string{value}
 		}
+
 		next.ServeHTTP(w, r)
+		/*
+		 *if r.Method == "OPTIONS" {
+		 *    w.WriteHeader(http.StatusOK)
+		 *    w.Write([]byte(http.StatusText(http.StatusOK)))
+		 *} else {
+		 *    next.ServeHTTP(w, r)
+		 *}
+		 */
 	})
 }

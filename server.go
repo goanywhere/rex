@@ -159,16 +159,17 @@ func (self *Server) Options(pattern string, handler interface{}) {
 }
 
 // Group creates a new application group under the given path.
-func (self *Server) Group(path string) *Server {
-	return &Server{mux: self.mux.PathPrefix(path).Subrouter()}
+// FIXME: lost server access, context can't be injected.
+func (self *Server) Group(path string) {
+	//return &Server{mux: self.mux.PathPrefix(path).Subrouter()}
 }
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
 func (self *Server) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
-		server := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
-		self.mux.PathPrefix(prefix).Handler(server)
+		fs := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
+		self.mux.PathPrefix(prefix).Handler(fs)
 	} else {
 		log.Fatalf("Failed to setup file server: %v", err)
 	}

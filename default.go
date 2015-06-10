@@ -22,7 +22,11 @@
  * ----------------------------------------------------------------------*/
 package rex
 
-import "flag"
+import (
+	"flag"
+
+	"github.com/goanywhere/rex/modules"
+)
 
 // ---------------------------------------------------------------------------
 //  Default Server Mux
@@ -32,7 +36,7 @@ var server *Server
 func Run() {
 	// common server middleware modules.
 	//server.Use(modules.XSRF)
-	//server.Use(modules.Env)
+	server.Use(modules.Env)
 
 	flag.Parse()
 	server.Run()
@@ -62,14 +66,16 @@ func Head(pattern string, handler interface{}) {
 	server.Head(pattern, handler)
 }
 
-func (self *Server) Options(pattern string, handler interface{}) {
+func Options(pattern string, handler interface{}) {
 	server.Options(pattern, handler)
 }
 
 // Group creates a new application group under the given path.
-func Group(path string) *Server {
-	return server.Group(path)
-}
+/*
+ *func Group(path string) *Server {
+ *    return server.Group(path)
+ *}
+ */
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.

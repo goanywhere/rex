@@ -222,6 +222,7 @@ func (self *Context) Render(filename string) {
 //      xml:    application/xml
 // TODO performance boost by determining the Response ContentType using request header.
 func (self *Context) Send(v interface{}) {
+
 	switch T := v.(type) {
 	case string:
 		self.Header().Set("Content-Type", "text/plain; charset=UTF-8")
@@ -235,14 +236,13 @@ func (self *Context) Send(v interface{}) {
 		)
 
 		// JSON/XML rendering.
-		if strings.Contains(ctype, "application/json") || x.Has(v, "json") {
-			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			e = json.NewEncoder(buffer).Encode(v)
-
-		} else {
+		if strings.Contains(ctype, "application/xml") || x.Has(v, "xml") {
 			self.Header().Set("Content-Type", "application/xml; charset=UTF-8")
 			self.Write([]byte(xml.Header))
 			e = xml.NewEncoder(buffer).Encode(v)
+		} else {
+			self.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			e = json.NewEncoder(buffer).Encode(v)
 		}
 
 		if e == nil {

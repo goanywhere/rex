@@ -55,7 +55,7 @@ var (
 )
 
 // Shortcut to create hash map.
-type M map[string]interface{}
+type Map map[string]interface{}
 
 // loadViews load the html/xml documents from the pre-defined directory,
 // rex will ignores directories named "layouts" & "include".
