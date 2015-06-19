@@ -51,38 +51,38 @@ var (
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func Get(pattern string, handler interface{}) {
-	DefaultMux.register("GET", pattern, handler)
+	DefaultMux.Get(pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Head(pattern string, handler interface{}) {
-	DefaultMux.register("HEAD", pattern, handler)
+	DefaultMux.Head(pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
 func Options(pattern string, handler interface{}) {
-	DefaultMux.register("OPTIONS", pattern, handler)
+	DefaultMux.Options(pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Post(pattern string, handler interface{}) {
-	DefaultMux.register("POST", pattern, handler)
+	DefaultMux.Post(pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Put(pattern string, handler interface{}) {
-	DefaultMux.register("PUT", pattern, handler)
+	DefaultMux.Put(pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Delete(pattern string, handler interface{}) {
-	DefaultMux.register("Delete", pattern, handler)
+	DefaultMux.Delete(pattern, handler)
 }
 
 // Group creates a new application group under the given path.

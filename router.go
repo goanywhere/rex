@@ -44,7 +44,7 @@ type Router struct {
 func New() *Router {
 	return &Router{
 		mod: new(internal.Module),
-		mux: mux.NewRouter(),
+		mux: mux.NewRouter().StrictSlash(true),
 	}
 }
 
