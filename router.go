@@ -49,7 +49,7 @@ func New() *Router {
 }
 
 // build constructs all router/subrouters along with their middleware modules chain.
-func (self *Router) build() {
+func (self *Router) build() http.Handler {
 	if !self.ready {
 		self.ready = true
 		// * activate router's middleware modules.
@@ -61,6 +61,7 @@ func (self *Router) build() {
 			sr.mod.Use(sr.mux)
 		}
 	}
+	return self.mod
 }
 
 // register adds the http.Handler/http.HandleFunc into Gorilla mux.
@@ -155,8 +156,7 @@ func (self *Router) Use(module interface{}) {
 // ServeHTTP dispatches the request to the handler whose
 // pattern most closely matches the request URL.
 func (self *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self.build()
-	self.mod.ServeHTTP(w, r)
+	self.build().ServeHTTP(w, r)
 }
 
 // Run starts the application server to serve incoming requests at the given address.
