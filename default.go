@@ -1,0 +1,89 @@
+/* ----------------------------------------------------------------------
+ *       ______      ___                         __
+ *      / ____/___  /   |  ____  __  ___      __/ /_  ___  ________
+ *     / / __/ __ \/ /| | / __ \/ / / / | /| / / __ \/ _ \/ ___/ _ \
+ *    / /_/ / /_/ / ___ |/ / / / /_/ /| |/ |/ / / / /  __/ /  /  __/
+ *    \____/\____/_/  |_/_/ /_/\__. / |__/|__/_/ /_/\___/_/   \___/
+ *                            /____/
+ *
+ * (C) Copyright 2015 GoAnywhere (http://goanywhere.io).
+ * ----------------------------------------------------------------------
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ----------------------------------------------------------------------*/
+package rex
+
+import (
+	"net/http"
+
+	"github.com/goanywhere/rex/modules"
+)
+
+var DefaultMux = New()
+
+// Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
+// it also fetch the full function name of the handler (with package) to name the route.
+func Get(pattern string, handler interface{}) {
+	DefaultMux.register("GET", pattern, handler)
+}
+
+// Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
+// it also fetch the full function name of the handler (with package) to name the route.
+func Head(pattern string, handler interface{}) {
+	DefaultMux.register("HEAD", pattern, handler)
+}
+
+// Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
+// it also fetch the full function name of the handler (with package) to name the route.
+// NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
+func Options(pattern string, handler interface{}) {
+	DefaultMux.register("OPTIONS", pattern, handler)
+}
+
+// Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
+// it also fetch the full function name of the handler (with package) to name the route.
+func Post(pattern string, handler interface{}) {
+	DefaultMux.register("POST", pattern, handler)
+}
+
+// Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
+// it also fetch the full function name of the handler (with package) to name the route.
+func Put(pattern string, handler interface{}) {
+	DefaultMux.register("PUT", pattern, handler)
+}
+
+// Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
+// it also fetch the full function name of the handler (with package) to name the route.
+func Delete(pattern string, handler interface{}) {
+	DefaultMux.register("Delete", pattern, handler)
+}
+
+// Group creates a new application group under the given path.
+func Group(path string) *Router {
+	return DefaultMux.Group(path)
+}
+
+// FileServer registers a handler to serve HTTP requests
+// with the contents of the file system rooted at root.
+func FileServer(prefix, dir string) {
+	DefaultMux.FileServer(prefix, dir)
+}
+
+// Use appends middleware module into the serving list, modules will be served in FIFO order.
+func Use(module func(http.Handler) http.Handler) {
+	DefaultMux.Use(module)
+}
+
+func Run() {
+	DefaultMux.Use(modules.Logger)
+	DefaultMux.Run()
+}
