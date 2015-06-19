@@ -23,67 +23,101 @@
 package rex
 
 import (
+	"flag"
 	"net/http"
+	"path/filepath"
+	"runtime"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
+	"github.com/goanywhere/x/env"
+	"github.com/goanywhere/x/fs"
 )
 
-var DefaultMux = New()
+var (
+	mux = New()
+
+	options = struct {
+		debug    bool
+		port     int
+		maxprocs int
+	}{
+		debug:    true,
+		port:     5000,
+		maxprocs: runtime.NumCPU(),
+	}
+)
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func Get(pattern string, handler interface{}) {
-	DefaultMux.register("GET", pattern, handler)
+	mux.register("GET", pattern, handler)
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Head(pattern string, handler interface{}) {
-	DefaultMux.register("HEAD", pattern, handler)
+	mux.register("HEAD", pattern, handler)
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
 func Options(pattern string, handler interface{}) {
-	DefaultMux.register("OPTIONS", pattern, handler)
+	mux.register("OPTIONS", pattern, handler)
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Post(pattern string, handler interface{}) {
-	DefaultMux.register("POST", pattern, handler)
+	mux.register("POST", pattern, handler)
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Put(pattern string, handler interface{}) {
-	DefaultMux.register("PUT", pattern, handler)
+	mux.register("PUT", pattern, handler)
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
 func Delete(pattern string, handler interface{}) {
-	DefaultMux.register("Delete", pattern, handler)
+	mux.register("Delete", pattern, handler)
 }
 
 // Group creates a new application group under the given path.
 func Group(path string) *Router {
-	return DefaultMux.Group(path)
+	return mux.Group(path)
 }
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
 func FileServer(prefix, dir string) {
-	DefaultMux.FileServer(prefix, dir)
+	mux.FileServer(prefix, dir)
 }
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
 func Use(module func(http.Handler) http.Handler) {
-	DefaultMux.Use(module)
+	mux.Use(module)
 }
 
 func Run() {
-	DefaultMux.Use(modules.Logger)
-	DefaultMux.Run()
+	mux.Use(modules.Logger)
+	mux.Run()
+}
+
+func init() {
+	// ----------------------------------------
+	// Project Root
+	// ----------------------------------------
+	var root = fs.Getcd(2)
+	env.Set(internal.Root, root)
+	env.Load(filepath.Join(root, ".env"))
+
+	// cmd arguments
+	flag.BoolVar(&options.debug, "debug", options.debug, "flag to toggle debug mode")
+	flag.IntVar(&options.port, "port", options.port, "port to run the application server")
+	flag.IntVar(&options.maxprocs, "maxprocs", options.maxprocs, "maximum cpu processes to run the server")
+
+	flag.Parse()
 }
