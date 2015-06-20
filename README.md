@@ -67,18 +67,19 @@ All settings on Rex can be accessed via `env`, which essentially stored in `os.E
 package main
 
 import (
+    "io"
+
     "github.com/goanywhere/rex"
     "github.com/goanywhere/x/env"
 )
 
-func index (ctx *rex.Context) {
-    ctx.Render("index.html")
+func index(w http.ResponseWriter, r *http.Request) {
+    io.WriteString("Hey you")
 }
 
 func main() {
     // Override default 5000 port here.
     env.Set("PORT", 9394)
-
     rex.Get("/", index)
     rex.Run()
 }
