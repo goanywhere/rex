@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
@@ -106,7 +107,7 @@ func Run() {
 func init() {
 	// setup project root
 	var root = fs.Getcd(2)
-	env.Set("rex.root", fs.Getcd(2))
+	env.Set(internal.ROOT, root)
 	env.Load(filepath.Join(root, ".env"))
 
 	// cmd arguments
