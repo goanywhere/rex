@@ -25,17 +25,21 @@ package rex
 import "net/http"
 
 type module struct {
+	cache http.Handler
 	stack []func(http.Handler) http.Handler
 }
 
 // build sets up the whole middleware modules in a FIFO chain.
 func (self *module) build() http.Handler {
-	var next http.Handler = http.DefaultServeMux
-	// Activate modules in FIFO order.
-	for index := len(self.stack) - 1; index >= 0; index-- {
-		next = self.stack[index](next)
+	if self.cache == nil {
+		var next http.Handler = http.DefaultServeMux
+		// Activate modules in FIFO order.
+		for index := len(self.stack) - 1; index >= 0; index-- {
+			next = self.stack[index](next)
+		}
+		self.cache = next
 	}
-	return next
+	return self.cache
 }
 
 // Use add the middleware module into the stack chain.
