@@ -50,11 +50,6 @@ func (self *middleware) build() http.Handler {
 	return self.cache
 }
 
-// Use add the middleware module into the stack chain.
-func (self *middleware) Use(modules ...func(http.Handler) http.Handler) {
-	self.stack = append(self.stack, modules...)
-}
-
 // Implements the net/http Handler interface and calls the middleware stack.
 func (self *middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self.build().ServeHTTP(w, r)
@@ -79,13 +74,13 @@ func (self *Router) build() http.Handler {
 	if !self.ready {
 		self.ready = true
 		// * activate router's middleware modules.
-		self.middleware.Use(func(http.Handler) http.Handler {
+		self.Use(func(http.Handler) http.Handler {
 			return self.mux
 		})
 		// * activate subrouters's middleware modules.
 		for index := 0; index < len(self.subrouters); index++ {
 			sr := self.subrouters[index]
-			sr.middleware.Use(func(http.Handler) http.Handler {
+			sr.Use(func(http.Handler) http.Handler {
 				return sr.mux
 			})
 		}
@@ -169,7 +164,7 @@ func (self *Router) Name(r *http.Request) (name string) {
 
 // Use add the middleware module into the stack chain.
 func (self *Router) Use(module func(http.Handler) http.Handler) {
-	self.middleware.Use(module)
+	self.middleware.stack = append(self.middleware.stack, module)
 }
 
 // ServeHTTP dispatches the request to the handler whose
