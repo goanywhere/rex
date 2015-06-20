@@ -5,6 +5,10 @@ Rex is a library for modular web development in [Go](http://golang.org/), design
 
 <img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
 
+## Intro
+
+Nah, not another **Web Framework**, we have that enough.The more we spend on [Go](http://golang.org/), the more clearly we realize that most lightweight, pure-stdlib conventions really do scale to large groups of developers and diverse project ecosystems. You absolutely don’t need a *Web Framework* like you normally do in other languages, simply because your code base has grown beyond a certain size. Or you believe it might grow beyond a certain size! You truly ain’t gonna need it. What we really need is just a suitable routing system, along with some common toolkits for web development, the standard idioms and practices will continue to function beautifully at scale.
+
 ## Getting Started
 
 Install the package, along with executable binary helper (**go 1.4** and greater is required):

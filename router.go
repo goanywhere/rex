@@ -129,10 +129,11 @@ func (self *Router) Group(prefix string) *Router {
 	return router
 }
 
-// FileRouter registers a handler to serve HTTP requests
+// FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
 func (self *Router) FileServer(prefix, dir string) {
 	if abs, err := filepath.Abs(dir); err == nil {
+		Infof("FS: %s", abs)
 		fs := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
 		self.mux.PathPrefix(prefix).Handler(fs)
 	} else {
