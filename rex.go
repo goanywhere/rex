@@ -37,11 +37,7 @@ import (
 var (
 	DefaultMux = New()
 
-	options = struct {
-		debug    bool
-		port     int
-		maxprocs int
-	}{
+	config = &options{
 		debug:    true,
 		port:     5000,
 		maxprocs: runtime.NumCPU(),
@@ -115,9 +111,9 @@ func init() {
 	env.Load(filepath.Join(root, ".env"))
 
 	// cmd arguments
-	flag.BoolVar(&options.debug, "debug", options.debug, "flag to toggle debug mode")
-	flag.IntVar(&options.port, "port", options.port, "port to run the application server")
-	flag.IntVar(&options.maxprocs, "maxprocs", options.maxprocs, "maximum cpu processes to run the server")
+	flag.BoolVar(&config.debug, "debug", config.debug, "flag to toggle debug mode")
+	flag.IntVar(&config.port, "port", config.port, "port to run the application server")
+	flag.IntVar(&config.maxprocs, "maxprocs", config.maxprocs, "maximum cpu processes to run the server")
 
 	flag.Parse()
 }
