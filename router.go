@@ -32,8 +32,36 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type middleware struct {
+	cache http.Handler
+	stack []func(http.Handler) http.Handler
+}
+
+// build sets up the whole middleware modules in a FIFO chain.
+func (self *middleware) build() http.Handler {
+	if self.cache == nil {
+		var next http.Handler = http.DefaultServeMux
+		// Activate modules in FIFO order.
+		for index := len(self.stack) - 1; index >= 0; index-- {
+			next = self.stack[index](next)
+		}
+		self.cache = next
+	}
+	return self.cache
+}
+
+// Use add the middleware module into the stack chain.
+func (self *middleware) Use(modules ...func(http.Handler) http.Handler) {
+	self.stack = append(self.stack, modules...)
+}
+
+// Implements the net/http Handler interface and calls the middleware stack.
+func (self *middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	self.build().ServeHTTP(w, r)
+}
+
 type Router struct {
-	module     *module
+	middleware *middleware
 	mux        *mux.Router
 	ready      bool
 	subrouters []*Router
@@ -41,8 +69,8 @@ type Router struct {
 
 func New() *Router {
 	return &Router{
-		module: new(module),
-		mux:    mux.NewRouter().StrictSlash(true),
+		middleware: new(middleware),
+		mux:        mux.NewRouter().StrictSlash(true),
 	}
 }
 
@@ -51,18 +79,18 @@ func (self *Router) build() http.Handler {
 	if !self.ready {
 		self.ready = true
 		// * activate router's middleware modules.
-		self.module.Use(func(http.Handler) http.Handler {
+		self.middleware.Use(func(http.Handler) http.Handler {
 			return self.mux
 		})
 		// * activate subrouters's middleware modules.
 		for index := 0; index < len(self.subrouters); index++ {
 			sr := self.subrouters[index]
-			sr.module.Use(func(http.Handler) http.Handler {
+			sr.middleware.Use(func(http.Handler) http.Handler {
 				return sr.mux
 			})
 		}
 	}
-	return self.module
+	return self.middleware
 }
 
 // register adds the http.Handler/http.HandleFunc into Gorilla mux.
@@ -121,11 +149,11 @@ func (self *Router) Delete(pattern string, handler interface{}) {
 
 // Group creates a new application group under the given path prefix.
 func (self *Router) Group(prefix string) *Router {
-	var module = new(module)
-	self.mux.PathPrefix(prefix).Handler(module)
+	var middleware = new(middleware)
+	self.mux.PathPrefix(prefix).Handler(middleware)
 	var mux = self.mux.PathPrefix(prefix).Subrouter()
 
-	router := &Router{module: module, mux: mux}
+	router := &Router{middleware: middleware, mux: mux}
 	self.subrouters = append(self.subrouters, router)
 	return router
 }
@@ -141,7 +169,7 @@ func (self *Router) Name(r *http.Request) (name string) {
 
 // Use add the middleware module into the stack chain.
 func (self *Router) Use(module func(http.Handler) http.Handler) {
-	self.module.Use(module)
+	self.middleware.Use(module)
 }
 
 // ServeHTTP dispatches the request to the handler whose

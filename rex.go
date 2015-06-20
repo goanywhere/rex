@@ -29,7 +29,7 @@ import (
 	"runtime"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/modules"
+	mw "github.com/goanywhere/rex/middleware"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
 )
@@ -86,21 +86,13 @@ func Group(path string) *Router {
 	return DefaultMux.Group(path)
 }
 
-// FileServer registers a handler to serve HTTP requests
-// with the contents of the file system rooted at root.
-/*
-func FileServer(prefix, dir string) {
-	DefaultMux.FileServer(prefix, dir)
-}
-*/
-
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
 func Use(module func(http.Handler) http.Handler) {
 	DefaultMux.Use(module)
 }
 
 func Run() {
-	DefaultMux.Use(modules.Logger)
+	DefaultMux.Use(mw.Logger)
 	DefaultMux.Run()
 }
 

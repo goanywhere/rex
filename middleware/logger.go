@@ -20,34 +20,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package rex
+package middleware
 
-import "net/http"
+import (
+	"net/http"
+	"time"
 
-type module struct {
-	cache http.Handler
-	stack []func(http.Handler) http.Handler
-}
+	"github.com/Sirupsen/logrus"
+)
 
-// build sets up the whole middleware modules in a FIFO chain.
-func (self *module) build() http.Handler {
-	if self.cache == nil {
-		var next http.Handler = http.DefaultServeMux
-		// Activate modules in FIFO order.
-		for index := len(self.stack) - 1; index >= 0; index-- {
-			next = self.stack[index](next)
-		}
-		self.cache = next
-	}
-	return self.cache
-}
-
-// Use add the middleware module into the stack chain.
-func (self *module) Use(modules ...func(http.Handler) http.Handler) {
-	self.stack = append(self.stack, modules...)
-}
-
-// Implements the net/http Handler interface and calls the middleware stack.
-func (self *module) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self.build().ServeHTTP(w, r)
+func Logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		logrus.Debugf("%s - %s (%v)", r.Method, r.URL.Path, time.Since(start))
+	})
 }
