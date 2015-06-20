@@ -28,7 +28,6 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/modules"
 	"github.com/goanywhere/x/env"
 	"github.com/goanywhere/x/fs"
@@ -88,9 +87,11 @@ func Group(path string) *Router {
 
 // FileServer registers a handler to serve HTTP requests
 // with the contents of the file system rooted at root.
+/*
 func FileServer(prefix, dir string) {
 	DefaultMux.FileServer(prefix, dir)
 }
+*/
 
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
 func Use(module func(http.Handler) http.Handler) {
@@ -103,11 +104,9 @@ func Run() {
 }
 
 func init() {
-	// ----------------------------------------
-	// Project Root
-	// ----------------------------------------
+	// setup project root
 	var root = fs.Getcd(2)
-	env.Set(internal.Root, root)
+	env.Set("rex.root", fs.Getcd(2))
 	env.Load(filepath.Join(root, ".env"))
 
 	// cmd arguments

@@ -25,17 +25,15 @@ package rex
 import (
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"runtime"
 	"time"
 
-	"github.com/goanywhere/rex/internal"
 	"github.com/gorilla/mux"
 )
 
 type Router struct {
-	mod        *internal.Module
+	module     *module
 	mux        *mux.Router
 	ready      bool
 	subrouters []*Router
@@ -43,8 +41,8 @@ type Router struct {
 
 func New() *Router {
 	return &Router{
-		mod: new(internal.Module),
-		mux: mux.NewRouter().StrictSlash(true),
+		module: new(module),
+		mux:    mux.NewRouter().StrictSlash(true),
 	}
 }
 
@@ -53,15 +51,18 @@ func (self *Router) build() http.Handler {
 	if !self.ready {
 		self.ready = true
 		// * activate router's middleware modules.
-		self.mod.Use(self.mux)
-
+		self.module.Use(func(http.Handler) http.Handler {
+			return self.mux
+		})
 		// * activate subrouters's middleware modules.
 		for index := 0; index < len(self.subrouters); index++ {
 			sr := self.subrouters[index]
-			sr.mod.Use(sr.mux)
+			sr.module.Use(func(http.Handler) http.Handler {
+				return sr.mux
+			})
 		}
 	}
-	return self.mod
+	return self.module
 }
 
 // register adds the http.Handler/http.HandleFunc into Gorilla mux.
@@ -120,25 +121,13 @@ func (self *Router) Delete(pattern string, handler interface{}) {
 
 // Group creates a new application group under the given path prefix.
 func (self *Router) Group(prefix string) *Router {
-	var mod = new(internal.Module)
-	self.mux.PathPrefix(prefix).Handler(mod)
+	var module = new(module)
+	self.mux.PathPrefix(prefix).Handler(module)
 	var mux = self.mux.PathPrefix(prefix).Subrouter()
 
-	router := &Router{mod: mod, mux: mux}
+	router := &Router{module: module, mux: mux}
 	self.subrouters = append(self.subrouters, router)
 	return router
-}
-
-// FileServer registers a handler to serve HTTP requests
-// with the contents of the file system rooted at root.
-func (self *Router) FileServer(prefix, dir string) {
-	if abs, err := filepath.Abs(dir); err == nil {
-		Infof("FS: %s", abs)
-		fs := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
-		self.mux.PathPrefix(prefix).Handler(fs)
-	} else {
-		Fatalf("Failed to setup file server: %v", err)
-	}
 }
 
 // Name returns route name for the given request, if any.
@@ -150,8 +139,9 @@ func (self *Router) Name(r *http.Request) (name string) {
 	return name
 }
 
-func (self *Router) Use(module interface{}) {
-	self.mod.Use(module)
+// Use add the middleware module into the stack chain.
+func (self *Router) Use(module func(http.Handler) http.Handler) {
+	self.module.Use(module)
 }
 
 // ServeHTTP dispatches the request to the handler whose

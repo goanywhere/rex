@@ -20,6 +20,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  * ----------------------------------------------------------------------*/
-package internal
+package rex
 
-const Root = "rex.root"
+import "net/http"
+
+type module struct {
+	stack []func(http.Handler) http.Handler
+}
+
+// build sets up the whole middleware modules in a FIFO chain.
+func (self *module) build() http.Handler {
+	var next http.Handler = http.DefaultServeMux
+	// Activate modules in FIFO order.
+	for index := len(self.stack) - 1; index >= 0; index-- {
+		next = self.stack[index](next)
+	}
+	return next
+}
+
+// Use add the middleware module into the stack chain.
+func (self *module) Use(modules ...func(http.Handler) http.Handler) {
+	self.stack = append(self.stack, modules...)
+}
+
+// Implements the net/http Handler interface and calls the middleware stack.
+func (self *module) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	self.build().ServeHTTP(w, r)
+}
