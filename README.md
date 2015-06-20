@@ -1,7 +1,9 @@
 <a href="#"><img alt="rex" src="https://raw.githubusercontent.com/go-rex/rex/assets/images/rex.png" width="160px" height="64px"></a>
 ===
 
-Rex is a powerful framework for modular web development in Golang.
+Rex is a powerful toolkit for modular web development in Golang, designed to work directly with net/http.
+
+<img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
 
 ## Getting Started
 
@@ -14,16 +16,16 @@ $ go get -v github.com/goanywhere/rex/...
 ## Features
 * Flexible Env-based configurations.
 * Awesome routing system provided by [Gorilla/Mux](//github.com/gorilla/mux).
-* Django-syntax like templating-language backed by [flosch/pongo](//github.com/flosch/pongo2).
+* Group routing system with middleware modules supports
 * Non-intrusive/Modular design, extremely easy to use.
 * Standard & modular system based on [http.Handler](http://godoc.org/net/http#Handler) interface.
 * Command line tools
-    * Auto-compile for .go & .html
-    * Browser-based Live reload supports
+    * Auto-compile/reload for .go & .html sources
+    * Browser-based Live reload supports for HTML templates
 * **Fully compatible with the [http.Handler](http://godoc.org/net/http#Handler)/[http.HandlerFunc](http://godoc.org/net/http#HandlerFunc) interface.**
 
 
-After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html#GOPATH), create your first server, we named it `server.go` here.
+After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html#GOPATH), create your first server.
 
 ``` go
 package main
@@ -85,7 +87,7 @@ Hey, dude, why not just use those popular approaches, like file-based config? We
 
 ## Modules
 
-Modules work between http requests and the router, they are no different than the standard http.Handler. Existing modules (aka. middleware) from other frameworks like logging, authorization, session, gzipping are very easy to integrate into Rex. As long as it complies the `rex.Module` interface (shorcut to standard `func(http.Handler) http.Handler`), you can simply add one like this:
+Modules (aka. middleware) work between http requests and the router, they are no different than the standard http.Handler. Existing modules from other frameworks like logging, authorization, session, gzipping are very easy to integrate into Rex. As long as it complies the standard `func(http.Handler) http.Handler` signature, you can simply add one like this:
 
 ``` go
 app.Use(modules.XSRF)
@@ -96,7 +98,7 @@ Since a module is just the standard http.Handler, writing a custom module is als
 
 ``` go
 app.Use(func(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         log.Printf("Custom Middleware Module Started")
         next.ServeHTTP(writer, request)
         log.Printf("Custom Middleware Module Ended")
@@ -134,12 +136,12 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Test Suite
 - [X] New Project Template
 - [X] CLI Apps Integrations
-- [X] Improved Template Rendering
 - [X] Performance Boost
 - [X] Hot-Compile Runner
 - [X] Live Reload Integration
-- [X] Template Functions
 - [X] Common Modules
+- [ ] Full Test Converage
+- [ ] Improved Template Rendering
 - [ ] Project Wiki
 - [ ] Continuous Integration
 - [ ] Stable API

@@ -37,7 +37,7 @@ import (
 	"github.com/codegangsta/cli"
 
 	"github.com/goanywhere/rex/internal"
-	"github.com/goanywhere/rex/modules/livereload"
+	"github.com/goanywhere/rex/livereload"
 
 	"github.com/goanywhere/x/cmd"
 	"github.com/goanywhere/x/env"
