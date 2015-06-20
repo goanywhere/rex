@@ -139,15 +139,14 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 
 
 - [X] Env-Based Configurations
-- [X] Test Suite
-- [X] New Project Template
 - [X] CLI Apps Integrations
 - [X] Performance Boost
 - [X] Hot-Compile Runner
 - [X] Live Reload Integration
-- [X] Common Modules
+- [X] Common Middleware Modules
 - [X] Continuous Integration
 - [ ] Full Test Converage
 - [ ] Improved Template Rendering
+- [ ] Unified Rendering
 - [ ] Project Wiki
 - [ ] Stable API
