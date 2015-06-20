@@ -1,4 +1,5 @@
 <a href="#"><img alt="rex" src="https://raw.githubusercontent.com/go-rex/rex/assets/images/rex.png" width="160px" height="64px"></a>
+[![Build Status](https://travis-ci.org/goanywhere/rex.svg?branch=master)](https://travis-ci.org/goanywhere/rex)
 ===
 
 Rex is a library for modular web development in [Go](http://golang.org/), designed to work directly with net/http.
