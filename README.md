@@ -1,7 +1,7 @@
 <a href="#"><img alt="rex" src="https://raw.githubusercontent.com/go-rex/rex/assets/images/rex.png" width="160px" height="64px"></a>
 ===
 
-Rex is a powerful toolkit for modular web development in Golang, designed to work directly with net/http.
+Rex is a library for modular web development in [Go](http://golang.org/), designed to work directly with net/http.
 
 <img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
 
