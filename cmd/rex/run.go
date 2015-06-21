@@ -18,9 +18,9 @@ import (
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/livereload"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/fs"
 	"github.com/goanywhere/x/cmd"
-	"github.com/goanywhere/x/env"
 )
 
 var (

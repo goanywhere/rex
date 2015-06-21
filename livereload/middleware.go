@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goanywhere/x/env"
+	"github.com/goanywhere/env"
 )
 
 type writer struct {
