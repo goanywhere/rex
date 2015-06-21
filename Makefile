@@ -2,19 +2,14 @@
 
 GOFLAGS ?= $(GOFLAGS:)
 
-all: install test
+all: test build
 
 build:
-	@go build $(GOFLAGS) ./...
+	@go get -v ./...
 
-install:
-	@go get $(GOFLAGS) ./...
-
-test: install
+test: build
 	@go test -v ./...
 
 bench: install
 	@go test -run=NONE -bench=. $(GOFLAGS) ./...
 
-clean:
-	@go clean $(GOFLAGS) -i ./...

@@ -36,6 +36,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
+	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/internal"
 	"github.com/goanywhere/rex/livereload"
 
@@ -156,6 +157,7 @@ func Run(ctx *cli.Context) {
 	app := new(app)
 	app.dir = cwd
 	app.binary = filepath.Join(os.TempDir(), "rex-bin")
+	rex.Infof("App: %s", app.binary)
 	if runtime.GOOS == "windows" {
 		app.binary += ".exe"
 	}
