@@ -1,11 +1,20 @@
-#
-# Makefile
-# jim, 2015-06-17 17:36
-#
+.PHONY: all test clean build install
 
-all:
-	@echo "Makefile needs your attention"
+GOFLAGS ?= $(GOFLAGS:)
 
+all: install test
 
-# vim:ft=make
-#
+build:
+	@go build $(GOFLAGS) ./...
+
+install:
+	@go get $(GOFLAGS) ./...
+
+test: install
+	@go test -v ./...
+
+bench: install
+	@go test -run=NONE -bench=. $(GOFLAGS) ./...
+
+clean:
+	@go clean $(GOFLAGS) -i ./...
