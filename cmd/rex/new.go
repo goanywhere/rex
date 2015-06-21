@@ -13,7 +13,7 @@ import (
 	"github.com/codegangsta/cli"
 
 	"github.com/goanywhere/cmd"
-	"github.com/goanywhere/x/crypto"
+	"github.com/goanywhere/crypto"
 )
 
 const endpoint = "https://github.com/goanywhere/rex"

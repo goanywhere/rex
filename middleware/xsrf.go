@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goanywhere/x/crypto"
+	"github.com/goanywhere/crypto"
 )
 
 const (

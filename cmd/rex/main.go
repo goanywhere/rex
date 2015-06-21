@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/goanywhere/x/crypto"
+	"github.com/goanywhere/crypto"
 )
 
 var (
