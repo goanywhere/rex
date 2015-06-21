@@ -122,3 +122,17 @@ func TestUse(t *testing.T) {
 		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
 	})
 }
+
+func TestVars(t *testing.T) {
+	Convey("rex.Vars", t, func() {
+		app := New()
+		app.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+			vars := app.Vars(r)
+			So(vars["id"], ShouldEqual, "123")
+		})
+
+		request, _ := http.NewRequest("GET", "/users/123", nil)
+		response := httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+	})
+}

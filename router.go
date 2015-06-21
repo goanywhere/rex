@@ -141,3 +141,8 @@ func (self *Router) Run() {
 		Fatalf("Failed to start the server: %v", err)
 	}
 }
+
+// Vars returns the route variables for the current request, if any.
+func (self *Router) Vars(r *http.Request) map[string]string {
+	return mux.Vars(r)
+}
