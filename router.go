@@ -130,14 +130,15 @@ func (self *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Run starts the application server to serve incoming requests at the given address.
 func (self *Router) Run() {
-	runtime.GOMAXPROCS(config.maxprocs)
+	configure()
+	runtime.GOMAXPROCS(maxprocs)
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		Infof("Application server is listening at %d", config.port)
+		Infof("Application server is listening at %d", port)
 	}()
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", config.port), self); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), self); err != nil {
 		Fatalf("Failed to start the server: %v", err)
 	}
 }

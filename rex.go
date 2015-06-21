@@ -1,25 +1,17 @@
 package rex
 
 import (
-	"flag"
 	"net/http"
 	"path/filepath"
-	"runtime"
 
 	"github.com/goanywhere/env"
 	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/internal"
-	mw "github.com/goanywhere/rex/middleware"
+	. "github.com/goanywhere/rex/middleware"
 )
 
 var (
 	DefaultMux = New()
-
-	config = &options{
-		debug:    true,
-		port:     5000,
-		maxprocs: runtime.NumCPU(),
-	}
 )
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
@@ -70,20 +62,12 @@ func Use(module func(http.Handler) http.Handler) {
 }
 
 func Run() {
-	DefaultMux.Use(mw.Logger)
+	DefaultMux.Use(Logger)
 	DefaultMux.Run()
 }
 
 func init() {
-	// setup project root
 	var root = fs.Getcd(2)
 	env.Set(internal.ROOT, root)
 	env.Load(filepath.Join(root, ".env"))
-
-	// cmd arguments
-	flag.BoolVar(&config.debug, "debug", config.debug, "flag to toggle debug mode")
-	flag.IntVar(&config.port, "port", config.port, "port to run the application server")
-	flag.IntVar(&config.maxprocs, "maxprocs", config.maxprocs, "maximum cpu processes to run the server")
-
-	flag.Parse()
 }
