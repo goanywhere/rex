@@ -4,8 +4,6 @@
 
 Rex is a library for modular web development in [Go](http://golang.org/), designed to work directly with net/http.
 
-<img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
-
 ## Intro
 
 Nah, not another **Web Framework**, we have that enough.The more we spend on [Go](http://golang.org/), the more clearly we realize that most lightweight, pure-stdlib conventions really do scale to large groups of developers and diverse project ecosystems. You absolutely don’t need a *Web Framework* like you normally do in other languages, simply because your code base has grown beyond a certain size. Or you believe it might grow beyond a certain size! You truly ain’t gonna need it. What we really need is just a suitable routing system, along with some common toolkits for web development, the standard idioms and practices will continue to function beautifully at scale.
@@ -128,6 +126,12 @@ user.Use(func(next http.Handler) http.Handler {
     })
 })
 ```
+
+## Benchmark?
+
+Rex is built upon [Gorilla/Mux](//github.com/gorilla/mux), designed to work with starndard `net/http` directly, which means it can run as fast as stdlib can without compromise. Here is a simple [wrk](https://github.com/wg/wrk) HTTP benchmark on a RMBP (2.8 GHz Intel Core i5 with 16GB memory) machine.
+
+<img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
 
 
 ## Frameworks comes & dies, will this be supported?
