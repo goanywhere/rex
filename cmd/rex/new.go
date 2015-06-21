@@ -12,7 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 
-	"github.com/goanywhere/x/cmd"
+	"github.com/goanywhere/cmd"
 	"github.com/goanywhere/x/crypto"
 )
 
