@@ -1,0 +1,124 @@
+package rex
+
+import (
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
+
+func TestGet(t *testing.T) {
+	app := New()
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+		w.Header().Set("Content-Type", "application/json")
+	})
+
+	Convey("rex.Get", t, func() {
+
+		request, _ := http.NewRequest("GET", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestPost(t *testing.T) {
+	app := New()
+	app.Post("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+		w.Header().Set("Content-Type", "application/json")
+	})
+
+	Convey("rex.Post", t, func() {
+
+		request, _ := http.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestPut(t *testing.T) {
+	app := New()
+	app.Put("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+		w.Header().Set("Content-Type", "application/json")
+	})
+
+	Convey("rex.Put", t, func() {
+
+		request, _ := http.NewRequest("PUT", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestDelete(t *testing.T) {
+	app := New()
+	app.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+		w.Header().Set("Content-Type", "application/json")
+	})
+
+	Convey("rex.Delete", t, func() {
+		request, _ := http.NewRequest("DELETE", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestGroup(t *testing.T) {
+	app := New()
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "index")
+	})
+	user := app.Group("/users")
+	user.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.Group", t, func() {
+		request, _ := http.NewRequest("GET", "/users/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+	})
+}
+
+func TestUse(t *testing.T) {
+	app := New()
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "index")
+	})
+	app.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			next.ServeHTTP(w, r)
+		})
+	})
+	Convey("rex.Use", t, func() {
+		request, _ := http.NewRequest("GET", "/", nil)
+		response := httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
