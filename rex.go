@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/internal"
 	mw "github.com/goanywhere/rex/middleware"
 	"github.com/goanywhere/x/env"
-	"github.com/goanywhere/x/fs"
 )
 
 var (
