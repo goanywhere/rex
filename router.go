@@ -32,29 +32,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type middleware struct {
-	cache http.Handler
-	stack []func(http.Handler) http.Handler
-}
-
-// build sets up the whole middleware modules in a FIFO chain.
-func (self *middleware) build() http.Handler {
-	if self.cache == nil {
-		var next http.Handler = http.DefaultServeMux
-		// Activate modules in FIFO order.
-		for index := len(self.stack) - 1; index >= 0; index-- {
-			next = self.stack[index](next)
-		}
-		self.cache = next
-	}
-	return self.cache
-}
-
-// Implements the net/http Handler interface and calls the middleware stack.
-func (self *middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	self.build().ServeHTTP(w, r)
-}
-
 type Router struct {
 	middleware *middleware
 	mux        *mux.Router
@@ -72,18 +49,18 @@ func New() *Router {
 // build constructs all router/subrouters along with their middleware modules chain.
 func (self *Router) build() http.Handler {
 	if !self.ready {
-		self.ready = true
-		// * activate router's middleware modules.
+		// * add router into middlware stack to serve as final http.Handler.
 		self.Use(func(http.Handler) http.Handler {
 			return self.mux
 		})
-		// * activate subrouters's middleware modules.
+		// * add subrouters into middlware stack to serve as final http.Handler.
 		for index := 0; index < len(self.subrouters); index++ {
-			sr := self.subrouters[index]
-			sr.Use(func(http.Handler) http.Handler {
-				return sr.mux
+			router := self.subrouters[index]
+			router.Use(func(http.Handler) http.Handler {
+				return router.mux
 			})
 		}
+		self.ready = true
 	}
 	return self.middleware
 }
