@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/Sirupsen/logrus"
 )
 
 // Static serves as file server for static assets,
@@ -67,6 +69,10 @@ func Static(dir string) func(http.Handler) http.Handler {
 			}
 
 			http.ServeContent(w, r, filename, stat.ModTime(), file)
+			var header = w.Header()
+			for key, values := range header {
+				logrus.Infof("%s: %v", key, values)
+			}
 		})
 	}
 }
