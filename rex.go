@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/goanywhere/env"
 	"github.com/goanywhere/fs"
 	"github.com/goanywhere/rex/internal"
 	. "github.com/goanywhere/rex/middleware"
@@ -12,6 +11,7 @@ import (
 
 var (
 	Default = New()
+	Env     *internal.Env
 )
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
@@ -73,7 +73,6 @@ func Run() {
 }
 
 func init() {
-	var root = fs.Getcd(2)
-	env.Set(internal.ROOT, root)
-	env.Load(filepath.Join(root, ".env"))
+	var basedir = fs.Getcd(2)
+	Env = internal.New(filepath.Join(basedir, ".env"))
 }

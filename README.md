@@ -68,7 +68,6 @@ package main
 import (
     "io"
 
-    "github.com/goanywhere/env"
     "github.com/goanywhere/rex"
 )
 
@@ -78,7 +77,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     // Override default 5000 port here.
-    env.Set("PORT", 9394)
+    rex.Env.Set("PORT", 9394)
     rex.Get("/", index)
     rex.Run()
 }
