@@ -2,6 +2,7 @@ ARCH=$(shell ls $(GOPATH)/pkg | head -n 1)
 PKG=$(GOPATH)/pkg/$(ARCH)/github.com/goanywhere
 
 all: test
+	@echo $HOST
 
 clean:
 	@find $(PKG) -name 'rex.a' -delete
