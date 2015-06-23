@@ -15,6 +15,7 @@ type User struct {
 	Username string
 }
 
+// -------------------- HTML Template --------------------
 func Index(w http.ResponseWriter, r *http.Request) {
 	if html, err := template.ParseFiles(filepath.Join("views", "index.html")); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -25,6 +26,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// -------------------- JSON Template --------------------
 type Response struct {
 	Code int
 	Text string
@@ -85,12 +87,12 @@ func main() {
 	rex.Use(livereload.Middleware)
 	rex.Get("/", Index)
 
-	apis := rex.Group("/v1/")
-	apis.Use(JSON)
-	apis.Get("/", fetch)
-	apis.Post("/", create)
-	apis.Put("/", update)
-	apis.Delete("/", remove)
+	api := rex.Group("/v1/")
+	api.Use(JSON)
+	api.Get("/", fetch)
+	api.Post("/", create)
+	api.Put("/", update)
+	api.Delete("/", remove)
 
 	rex.Run()
 }
