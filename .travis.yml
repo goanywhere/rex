@@ -2,6 +2,15 @@ language: go
 
 install:
   - go get github.com/smartystreets/goconvey
+  - go get github.com/Sirupsen/logrus
+  - go get github.com/codegangsta/cli
+  - go get github.com/gorilla/mux
+  - go get github.com/gorilla/schema
+  - go get github.com/gorilla/websocket
+  - go get github.com/goanywhere/crypto
+  - go get github.com/goanywhere/env
+  - go get github.com/goanywhere/fs
+  - go get github.com/goanywhere/cmd
 
 go:
   - 1.4
