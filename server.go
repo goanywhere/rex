@@ -44,57 +44,63 @@ func (self *Server) build() http.Handler {
 }
 
 // register adds the http.Handler/http.HandleFunc into Gorilla mux.
-func (self *Server) register(method string, pattern string, handler interface{}) {
+func (self *Server) register(pattern string, handler interface{}, methods ...string) {
 	// finds the full function name (with package) as its mappings.
 	var name = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 
 	switch H := handler.(type) {
 	case http.Handler:
-		self.mux.Handle(pattern, H).Methods(method).Name(name)
+		self.mux.Handle(pattern, H).Methods(methods...).Name(name)
 
 	case func(http.ResponseWriter, *http.Request):
-		self.mux.HandleFunc(pattern, H).Methods(method).Name(name)
+		self.mux.HandleFunc(pattern, H).Methods(methods...).Name(name)
 
 	default:
 		Fatalf("Unsupported handler (%s) passed in.", name)
 	}
 }
 
+// Any maps most common HTTP methods request to the given `http.Handler`.
+// Supports: GET | POST | PUT | DELETE | OPTIONS | HEAD
+func (self *Server) Any(pattern string, handler interface{}) {
+	self.register(pattern, handler, "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD")
+}
+
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Get(pattern string, handler interface{}) {
-	self.register("GET", pattern, handler)
+	self.register(pattern, handler, "GET")
 }
 
 // Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Head(pattern string, handler interface{}) {
-	self.register("HEAD", pattern, handler)
+	self.register(pattern, handler, "HEAD")
 }
 
 // Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
 func (self *Server) Options(pattern string, handler interface{}) {
-	self.register("OPTIONS", pattern, handler)
+	self.register(pattern, handler, "OPTIONS")
 }
 
 // Post is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Post(pattern string, handler interface{}) {
-	self.register("POST", pattern, handler)
+	self.register(pattern, handler, "POST")
 }
 
 // Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Put(pattern string, handler interface{}) {
-	self.register("PUT", pattern, handler)
+	self.register(pattern, handler, "PUT")
 }
 
 // Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
 func (self *Server) Delete(pattern string, handler interface{}) {
-	self.register("Delete", pattern, handler)
+	self.register(pattern, handler, "DELETE")
 }
 
 // Group creates a new application group under the given path prefix.
