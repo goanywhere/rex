@@ -64,7 +64,7 @@ func (self *writer) Write(data []byte) (size int, e error) {
 	return self.ResponseWriter.Write(data)
 }
 
-func Module(next http.Handler) http.Handler {
+func Middleware(next http.Handler) http.Handler {
 	// ONLY run this under debug mode.
 	if !env.Bool("DEBUG", true) {
 		return next
