@@ -133,9 +133,7 @@ func (self *xsrf) generate() {
 	self.token = token
 }
 
-// ---------------------------------------------------------------------------
-//  XSRF Middleware Supports
-// ---------------------------------------------------------------------------
+// XSRF serves as Cross-Site Request Forgery protection middleware.
 func XSRF(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		x := new(xsrf)

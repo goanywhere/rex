@@ -98,6 +98,7 @@ func (self *compressor) Write(data []byte) (size int, err error) {
 	return self.ResponseWriter.Write(data)
 }
 
+// GZIP/Deflate compression supports.
 func Compress(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Sec-WebSocket-Key") != "" || r.Method == "HEAD" {
