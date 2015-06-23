@@ -8,8 +8,8 @@ clean:
 	@find $(PKG) -name 'rex.a' -delete
 	@find $(PKG) -name 'rex' -type d -print0|xargs -0 rm -r
 
-build:
+build: clean
 	@go get -v ./...
 
-test:
+test: build
 	@go test -v ./...
