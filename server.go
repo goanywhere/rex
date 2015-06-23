@@ -2,7 +2,9 @@ package rex
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"time"
@@ -18,10 +20,11 @@ type Server struct {
 }
 
 func New() *Server {
-	return &Server{
+	self := &Server{
 		middleware: new(middleware),
 		mux:        mux.NewRouter().StrictSlash(true),
 	}
+	return self
 }
 
 // build constructs all server/subservers along with their middleware modules chain.
@@ -121,6 +124,17 @@ func (self *Server) Name(r *http.Request) (name string) {
 		name = match.Route.GetName()
 	}
 	return name
+}
+
+// FileServer registers a handler to serve HTTP (GET|HEAD) requests
+// with the contents of file system under the given directory.
+func (self *Server) FileServer(prefix, dir string) {
+	if abs, err := filepath.Abs(dir); err == nil {
+		fs := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
+		self.mux.PathPrefix(prefix).Handler(fs)
+	} else {
+		log.Fatalf("Failed to setup file server: %v", err)
+	}
 }
 
 // Use add the middleware module into the stack chain.

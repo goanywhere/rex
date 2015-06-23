@@ -4,6 +4,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -149,6 +151,33 @@ func TestGroup(t *testing.T) {
 		app.ServeHTTP(response, request)
 
 		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+	})
+}
+
+func TestFileServer(t *testing.T) {
+	Convey("rex.FileServer", t, func() {
+		var (
+			prefix   = "/assets/"
+			filename = "logo.png"
+		)
+		tempdir := os.TempDir()
+		filepath := path.Join(tempdir, filename)
+		os.Create(filepath)
+		defer os.Remove(filepath)
+
+		app := New()
+		app.FileServer(prefix, tempdir)
+
+		request, _ := http.NewRequest("GET", path.Join(prefix, filename), nil)
+		response := httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(response.Code, ShouldEqual, http.StatusOK)
+
+		filename = "index.html"
+		request, _ = http.NewRequest("HEAD", prefix, nil)
+		response = httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(response.Code, ShouldEqual, http.StatusOK)
 	})
 }
 

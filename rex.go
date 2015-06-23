@@ -56,6 +56,12 @@ func Group(path string) *Server {
 	return Default.Group(path)
 }
 
+// FileServer registers a handler to serve HTTP (GET|HEAD) requests
+// with the contents of file system under the given directory.
+func FileServer(prefix, dir string) {
+	Default.FileServer(prefix, dir)
+}
+
 // Use appends middleware module into the serving list, modules will be served in FIFO order.
 func Use(module func(http.Handler) http.Handler) {
 	Default.Use(module)
