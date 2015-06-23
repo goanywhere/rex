@@ -14,7 +14,7 @@ type Validator interface {
 
 // Parse parsed the raw query from the URL and updates request.Form,
 // decode the from to the given struct with Validator implemented.
-func Parse(r *http.Request, form Validator) (err error) {
+func parse(r *http.Request, form Validator) (err error) {
 	if err = r.ParseForm(); err == nil {
 		if err = schema.Decode(form, r.Form); err == nil {
 			err = form.Validate()

@@ -31,7 +31,7 @@ func (self *user) Validate() error {
 func TestParse(t *testing.T) {
 	app := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var form user
-		if err := Parse(r, &form); err == nil {
+		if err := parse(r, &form); err == nil {
 			w.WriteHeader(http.StatusAccepted)
 			io.WriteString(w, "uid")
 		} else {
