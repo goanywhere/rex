@@ -9,9 +9,6 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-
-	"github.com/Sirupsen/logrus"
-	"github.com/goanywhere/env"
 )
 
 type writer struct {
@@ -20,9 +17,8 @@ type writer struct {
 }
 
 func (self *writer) addJavaScript(data []byte) []byte {
-	javascript := fmt.Sprintf(`<script src="//%s%s"></script>
+	javascript := fmt.Sprintf(`<script defer src="//%s%s"></script>
 </head>`, self.host, URL.JavaScript)
-	logrus.Infof("JS: %s", javascript)
 	return regexp.MustCompile(`</head>`).ReplaceAll(data, []byte(javascript))
 }
 
@@ -67,11 +63,8 @@ func (self *writer) Write(data []byte) (size int, e error) {
 }
 
 func Middleware(next http.Handler) http.Handler {
-	// ONLY run this under debug mode.
-	if !env.Bool("DEBUG") {
-		return next
-	}
 	Start()
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == URL.WebSocket {
 			ServeWebSocket(w, r)
