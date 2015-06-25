@@ -117,7 +117,7 @@ Using prefixed (aka. subrouter) router is exactly same as the main one:
 
 ```go
 app := rex.new()
-app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+app.GET("/", func(w http.ResponseWriter, r *http.Request) {
     io.WriteString(w, "index page")
 })
 
