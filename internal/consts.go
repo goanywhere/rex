@@ -1,3 +1,3 @@
 package internal
 
-const ROOT = "rex.root"
+const BaseDir string = "rex.root"

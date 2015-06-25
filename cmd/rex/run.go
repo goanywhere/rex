@@ -122,7 +122,7 @@ func Run(ctx *cli.Context) {
 		cwd = ctx.Args()[0]
 	}
 	if abspath, err := filepath.Abs(cwd); err == nil {
-		env.Set(internal.ROOT, abspath)
+		env.Set(internal.BaseDir, abspath)
 	} else {
 		log.Fatalf("Failed to retrieve the directory: %v", err)
 	}

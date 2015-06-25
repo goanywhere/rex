@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/goanywhere/env"
 	"github.com/goanywhere/rex"
 	"github.com/goanywhere/rex/livereload"
 )
@@ -21,7 +22,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		w.Header().Set("Content-Type", "text/html")
-		var user = User{Username: rex.Env.String("USER", "guest")}
+		var user = User{Username: env.String("USER", "guest")}
 		html.Execute(w, user)
 	}
 }
@@ -84,15 +85,16 @@ func remove(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	rex.Use(livereload.Middleware)
-	rex.Get("/", Index)
+	app := rex.New()
+	app.Use(livereload.Middleware)
+	app.Get("/", Index)
 
-	api := rex.Group("/v1/")
+	api := app.Group("/v1/")
 	api.Use(JSON)
 	api.Get("/", fetch)
 	api.Post("/", create)
 	api.Put("/", update)
 	api.Delete("/", remove)
 
-	rex.Run()
+	app.Run()
 }

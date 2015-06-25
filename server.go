@@ -1,15 +1,26 @@
 package rex
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"sync"
 	"time"
 
+	"github.com/goanywhere/env"
 	"github.com/gorilla/mux"
+)
+
+var (
+	debug    bool
+	port     int
+	maxprocs int
+
+	once sync.Once
 )
 
 type Server struct {
@@ -24,7 +35,17 @@ func New() *Server {
 		middleware: new(middleware),
 		mux:        mux.NewRouter().StrictSlash(true),
 	}
+	self.configure()
 	return self
+}
+
+func (self *Server) configure() {
+	once.Do(func() {
+		flag.BoolVar(&debug, "debug", env.Bool("DEBUG", true), "flag to toggle debug mode")
+		flag.IntVar(&port, "port", env.Int("PORT", 5000), "port to run the application server")
+		flag.IntVar(&maxprocs, "maxprocs", env.Int("MAXPROCS", runtime.NumCPU()), "maximum cpu processes to run the server")
+		flag.Parse()
+	})
 }
 
 // build constructs all server/subservers along with their middleware modules chain.
@@ -150,7 +171,6 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Run starts the application server to serve incoming requests at the given address.
 func (self *Server) Run() {
-	configure()
 	runtime.GOMAXPROCS(maxprocs)
 
 	go func() {
