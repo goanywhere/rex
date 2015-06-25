@@ -42,7 +42,7 @@ import (
 
 func main() {
     app := rex.New()
-    app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
         io.WriteString(w, "Hello World")
     })
     app.Run()
@@ -82,7 +82,7 @@ func main() {
     env.Set("PORT", 9394)
 
     app := rex.New()
-    app.Get("/", index)
+    app.GET("/", index)
     app.Run()
 }
 ```
