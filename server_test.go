@@ -62,14 +62,14 @@ func TestAny(t *testing.T) {
 	})
 }
 
-func TestGet(t *testing.T) {
+func TestGET(t *testing.T) {
 	app := New()
-	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
 
-	Convey("rex.Get", t, func() {
+	Convey("rex.GET", t, func() {
 		request, _ := http.NewRequest("GET", "/", nil)
 		response := httptest.NewRecorder()
 
@@ -80,14 +80,14 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestPost(t *testing.T) {
+func TestPOST(t *testing.T) {
 	app := New()
-	app.Post("/", func(w http.ResponseWriter, r *http.Request) {
+	app.POST("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
 
-	Convey("rex.Post", t, func() {
+	Convey("rex.POST", t, func() {
 		request, _ := http.NewRequest("POST", "/", nil)
 		response := httptest.NewRecorder()
 
@@ -98,14 +98,14 @@ func TestPost(t *testing.T) {
 	})
 }
 
-func TestPut(t *testing.T) {
+func TestPUT(t *testing.T) {
 	app := New()
-	app.Put("/", func(w http.ResponseWriter, r *http.Request) {
+	app.PUT("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
 
-	Convey("rex.Put", t, func() {
+	Convey("rex.PUT", t, func() {
 		request, _ := http.NewRequest("PUT", "/", nil)
 		response := httptest.NewRecorder()
 
@@ -116,14 +116,14 @@ func TestPut(t *testing.T) {
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestDELETE(t *testing.T) {
 	app := New()
-	app.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+	app.DELETE("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
 
-	Convey("rex.Delete", t, func() {
+	Convey("rex.DELETE", t, func() {
 		request, _ := http.NewRequest("DELETE", "/", nil)
 		response := httptest.NewRecorder()
 
@@ -136,11 +136,11 @@ func TestDelete(t *testing.T) {
 
 func TestGroup(t *testing.T) {
 	app := New()
-	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "index")
 	})
 	user := app.Group("/users")
-	user.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	user.GET("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -183,7 +183,7 @@ func TestFileServer(t *testing.T) {
 
 func TestUse(t *testing.T) {
 	app := New()
-	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "index")
 	})
 	app.Use(func(next http.Handler) http.Handler {
@@ -203,7 +203,7 @@ func TestUse(t *testing.T) {
 func TestVars(t *testing.T) {
 	Convey("rex.Vars", t, func() {
 		app := New()
-		app.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		app.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
 			vars := app.Vars(r)
 			So(vars["id"], ShouldEqual, "123")
 		})

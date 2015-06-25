@@ -87,14 +87,14 @@ func remove(w http.ResponseWriter, r *http.Request) {
 func main() {
 	app := rex.New()
 	app.Use(livereload.Middleware)
-	app.Get("/", Index)
+	app.GET("/", Index)
 
 	api := app.Group("/v1/")
 	api.Use(JSON)
-	api.Get("/", fetch)
-	api.Post("/", create)
-	api.Put("/", update)
-	api.Delete("/", remove)
+	api.GET("/", fetch)
+	api.POST("/", create)
+	api.PUT("/", update)
+	api.DELETE("/", remove)
 
 	app.Run()
 }
