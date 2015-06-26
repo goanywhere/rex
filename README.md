@@ -107,7 +107,7 @@ Since a middleware module is just the standard http.Handler, writing custom midd
 app.Use(func(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         log.Printf("Custom Middleware Module Started")
-        next.ServeHTTP(writer, request)
+        next.ServeHTTP(w, r)
         log.Printf("Custom Middleware Module Ended")
     })
 })
@@ -125,7 +125,7 @@ user := app.Group("/users")
 user.Use(func(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         log.Printf("this is a protected page")
-        next.ServeHTTP(writer, request)
+        next.ServeHTTP(w, r)
     })
 })
 ```
