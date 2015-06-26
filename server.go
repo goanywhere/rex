@@ -3,7 +3,6 @@ package rex
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -118,7 +117,7 @@ func (self *server) FileServer(prefix, dir string) {
 		fs := http.StripPrefix(prefix, http.FileServer(http.Dir(abs)))
 		self.mux.PathPrefix(prefix).Handler(fs)
 	} else {
-		log.Fatalf("Failed to setup file server: %v", err)
+		panic("Failed to setup file server: " + err.Error())
 	}
 }
 
