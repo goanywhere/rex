@@ -11,8 +11,8 @@ import (
 )
 
 func TestHeader(t *testing.T) {
-	var values = make(map[string]string)
-	values["X-Powered-By"] = "rex server"
+	var values = make(http.Header)
+	values.Set("X-Powered-By", "rex")
 
 	app := rex.New()
 	app.Use(Header(values))
@@ -26,6 +26,6 @@ func TestHeader(t *testing.T) {
 
 		app.ServeHTTP(response, request)
 
-		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex server")
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
 	})
 }
