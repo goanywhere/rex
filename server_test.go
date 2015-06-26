@@ -106,6 +106,20 @@ func TestAny(t *testing.T) {
 	})
 }
 
+func TestName(t *testing.T) {
+	Convey("rex.Name", t, func() {
+		app := New()
+		app.GET("/login", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
+		request, _ := http.NewRequest("GET", "/login", nil)
+		response := httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(app.Name(request), ShouldEqual, "GET:/login")
+	})
+}
+
 func TestGET(t *testing.T) {
 	app := New()
 	app.GET("/", func(w http.ResponseWriter, r *http.Request) {

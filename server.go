@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -69,8 +69,9 @@ func (self *server) build() http.Handler {
 
 // register adds the http.Handler/http.HandleFunc into Gorilla mux.
 func (self *server) register(pattern string, handler interface{}, methods ...string) {
+	var name = strings.Join(methods, "|") + ":" + pattern
 	// finds the full function name (with package) as its mappings.
-	var name = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+	//var name = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 
 	switch H := handler.(type) {
 	case http.Handler:
