@@ -8,8 +8,52 @@ import (
 	"path"
 	"testing"
 
+	"github.com/goanywhere/env"
+	mw "github.com/goanywhere/rex/middleware"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestConfigure(t *testing.T) {
+	Convey("rex.configure", t, func() {
+		app := New()
+		app.configure()
+
+		So(debug, ShouldBeTrue)
+		So(port, ShouldEqual, 5000)
+
+		env.Set("PORT", 9394)
+		app.configure()
+		So(port, ShouldEqual, 5000)
+	})
+}
+
+func TestBuild(t *testing.T) {
+	Convey("rex.build", t, func() {
+		app := New()
+		app.build()
+
+		So(len(app.middleware.stack), ShouldEqual, 1)
+
+		app.Use(mw.NoCache)
+		So(len(app.middleware.stack), ShouldEqual, 2)
+	})
+}
+
+func TestRegister(t *testing.T) {
+	Convey("rex.register", t, func() {
+		app := New()
+		app.register("/login", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusAccepted)
+			w.Header().Set("X-Auth-Server", "rex")
+		}, "POST")
+
+		request, _ := http.NewRequest("POST", "/login", nil)
+		response := httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(response.Code, ShouldEqual, http.StatusAccepted)
+		So(response.Header().Get("X-Auth-Server"), ShouldEqual, "rex")
+	})
+}
 
 func TestAny(t *testing.T) {
 	app := New()
@@ -131,6 +175,38 @@ func TestDELETE(t *testing.T) {
 
 		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
 		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestCONNECT(t *testing.T) {
+	app := New()
+	app.CONNECT("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.CONNECT", t, func() {
+		request, _ := http.NewRequest("CONNECT", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+	})
+}
+
+func TestTRACE(t *testing.T) {
+	app := New()
+	app.TRACE("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.TRACE", t, func() {
+		request, _ := http.NewRequest("TRACE", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
 	})
 }
 
