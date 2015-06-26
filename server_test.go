@@ -46,12 +46,26 @@ func TestRegister(t *testing.T) {
 			w.WriteHeader(http.StatusAccepted)
 			w.Header().Set("X-Auth-Server", "rex")
 		}, "POST")
+		app.register("/signup", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusAccepted)
+			w.Header().Set("X-Auth-Server", "rex")
+		}), "POST")
 
 		request, _ := http.NewRequest("POST", "/login", nil)
 		response := httptest.NewRecorder()
 		app.ServeHTTP(response, request)
 		So(response.Code, ShouldEqual, http.StatusAccepted)
 		So(response.Header().Get("X-Auth-Server"), ShouldEqual, "rex")
+
+		request, _ = http.NewRequest("POST", "/signup", nil)
+		response = httptest.NewRecorder()
+		app.ServeHTTP(response, request)
+		So(response.Code, ShouldEqual, http.StatusAccepted)
+		So(response.Header().Get("X-Auth-Server"), ShouldEqual, "rex")
+
+		So(func() {
+			app.register("/panic", nil)
+		}, ShouldPanic)
 	})
 }
 
@@ -124,7 +138,6 @@ func TestGET(t *testing.T) {
 	app := New()
 	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
-		w.Header().Set("Content-Type", "application/json")
 	})
 
 	Convey("rex.GET", t, func() {
@@ -134,7 +147,38 @@ func TestGET(t *testing.T) {
 		app.ServeHTTP(response, request)
 
 		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
-		So(response.Header().Get("Content-Type"), ShouldEqual, "application/json")
+	})
+}
+
+func TestHEAD(t *testing.T) {
+	app := New()
+	app.HEAD("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.HEAD", t, func() {
+		request, _ := http.NewRequest("HEAD", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+	})
+}
+
+func TestOPTIONS(t *testing.T) {
+	app := New()
+	app.OPTIONS("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.OPTIONS", t, func() {
+		request, _ := http.NewRequest("OPTIONS", "/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
 	})
 }
 

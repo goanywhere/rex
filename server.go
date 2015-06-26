@@ -81,7 +81,7 @@ func (self *server) register(pattern string, handler interface{}, methods ...str
 		self.mux.HandleFunc(pattern, H).Methods(methods...).Name(name)
 
 	default:
-		Fatalf("Unsupported handler (%s) passed in.", name)
+		panic("Unsupported handler: " + name)
 	}
 }
 
