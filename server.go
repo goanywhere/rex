@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/goanywhere/env"
 	"github.com/gorilla/mux"
 )
@@ -187,11 +188,11 @@ func (self *server) Run() {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond)
-		Infof("Application server is listening at %d", port)
+		log.Infof("Application server is listening at %d", port)
 	}()
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), self); err != nil {
-		Fatalf("Failed to start the server: %v", err)
+		log.Fatalf("Failed to start the server: %v", err)
 	}
 }
 
