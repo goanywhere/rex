@@ -29,6 +29,6 @@ func TestStatic(t *testing.T) {
 
 		app.ServeHTTP(response, request)
 
-		So(response.Code, ShouldEqual, http.StatusOK)
+		So(response.Code, ShouldEqual, http.StatusNotFound)
 	})
 }
