@@ -1,4 +1,4 @@
-<a href="#"><img alt="rex" src="https://raw.githubusercontent.com/go-rex/rex/assets/images/rex.png" width="160px" height="64px"></a>
+<a href="#"><img alt="rex" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/rex.png" width="160px" height="64px"></a>
 ===
 [![Build Status](https://travis-ci.org/goanywhere/rex.svg?branch=master)](https://travis-ci.org/goanywhere/rex) [![GoDoc](https://godoc.org/github.com/goanywhere/rex?status.svg)](http://godoc.org/github.com/goanywhere/rex)
 
