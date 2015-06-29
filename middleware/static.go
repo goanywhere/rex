@@ -11,7 +11,7 @@ import (
 func Static(dir string) func(http.Handler) http.Handler {
 	var (
 		fs     = http.Dir(dir)
-		prefix = path.Join("/", dir)
+		prefix = path.Join("/", path.Base(path.Dir(dir)))
 	)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
