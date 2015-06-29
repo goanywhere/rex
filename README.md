@@ -116,7 +116,7 @@ app.Use(func(next http.Handler) http.Handler {
 Using prefixed (aka. subrouter) router is exactly same as the main one:
 
 ```go
-app := rex.new()
+app := rex.New()
 app.GET("/", func(w http.ResponseWriter, r *http.Request) {
     io.WriteString(w, "index page")
 })
