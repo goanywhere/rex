@@ -42,7 +42,7 @@ import (
 
 func main() {
     app := rex.New()
-    app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+    app.Get("/", func(w http.ResponseWriter, r *http.Request) {
         io.WriteString(w, "Hello World")
     })
     app.Run()
@@ -82,7 +82,7 @@ func main() {
     env.Set("PORT", 9394)
 
     app := rex.New()
-    app.GET("/", index)
+    app.Get("/", index)
     app.Run()
 }
 ```
@@ -117,7 +117,7 @@ Using prefixed (aka. subrouter) router is exactly same as the main one:
 
 ```go
 app := rex.New()
-app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+app.Get("/", func(w http.ResponseWriter, r *http.Request) {
     io.WriteString(w, "index page")
 })
 

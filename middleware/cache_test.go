@@ -13,7 +13,7 @@ import (
 func TestNoCache(t *testing.T) {
 	app := rex.New()
 	app.Use(NoCache)
-	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "app")
 	})
 

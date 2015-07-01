@@ -19,7 +19,7 @@ func TestStatic(t *testing.T) {
 	app := rex.New()
 	app.Use(Static(tempdir))
 	prefix := path.Join("/", path.Base(path.Dir(filename)))
-	app.GET(prefix, func(w http.ResponseWriter, r *http.Request) {
+	app.Get(prefix, func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "app")
 	})
 

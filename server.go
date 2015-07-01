@@ -127,52 +127,52 @@ func (self *server) Use(module func(http.Handler) http.Handler) {
 	self.middleware.stack = append(self.middleware.stack, module)
 }
 
-// GET is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
+// Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) GET(pattern string, handler interface{}) {
+func (self *server) Get(pattern string, handler interface{}) {
 	self.register(pattern, handler, "GET")
 }
 
-// HEAD is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
+// Head is a shortcut for mux.HandleFunc(pattern, handler).Methods("HEAD")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) HEAD(pattern string, handler interface{}) {
+func (self *server) Head(pattern string, handler interface{}) {
 	self.register(pattern, handler, "HEAD")
 }
 
-// OPTIONS is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
+// Options is a shortcut for mux.HandleFunc(pattern, handler).Methods("OPTIONS")
 // it also fetch the full function name of the handler (with package) to name the route.
 // NOTE method OPTIONS is **NOT** cachable, beware of what you are going to do.
-func (self *server) OPTIONS(pattern string, handler interface{}) {
+func (self *server) Options(pattern string, handler interface{}) {
 	self.register(pattern, handler, "OPTIONS")
 }
 
 // POST is a shortcut for mux.HandleFunc(pattern, handler).Methods("POST")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) POST(pattern string, handler interface{}) {
+func (self *server) Post(pattern string, handler interface{}) {
 	self.register(pattern, handler, "POST")
 }
 
-// PUT is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
+// Put is a shortcut for mux.HandleFunc(pattern, handler).Methods("PUT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) PUT(pattern string, handler interface{}) {
+func (self *server) Put(pattern string, handler interface{}) {
 	self.register(pattern, handler, "PUT")
 }
 
-// DELETE is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
+// Delete is a shortcut for mux.HandleFunc(pattern, handler).Methods("DELETE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) DELETE(pattern string, handler interface{}) {
+func (self *server) Delete(pattern string, handler interface{}) {
 	self.register(pattern, handler, "DELETE")
 }
 
-// TRACE is a shortcut for mux.HandleFunc(pattern, handler).Methods("TRACE")
+// Trace is a shortcut for mux.HandleFunc(pattern, handler).Methods("TRACE")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) TRACE(pattern string, handler interface{}) {
+func (self *server) Trace(pattern string, handler interface{}) {
 	self.register(pattern, handler, "TRACE")
 }
 
-// CONNECT is a shortcut for mux.HandleFunc(pattern, handler).Methods("CONNECT")
+// Connect is a shortcut for mux.HandleFunc(pattern, handler).Methods("CONNECT")
 // it also fetch the full function name of the handler (with package) to name the route.
-func (self *server) CONNECT(pattern string, handler interface{}) {
+func (self *server) Connect(pattern string, handler interface{}) {
 	self.register(pattern, handler, "CONNECT")
 }
 

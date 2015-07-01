@@ -123,7 +123,7 @@ func TestAny(t *testing.T) {
 func TestName(t *testing.T) {
 	Convey("rex.Name", t, func() {
 		app := New()
-		app.GET("/login", func(w http.ResponseWriter, r *http.Request) {
+		app.Get("/login", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
 
@@ -134,9 +134,9 @@ func TestName(t *testing.T) {
 	})
 }
 
-func TestGET(t *testing.T) {
+func TestGet(t *testing.T) {
 	app := New()
-	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -150,9 +150,9 @@ func TestGET(t *testing.T) {
 	})
 }
 
-func TestHEAD(t *testing.T) {
+func TestHead(t *testing.T) {
 	app := New()
-	app.HEAD("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Head("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -166,9 +166,9 @@ func TestHEAD(t *testing.T) {
 	})
 }
 
-func TestOPTIONS(t *testing.T) {
+func TestOptions(t *testing.T) {
 	app := New()
-	app.OPTIONS("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Options("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -182,9 +182,9 @@ func TestOPTIONS(t *testing.T) {
 	})
 }
 
-func TestPOST(t *testing.T) {
+func TestPost(t *testing.T) {
 	app := New()
-	app.POST("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Post("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
@@ -200,9 +200,9 @@ func TestPOST(t *testing.T) {
 	})
 }
 
-func TestPUT(t *testing.T) {
+func TestPut(t *testing.T) {
 	app := New()
-	app.PUT("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Put("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
@@ -218,9 +218,9 @@ func TestPUT(t *testing.T) {
 	})
 }
 
-func TestDELETE(t *testing.T) {
+func TestDelete(t *testing.T) {
 	app := New()
-	app.DELETE("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Delete("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 		w.Header().Set("Content-Type", "application/json")
 	})
@@ -236,9 +236,9 @@ func TestDELETE(t *testing.T) {
 	})
 }
 
-func TestCONNECT(t *testing.T) {
+func TestConnect(t *testing.T) {
 	app := New()
-	app.CONNECT("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Connect("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -252,9 +252,9 @@ func TestCONNECT(t *testing.T) {
 	})
 }
 
-func TestTRACE(t *testing.T) {
+func TestTrace(t *testing.T) {
 	app := New()
-	app.TRACE("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Trace("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -270,11 +270,11 @@ func TestTRACE(t *testing.T) {
 
 func TestGroup(t *testing.T) {
 	app := New()
-	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "index")
 	})
 	user := app.Group("/users")
-	user.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	user.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Powered-By", "rex")
 	})
 
@@ -317,7 +317,7 @@ func TestFileServer(t *testing.T) {
 
 func TestUse(t *testing.T) {
 	app := New()
-	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "index")
 	})
 	app.Use(func(next http.Handler) http.Handler {
@@ -337,7 +337,7 @@ func TestUse(t *testing.T) {
 func TestVars(t *testing.T) {
 	Convey("rex.Vars", t, func() {
 		app := New()
-		app.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
+		app.Get("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
 			vars := app.Vars(r)
 			So(vars["id"], ShouldEqual, "123")
 		})

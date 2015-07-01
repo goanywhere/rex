@@ -14,7 +14,7 @@ func TestCompress(t *testing.T) {
 
 	app := rex.New()
 	app.Use(Compress)
-	app.GET("/", func(w http.ResponseWriter, r *http.Request) {
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "app")
 	})
 
