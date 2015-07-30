@@ -123,8 +123,8 @@ func (self *server) FileServer(prefix, dir string) {
 }
 
 // Use add the middleware module into the stack chain.
-func (self *server) Use(module ...func(http.Handler) http.Handler) {
-	self.middleware.stack = append(self.middleware.stack, module...)
+func (self *server) Use(modules ...func(http.Handler) http.Handler) {
+	self.middleware.stack = append(self.middleware.stack, modules...)
 }
 
 // Get is a shortcut for mux.HandleFunc(pattern, handler).Methods("GET"),
