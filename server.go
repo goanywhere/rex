@@ -1,6 +1,8 @@
 package rex
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -181,6 +183,22 @@ func (self *server) Connect(pattern string, handler interface{}) {
 func (self *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	self.build().ServeHTTP(w, r)
 }
+
+// Sends the HTTP response in JSON.
+func (self *server) Send(w http.ResponseWriter, v interface{}) {
+	var buffer = new(bytes.Buffer)
+
+	w.Header().Set("Content-type", "application/json; charset=utf-8")
+	if err := json.NewEncoder(buffer).Encode(v); err == nil {
+		w.Write(buffer.Bytes())
+	} else {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// Renders a view (Pongo) and sends the rendered HTML string to the client.
+// Optional parameters: value, local variables for the view.
+// func (self *server) Render(filename string, v ...interface{}) {}
 
 // Run starts the application server to serve incoming requests at the given address.
 func (self *server) Run() {
