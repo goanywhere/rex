@@ -152,6 +152,7 @@ Positive! Rex is an internal/fundamental project at GoAnywhere. We developed it 
 - [X] Common Middleware Modules
 - [X] Continuous Integration
 - [X] Full Test Converage
-- [ ] Unified Rendering
+- [ ] Context Supports
+- [ ] [http.Handler](http://godoc.org/net/http#Handler) interface based rendering
 - [ ] Project Wiki
 - [ ] Stable API
