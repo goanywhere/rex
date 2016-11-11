@@ -288,6 +288,29 @@ func TestGroup(t *testing.T) {
 	})
 }
 
+func TestHost(t *testing.T) {
+	app := New()
+	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "base")
+	})
+
+  user := app.Host("localhost")
+	user.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Powered-By", "rex")
+	})
+
+	Convey("rex.Host", t, func() {
+    request, _ := http.NewRequest("GET", "http://localhost/", nil)
+		response := httptest.NewRecorder()
+
+		app.ServeHTTP(response, request)
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "base")
+
+		user.ServeHTTP(response, request)
+		So(response.Header().Get("X-Powered-By"), ShouldEqual, "rex")
+	})
+}
+
 func TestFileServer(t *testing.T) {
 	Convey("rex.FileServer", t, func() {
 		var (

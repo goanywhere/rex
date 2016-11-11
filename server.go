@@ -102,6 +102,17 @@ func (self *server) Group(prefix string) *server {
 	return server
 }
 
+// Host creates a new application group under the given (sub)domain.
+func (self *server) Host(domain string) *server {
+	var middleware = new(middleware)
+  self.mux.Host(domain).Handler(middleware)
+  var mux = self.mux.Host(domain).Subrouter()
+
+	server := &server{middleware: middleware, mux: mux}
+	self.subservers = append(self.subservers, server)
+	return server
+}
+
 // Name returns route name for the given request, if any.
 func (self *server) Name(r *http.Request) (name string) {
 	var match mux.RouteMatch
