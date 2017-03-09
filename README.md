@@ -9,6 +9,7 @@ Rex is a library for modular web development in [Go](http://golang.org/), design
 - [X] v1.5
 - [X] v1.6
 - [X] v1.7
+- [X] v1.8
 
 
 ## Intro

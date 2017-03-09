@@ -13,5 +13,5 @@ install:
   - go get github.com/goanywhere/cmd
 
 go:
-  - 1.7
+  - 1.8
   - tip
