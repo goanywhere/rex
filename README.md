@@ -140,7 +140,7 @@ user.Use(func(next http.Handler) http.Handler {
 
 ## Benchmark?
 
-Rex is built upon [Gorilla/Mux](//github.com/gorilla/mux), designed to work with starndard `net/http` directly, which means it can run as fast as stdlib can without compromise. Here is a simple [wrk](https://github.com/wg/wrk) HTTP benchmark on a RMBP (2.8 GHz Intel Core i5 with 16GB memory) machine.
+Rex is built upon [Gorilla/Mux](//github.com/gorilla/mux), designed to work with standard `net/http` directly, which means it can run as fast as stdlib can without compromise. Here is a simple [wrk](https://github.com/wg/wrk) HTTP benchmark on a RMBP (2.8 GHz Intel Core i5 with 16GB memory) machine.
 
 <img alt="wrk" src="https://raw.githubusercontent.com/goanywhere/rex/assets/images/wrk.png">
 
