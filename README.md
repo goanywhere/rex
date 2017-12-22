@@ -2,7 +2,7 @@
 ===
 [![Build Status](https://travis-ci.org/goanywhere/rex.svg?branch=master)](https://travis-ci.org/goanywhere/rex) [![GoDoc](https://godoc.org/github.com/goanywhere/rex?status.svg)](http://godoc.org/github.com/goanywhere/rex)
 
-Rex is a library for modular web development in [Go](http://golang.org/), designed to work directly with net/http.
+Rex is a library for performant & modular web development in [Go](http://golang.org/), designed to work directly with `net/http`.
 
 ## Golang
 - [X] v1.4
